@@ -1,0 +1,9 @@
+#!/usr/bin/env node
+
+'use strict';
+
+require('ts-node').register();
+
+const { runCLI } = require('../src/cli.ts');
+
+runCLI(process.argv);
