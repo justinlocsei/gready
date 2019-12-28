@@ -13,7 +13,7 @@ import {
   ResponseBody,
   ShelvesResponse,
   UserResponse
-} from './api-responses';
+} from './types/api';
 
 const chmodAsync = promisify(chmod);
 const readFileAsync = promisify(readFile);
