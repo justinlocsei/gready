@@ -62,7 +62,7 @@ export function extractResponseBody(response: unknown): ResponseBody {
 export type ResponseBody = Record<string, any>;
 
 const Response = defineType<{
-  GoodreadsResponse: ResponseBody
+  GoodreadsResponse: ResponseBody;
 }>('response', {
   GoodreadsResponse: { type: 'object' }
 });
@@ -72,10 +72,10 @@ export const ShelvesResponse = defineType<{
     user_shelf: {
       id: {
         _: number;
-      }
+      };
       name: string;
-    }[]
-  }
+    }[];
+  };
 }>('shelves', {
   shelves: {
     type: 'object',
@@ -103,8 +103,8 @@ export const UserResponse = defineType<{
   user: {
     $: {
       id: string;
-    }
-  }
+    };
+  };
 }>('user data', {
   user: {
     type: 'object',

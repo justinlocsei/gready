@@ -2,7 +2,7 @@ import path from 'path';
 import querystring from 'querystring';
 import readline from 'readline';
 import xml2js from 'xml2js';
-import { chmod, readFile, unlink, writeFile } from 'graceful-fs';
+import { chmod, readFile, writeFile } from 'graceful-fs';
 import { OAuth } from 'oauth';
 import { promisify } from 'util';
 
@@ -17,7 +17,6 @@ import {
 
 const chmodAsync = promisify(chmod);
 const readFileAsync = promisify(readFile);
-const unlinkAsync = promisify(unlink);
 const writeFileAsync = promisify(writeFile);
 
 const ACCESS_TOKEN_URL = 'http://www.goodreads.com/oauth/access_token';
@@ -59,7 +58,7 @@ export default class APIClient {
   constructor({
     cacheDir
   }: {
-    cacheDir: string
+    cacheDir: string;
   }) {
     this.authFile = path.join(cacheDir, 'auth.json');
     this.cacheDir = cacheDir;
@@ -210,7 +209,7 @@ export default class APIClient {
         if (error) {
           reject(new Error(`Request for request token failed with code ${error.statusCode}`));
         } else {
-          resolve({secret, token});
+          resolve({ secret, token });
         }
       });
     });
@@ -245,7 +244,7 @@ export default class APIClient {
       output: process.stdout
     });
 
-    const payload = querystring.stringify({oauth_token: requestToken});
+    const payload = querystring.stringify({ oauth_token: requestToken });
 
     return new Promise(function(resolve, reject) {
       prompt.question(
