@@ -3,6 +3,8 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "module": "commonjs",
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
     "strict": true,
     "target": "es5"
   },
