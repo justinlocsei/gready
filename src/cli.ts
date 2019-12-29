@@ -36,6 +36,11 @@ class CLI {
           'Scrape data from Goodreads',
           function(y) {
             return y
+              .option('cache', {
+                default: true,
+                describe: 'Cache API responses',
+                type: 'boolean'
+              })
               .option('cache-dir', {
                 default: paths.cacheDir,
                 describe: 'The directory in which to cache API responses',
@@ -51,7 +56,8 @@ class CLI {
 
             return scrape({
               cacheDir: args['cache-dir'],
-              dataDir: args['data-dir']
+              dataDir: args['data-dir'],
+              useCache: args['cache']
             });
           }
         )

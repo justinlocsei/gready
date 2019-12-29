@@ -1,9 +1,4 @@
-import APIClient from '../api-client';
-
-interface ScraperOptions {
-  cacheDir: string;
-  dataDir: string;
-}
+import { APIClient, createClient } from '../api-client';
 
 class Scraper {
 
@@ -11,13 +6,9 @@ class Scraper {
 
   /**
    * Create a new object to track the lifecycle of a scraping process
-   *
-   * @param {ScraperOptions} options [description]
    */
-  constructor(options: ScraperOptions) {
-    this.client = new APIClient({
-      cacheDir: options.cacheDir
-    });
+  constructor(client: APIClient) {
+    this.client = client;
   }
 
   /**
@@ -32,6 +23,19 @@ class Scraper {
 /**
  * Scrape data from Goodreads
  */
-export function scrape(options: ScraperOptions): Promise<void> {
-  return new Scraper(options).scrape();
+export async function scrape({
+  cacheDir,
+  dataDir,
+  useCache
+}: {
+  cacheDir: string;
+  dataDir: string;
+  useCache: boolean;
+}): Promise<void> {
+  const client = await createClient({
+    cacheDir,
+    useCache
+  });
+
+  return new Scraper(client).scrape();
 }

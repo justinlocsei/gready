@@ -4,6 +4,7 @@ import querystring from 'querystring';
 import readline from 'readline';
 import xml2js from 'xml2js';
 import { chmod, readFile, writeFile } from 'graceful-fs';
+import { mkdirp } from 'fs-extra';
 import { OAuth } from 'oauth';
 import { promisify } from 'util';
 
@@ -24,7 +25,15 @@ const API_BASE_URL = 'https://www.goodreads.com';
 const AUTHORIZE_URL = 'https://www.goodreads.com/oauth/authorize';
 const REQUEST_TOKEN_URL = 'http://www.goodreads.com/oauth/request_token';
 
+const REQUEST_SPACING_MS = 1000;
+
 const objectHasher = createObjectHasher();
+
+interface ClientOptions {
+  authFile: string;
+  cacheDir: string;
+  useCache: boolean;
+}
 
 interface OAuthCredentials {
   secret: string;
@@ -46,25 +55,36 @@ function createOAuthClient(): OAuth {
   );
 }
 
-export default class APIClient {
+export class APIClient {
 
-  private authFile: string;
-  private cacheDir: string;
   private credentials?: OAuthCredentials;
+  private lastRequest: number;
   private oauth: OAuth;
+  private options: ClientOptions;
   private userID?: string;
 
   /**
    * Create a new interface to the Goodreads API
    */
-  constructor({
-    cacheDir
-  }: {
-    cacheDir: string;
-  }) {
-    this.authFile = path.join(cacheDir, 'auth.json');
-    this.cacheDir = cacheDir;
+  constructor(options: ClientOptions) {
+    this.lastRequest = Date.now();
     this.oauth = createOAuthClient();
+    this.options = options;
+  }
+
+  /**
+   * Get information on a user's read books
+   *
+   * @returns {Promise<void>} [description]
+   */
+  async getReadBooks(): Promise<void> {
+    const response = await this.request('GET', 'review/list.xml', {
+      per_page: 20,
+      shelf: 'read',
+      v: 2
+    });
+
+    console.error(JSON.stringify(response, null, 2)); // TODO: delete me
   }
 
   /**
@@ -124,6 +144,15 @@ export default class APIClient {
   }
 
   /**
+   * Sleep for an arbitrary number of milliseconds
+   */
+  private sleep(ms: number): Promise<void> {
+    return new Promise(function(resolve) {
+      setTimeout(resolve, ms);
+    });
+  }
+
+  /**
    * Make a GET request to the Goodreads API
    */
   private async makeGetRequest(
@@ -131,6 +160,8 @@ export default class APIClient {
     payload?: Record<string, any>
   ): Promise<string> {
     const { secret, token } = await this.getCredentials();
+
+    await this.respectRateLimiting();
 
     let endpoint = url;
 
@@ -158,6 +189,8 @@ export default class APIClient {
   ): Promise<string> {
     const { secret, token } = await this.getCredentials();
 
+    await this.respectRateLimiting();
+
     return new Promise((resolve, reject) => {
       this.oauth.post(url, token, secret, payload || {}, 'application/x-www-form-urlencoded', function(error, result) {
         if (error) {
@@ -167,6 +200,20 @@ export default class APIClient {
         }
       });
     });
+  }
+
+  /**
+   * Prevent requests from being made too quickly
+   */
+  private async respectRateLimiting(): Promise<void> {
+    const time = Date.now();
+    const elapsed = time - this.lastRequest;
+
+    if (elapsed < REQUEST_SPACING_MS) {
+      await this.sleep(elapsed);
+    }
+
+    this.lastRequest = time;
   }
 
   /**
@@ -187,6 +234,10 @@ export default class APIClient {
    * Attempt to read a cached API response
    */
   private readCachedResponse(url: string, payload?: object): Promise<string | null> {
+    if (!this.options.useCache) {
+      return Promise.resolve(null);
+    }
+
     return readFileAsync(this.makeCacheFilePath(url, payload)).then(
       data => data.toString(),
       function(error: NodeJS.ErrnoException) {
@@ -213,7 +264,7 @@ export default class APIClient {
 
     const basename = parts.join('--');
 
-    return path.join(this.cacheDir, `${basename}.xml`);
+    return path.join(this.options.cacheDir, `${basename}.xml`);
   }
 
   /**
@@ -234,8 +285,8 @@ export default class APIClient {
     await this.waitForAuthorization(requestToken.token);
 
     const accessToken = await this.getAccessToken(requestToken);
-    await writeFileAsync(this.authFile, JSON.stringify(accessToken));
-    await chmodAsync(this.authFile, 0o600);
+    await writeFileAsync(this.options.authFile, JSON.stringify(accessToken));
+    await chmodAsync(this.options.authFile, 0o600);
 
     return accessToken;
   }
@@ -244,7 +295,7 @@ export default class APIClient {
    * Attempt to load credentials from a local file
    */
   private loadStoredCredentials(): Promise<OAuthCredentials | null> {
-    return readFileAsync(this.authFile, 'utf8').then(
+    return readFileAsync(this.options.authFile, 'utf8').then(
       function(data) {
         return JSON.parse(data) as OAuthCredentials;
       },
@@ -315,4 +366,21 @@ export default class APIClient {
     });
   }
 
+}
+
+/**
+ * Create an API client
+ */
+export async function createClient(options: Omit<ClientOptions, 'authFile'>): Promise<APIClient> {
+  const cacheDir = path.join(options.cacheDir, 'api');
+
+  await mkdirp(cacheDir);
+
+  const client = new APIClient({
+    ...options,
+    authFile: path.join(options.cacheDir, 'auth.json'),
+    cacheDir
+  });
+
+  return client;
 }
