@@ -22,6 +22,7 @@ function resolvePaths() {
 
   return {
     cacheDir: path.join(rootDir, '.cache'),
+    dataDir: path.join(rootDir, 'data'),
     rootDir
   };
 }
