@@ -1,6 +1,6 @@
 import Ajv from 'ajv';
 
-interface ExternalType<T> {
+interface APIType<T> {
   conform: (data: unknown) => T;
   name: string;
 }
@@ -12,9 +12,9 @@ type JSONSchema =
   | { type: 'string'; }
 
 /**
- * Define a type that can be used to validate external data
+ * Define a type that can be used to validate API data
  */
-function defineType<T>(name: string, schema: Record<string, JSONSchema>): ExternalType<T> {
+function defineType<T>(name: string, schema: Record<string, JSONSchema>): APIType<T> {
   const jsonSchema: JSONSchema = {
     properties: schema,
     required: Object.keys(schema),
@@ -28,7 +28,7 @@ function defineType<T>(name: string, schema: Record<string, JSONSchema>): Extern
 }
 
 /**
- * Ensure that data conforms to an external type
+ * Ensure that data conforms to an API type
  *
  * @throws If the data does not conform to the type
  */
