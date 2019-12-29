@@ -1,3 +1,4 @@
+import createObjectHasher from 'node-object-hash';
 import path from 'path';
 import querystring from 'querystring';
 import readline from 'readline';
@@ -22,6 +23,8 @@ const ACCESS_TOKEN_URL = 'http://www.goodreads.com/oauth/access_token';
 const API_BASE_URL = 'https://www.goodreads.com';
 const AUTHORIZE_URL = 'https://www.goodreads.com/oauth/authorize';
 const REQUEST_TOKEN_URL = 'http://www.goodreads.com/oauth/request_token';
+
+const objectHasher = createObjectHasher();
 
 interface OAuthCredentials {
   secret: string;
@@ -94,12 +97,21 @@ export default class APIClient {
     const url = `${API_BASE_URL}/${relativeURL}`;
 
     switch (method) {
-      case 'GET':
-        response = await this.makeGetRequest(url, payload);
+      case 'GET': {
+        response = await this.readCachedResponse(relativeURL, payload);
+
+        if (!response) {
+          response = await this.makeGetRequest(url, payload);
+          await this.cacheResponse(relativeURL, payload, response);
+        }
+
         break;
+      }
+
       case 'POST':
         response = await this.makePostRequest(url, payload);
         break;
+
       default:
         throw new Error(`Unhandled request type: ${method}`);
     }
@@ -155,6 +167,53 @@ export default class APIClient {
         }
       });
     });
+  }
+
+  /**
+   * Cache an API response
+   */
+  private cacheResponse(
+    url: string,
+    payload: object | undefined,
+    response: string
+  ): Promise<void> {
+    return writeFileAsync(
+      this.makeCacheFilePath(url, payload),
+      response
+    );
+  }
+
+  /**
+   * Attempt to read a cached API response
+   */
+  private readCachedResponse(url: string, payload?: object): Promise<string | null> {
+    return readFileAsync(this.makeCacheFilePath(url, payload)).then(
+      data => data.toString(),
+      function(error: NodeJS.ErrnoException) {
+        if (error.code === 'ENOENT') {
+          return null;
+        } else {
+          throw error;
+        }
+      }
+    );
+  }
+
+  /**
+   * Create the path to a file in which to store a cached API response
+   */
+  private makeCacheFilePath(url: string, payload?: object): string {
+    const parts = url
+      .split('/')
+      .map(p => p.replace('_', '-'))
+
+    if (payload) {
+      parts.push(objectHasher.hash(payload));
+    }
+
+    const basename = parts.join('--');
+
+    return path.join(this.cacheDir, `${basename}.xml`);
   }
 
   /**
