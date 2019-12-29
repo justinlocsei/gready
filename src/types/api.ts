@@ -67,38 +67,6 @@ const Response = defineType<{
   GoodreadsResponse: { type: 'object' }
 });
 
-export const ShelvesResponse = defineType<{
-  shelves: {
-    user_shelf: {
-      id: {
-        _: number;
-      };
-      name: string;
-    }[];
-  };
-}>('shelves', {
-  shelves: {
-    type: 'object',
-    properties: {
-      user_shelf: {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: {
-            id: {
-              type: 'object',
-              properties: {
-                _: { type: 'string' }
-              }
-            },
-            name: { type: 'string' }
-          }
-        }
-      }
-    }
-  }
-});
-
 export const UserResponse = defineType<{
   user: {
     $: {

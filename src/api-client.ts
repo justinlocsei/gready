@@ -11,7 +11,6 @@ import { readSecret } from './environment';
 import {
   extractResponseBody,
   ResponseBody,
-  ShelvesResponse,
   UserResponse
 } from './types/api';
 
