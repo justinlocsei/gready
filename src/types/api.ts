@@ -60,6 +60,7 @@ export function extractResponseBody(response: unknown): ResponseBody {
 }
 
 export type ResponseBody = Record<string, any>;
+export type ResponseType<T extends APIType<any>> = ReturnType<T['conform']>;
 
 const Response = defineType<{
   GoodreadsResponse: ResponseBody;
