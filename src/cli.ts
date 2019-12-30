@@ -1,6 +1,8 @@
+import path from 'path';
 import yargs from 'yargs';
 import { mkdirp } from 'fs-extra';
 
+import APIClient from './api-client';
 import { paths } from './environment';
 import { scrape } from './tasks/scrape';
 
@@ -40,24 +42,24 @@ class CLI {
                 default: true,
                 describe: 'Cache API responses',
                 type: 'boolean'
-              })
-              .option('cache-dir', {
-                default: paths.cacheDir,
-                describe: 'The directory in which to cache API responses',
-                type: 'string'
               });
           },
-          async function(args): Promise<void> {
+          async (args): Promise<void> => {
             if (args.h) {
               return Promise.resolve();
             }
 
-            await mkdirp(args['cache-dir']);
+            const dirs = await this.initializeDataDirectory(args['data-dir']);
+
+            const client = new APIClient({
+              authDir: dirs.authDir,
+              cacheDir: dirs.cacheDir,
+              useCache: args['cache']
+            });
 
             return scrape({
-              cacheDir: args['cache-dir'],
-              dataDir: args['data-dir'],
-              useCache: args['cache']
+              client,
+              dataDir: dirs.rootDir
             });
           }
         )
@@ -72,6 +74,28 @@ class CLI {
         resolve();
       }
     });
+  }
+
+  /**
+   * Create a data directory's structure
+   */
+  private async initializeDataDirectory(rootPath: string): Promise<{
+    authDir: string;
+    cacheDir: string;
+    rootDir: string;
+  }> {
+    const authDir = path.join(rootPath, 'auth');
+    const cacheDir = path.join(rootPath, '.cache');
+
+    await mkdirp(rootPath);
+    await mkdirp(authDir);
+    await mkdirp(cacheDir);
+
+    return {
+      authDir,
+      cacheDir,
+      rootDir: rootPath
+    };
   }
 
 }

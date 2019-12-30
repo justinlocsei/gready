@@ -21,7 +21,6 @@ function resolvePaths() {
   const rootDir = path.normalize(path.join(__dirname, '..'));
 
   return {
-    cacheDir: path.join(rootDir, '.cache'),
     dataDir: path.join(rootDir, 'data'),
     rootDir
   };
