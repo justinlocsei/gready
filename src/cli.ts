@@ -1,9 +1,7 @@
-import path from 'path';
 import yargs from 'yargs';
-import { mkdirp } from 'fs-extra';
 
 import APIClient from './api-client';
-import { paths } from './environment';
+import { OutputDirectoryStructure, paths, prepareOutputDirectory } from './environment';
 import { scrape } from './tasks/scrape';
 
 class CLI {
@@ -23,9 +21,9 @@ class CLI {
   run(): Promise<void> {
     return new Promise((resolve, reject) => {
       yargs
-        .option('data-dir', {
-          default: paths.dataDir,
-          describe: 'The directory in which to store processed data',
+        .option('output-dir', {
+          default: paths.outputDir,
+          describe: 'The directory in which to store generated files',
           type: 'string'
         })
         .command(
@@ -33,8 +31,8 @@ class CLI {
           'Clear all cached data',
           y => y,
           async (args): Promise<void> => {
-            const client = await this.createAPIClient({
-              dataDir: args['data-dir'],
+            const [client] = await this.createAPIClient({
+              outputDir: args['output-dir'],
               useCache: false
             });
 
@@ -53,14 +51,14 @@ class CLI {
               });
           },
           async (args): Promise<void> => {
-            const client = await this.createAPIClient({
-              dataDir: args['data-dir'],
+            const [client, dirs] = await this.createAPIClient({
+              outputDir: args['output-dir'],
               useCache: args['cache']
             });
 
             return scrape({
               client,
-              dataDir: args['data-dir']
+              dataDir: dirs.dataDir
             });
           }
         )
@@ -77,41 +75,21 @@ class CLI {
    * Create an API client
    */
   private async createAPIClient({
-    dataDir,
+    outputDir,
     useCache
   }: {
-    dataDir: string;
+    outputDir: string;
     useCache: boolean;
-  }): Promise<APIClient> {
-    const dirs = await this.initializeDataDirectory(dataDir);
+  }): Promise<[APIClient, OutputDirectoryStructure]> {
+    const dirs = await prepareOutputDirectory(outputDir);
 
-    return new APIClient({
+    const client = new APIClient({
       authDir: dirs.authDir,
       cacheDir: dirs.cacheDir,
       useCache
     });
-  }
 
-  /**
-   * Create a data directory's structure
-   */
-  private async initializeDataDirectory(rootPath: string): Promise<{
-    authDir: string;
-    cacheDir: string;
-    rootDir: string;
-  }> {
-    const authDir = path.join(rootPath, 'auth');
-    const cacheDir = path.join(rootPath, '.cache');
-
-    await mkdirp(rootPath);
-    await mkdirp(authDir);
-    await mkdirp(cacheDir);
-
-    return {
-      authDir,
-      cacheDir,
-      rootDir: rootPath
-    };
+    return [client, dirs];
   }
 
 }
