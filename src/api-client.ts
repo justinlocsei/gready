@@ -297,7 +297,9 @@ export default class APIClient {
     }
 
     const session = await this.loadSession();
+
     this.credentials = session.credentials;
+    this.userID = session.userID;
 
     return this.credentials;
   }
