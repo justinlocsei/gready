@@ -29,6 +29,19 @@ class CLI {
           type: 'string'
         })
         .command(
+          'clear-cache',
+          'Clear all cached data',
+          y => y,
+          async (args): Promise<void> => {
+            const client = await this.createAPIClient({
+              dataDir: args['data-dir'],
+              useCache: false
+            });
+
+            return client.clearCache();
+          }
+        )
+        .command(
           'scrape',
           'Scrape data from Goodreads',
           function(y) {
@@ -40,21 +53,14 @@ class CLI {
               });
           },
           async (args): Promise<void> => {
-            if (args.h) {
-              return Promise.resolve();
-            }
-
-            const dirs = await this.initializeDataDirectory(args['data-dir']);
-
-            const client = new APIClient({
-              authDir: dirs.authDir,
-              cacheDir: dirs.cacheDir,
+            const client = await this.createAPIClient({
+              dataDir: args['data-dir'],
               useCache: args['cache']
             });
 
             return scrape({
               client,
-              dataDir: dirs.rootDir
+              dataDir: args['data-dir']
             });
           }
         )
@@ -69,6 +75,25 @@ class CLI {
         parser.showHelp();
         resolve();
       }
+    });
+  }
+
+  /**
+   * Create an API client
+   */
+  private async createAPIClient({
+    dataDir,
+    useCache
+  }: {
+    dataDir: string;
+    useCache: boolean;
+  }): Promise<APIClient> {
+    const dirs = await this.initializeDataDirectory(dataDir);
+
+    return new APIClient({
+      authDir: dirs.authDir,
+      cacheDir: dirs.cacheDir,
+      useCache
     });
   }
 
