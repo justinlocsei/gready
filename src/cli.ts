@@ -31,11 +31,7 @@ class CLI {
           'Clear all cached data',
           y => y,
           async (args): Promise<void> => {
-            const [client] = await this.createAPIClient({
-              outputDir: args['output-dir'],
-              useCache: false
-            });
-
+            const [client] = await this.createAPIClient(args['output-dir']);
             return client.clearCache();
           }
         )
@@ -44,11 +40,7 @@ class CLI {
           'Allow gready to access your Goodreads account',
           y => y,
           async (args): Promise<void> => {
-            const [client] = await this.createAPIClient({
-              outputDir: args['output-dir'],
-              useCache: false
-            });
-
+            const [client] = await this.createAPIClient(args['output-dir']);
             const userID = await client.logIn();
 
             console.log(`Logged in with user ID: ${userID}`);
@@ -59,11 +51,7 @@ class CLI {
           'Prevent gready from accessing your Goodreads account',
           y => y,
           async (args): Promise<void> => {
-            const [client] = await this.createAPIClient({
-              outputDir: args['output-dir'],
-              useCache: false
-            });
-
+            const [client] = await this.createAPIClient(args['output-dir']);
             return client.logOut();
           }
         )
@@ -79,10 +67,10 @@ class CLI {
               });
           },
           async (args): Promise<void> => {
-            const [client, dirs] = await this.createAPIClient({
-              outputDir: args['output-dir'],
-              useCache: args['cache']
-            });
+            const [client, dirs] = await this.createAPIClient(
+              args['output-dir'],
+              args['cache']
+            );
 
             return scrape({
               client,
@@ -102,13 +90,10 @@ class CLI {
   /**
    * Create an API client
    */
-  private async createAPIClient({
-    outputDir,
-    useCache
-  }: {
-    outputDir: string;
-    useCache: boolean;
-  }): Promise<[APIClient, OutputDirectoryStructure]> {
+  private async createAPIClient(
+    outputDir: string,
+    useCache = false
+  ): Promise<[APIClient, OutputDirectoryStructure]> {
     const dirs = await prepareOutputDirectory(outputDir);
 
     const client = new APIClient({
