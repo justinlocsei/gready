@@ -213,6 +213,10 @@ export default class APIClient {
     key: string,
     computeValue: () => Promise<T>
   ): Promise<T> {
+    if (!this.options.useCache) {
+      return computeValue();
+    }
+
     const cacheFile = path.join(this.options.cacheDir, `${key}.json`);
 
     try {
