@@ -5,6 +5,7 @@ import xml2js from 'xml2js';
 import { chmod, readFile, writeFile } from 'graceful-fs';
 import { OAuth } from 'oauth';
 import { promisify } from 'util';
+import { remove } from 'fs-extra';
 
 import { JSONSerializable } from './types/core';
 import { readSecret } from './environment';
@@ -69,6 +70,13 @@ export default class APIClient {
     this.oauth = createOAuthClient();
     this.options = options;
     this.tokenFile = path.join(options.authDir, 'token.json');
+  }
+
+  /**
+   * Clear all cached data
+   */
+  clearCache(): Promise<void> {
+    return remove(this.options.cacheDir);
   }
 
   /**
