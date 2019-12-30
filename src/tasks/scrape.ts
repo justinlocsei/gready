@@ -1,21 +1,23 @@
-import { APIClient, createClient } from '../api-client';
+import APIClient from '../api-client';
 
 class Scraper {
 
   private client: APIClient;
+  private dataDir: string;
 
   /**
    * Create a new object to track the lifecycle of a scraping process
    */
-  constructor(client: APIClient) {
+  constructor(client: APIClient, dataDir: string) {
     this.client = client;
+    this.dataDir = dataDir;
   }
 
   /**
    * Scrape data from Goodreads
    */
   async scrape(): Promise<void> {
-
+    console.error(await this.client.getUserID()); // TODO: delete me
   }
 
 }
@@ -24,18 +26,11 @@ class Scraper {
  * Scrape data from Goodreads
  */
 export async function scrape({
-  cacheDir,
-  dataDir,
-  useCache
+  client,
+  dataDir
 }: {
-  cacheDir: string;
+  client: APIClient;
   dataDir: string;
-  useCache: boolean;
 }): Promise<void> {
-  const client = await createClient({
-    cacheDir,
-    useCache
-  });
-
-  return new Scraper(client).scrape();
+  return new Scraper(client, dataDir).scrape();
 }

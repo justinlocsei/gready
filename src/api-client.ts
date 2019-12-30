@@ -1,13 +1,12 @@
-import createObjectHasher from 'node-object-hash';
 import path from 'path';
 import querystring from 'querystring';
 import readline from 'readline';
 import xml2js from 'xml2js';
 import { chmod, readFile, writeFile } from 'graceful-fs';
-import { mkdirp } from 'fs-extra';
 import { OAuth } from 'oauth';
 import { promisify } from 'util';
 
+import { JSONSerializable } from './types/core';
 import { readSecret } from './environment';
 
 import {
@@ -27,10 +26,8 @@ const REQUEST_TOKEN_URL = 'http://www.goodreads.com/oauth/request_token';
 
 const REQUEST_SPACING_MS = 1000;
 
-const objectHasher = createObjectHasher();
-
 interface ClientOptions {
-  authFile: string;
+  authDir: string;
   cacheDir: string;
   useCache: boolean;
 }
@@ -55,12 +52,13 @@ function createOAuthClient(): OAuth {
   );
 }
 
-export class APIClient {
+export default class APIClient {
 
   private credentials?: OAuthCredentials;
   private lastRequest: number;
   private oauth: OAuth;
   private options: ClientOptions;
+  private tokenFile: string;
   private userID?: string;
 
   /**
@@ -70,12 +68,11 @@ export class APIClient {
     this.lastRequest = Date.now();
     this.oauth = createOAuthClient();
     this.options = options;
+    this.tokenFile = path.join(options.authDir, 'token.json');
   }
 
   /**
    * Get information on a user's read books
-   *
-   * @returns {Promise<void>} [description]
    */
   async getReadBooks(): Promise<void> {
     const response = await this.request('GET', 'review/list.xml', {
@@ -117,16 +114,9 @@ export class APIClient {
     const url = `${API_BASE_URL}/${relativeURL}`;
 
     switch (method) {
-      case 'GET': {
-        response = await this.readCachedResponse(relativeURL, payload);
-
-        if (!response) {
-          response = await this.makeGetRequest(url, payload);
-          await this.cacheResponse(relativeURL, payload, response);
-        }
-
+      case 'GET':
+        response = await this.makeGetRequest(url, payload);
         break;
-      }
 
       case 'POST':
         response = await this.makePostRequest(url, payload);
@@ -217,54 +207,27 @@ export class APIClient {
   }
 
   /**
-   * Cache an API response
+   * Read a value from the cache, or populate it if it is missing
    */
-  private cacheResponse(
-    url: string,
-    payload: object | undefined,
-    response: string
-  ): Promise<void> {
-    return writeFileAsync(
-      this.makeCacheFilePath(url, payload),
-      response
-    );
-  }
+  private async useCachedValue<T extends JSONSerializable>(
+    key: string,
+    computeValue: () => Promise<T>
+  ): Promise<T> {
+    const cacheFile = path.join(this.options.cacheDir, `${key}.json`);
 
-  /**
-   * Attempt to read a cached API response
-   */
-  private readCachedResponse(url: string, payload?: object): Promise<string | null> {
-    if (!this.options.useCache) {
-      return Promise.resolve(null);
-    }
+    try {
+      const cached = await readFileAsync(cacheFile, 'utf8');
+      return JSON.parse(cached);
+    } catch(error) {
+      if (error.code && error.code === 'ENOENT') {
+        const value = await computeValue();
+        await writeFileAsync(cacheFile, JSON.stringify(value));
 
-    return readFileAsync(this.makeCacheFilePath(url, payload)).then(
-      data => data.toString(),
-      function(error: NodeJS.ErrnoException) {
-        if (error.code === 'ENOENT') {
-          return null;
-        } else {
-          throw error;
-        }
+        return value;
+      } else {
+        throw error;
       }
-    );
-  }
-
-  /**
-   * Create the path to a file in which to store a cached API response
-   */
-  private makeCacheFilePath(url: string, payload?: object): string {
-    const parts = url
-      .split('/')
-      .map(p => p.replace('_', '-'))
-
-    if (payload) {
-      parts.push(objectHasher.hash(payload));
     }
-
-    const basename = parts.join('--');
-
-    return path.join(this.options.cacheDir, `${basename}.xml`);
   }
 
   /**
@@ -285,8 +248,10 @@ export class APIClient {
     await this.waitForAuthorization(requestToken.token);
 
     const accessToken = await this.getAccessToken(requestToken);
-    await writeFileAsync(this.options.authFile, JSON.stringify(accessToken));
-    await chmodAsync(this.options.authFile, 0o600);
+    await writeFileAsync(this.tokenFile, JSON.stringify(accessToken));
+    await chmodAsync(this.tokenFile, 0o600);
+
+    this.credentials = accessToken;
 
     return accessToken;
   }
@@ -295,7 +260,7 @@ export class APIClient {
    * Attempt to load credentials from a local file
    */
   private loadStoredCredentials(): Promise<OAuthCredentials | null> {
-    return readFileAsync(this.options.authFile, 'utf8').then(
+    return readFileAsync(this.tokenFile, 'utf8').then(
       function(data) {
         return JSON.parse(data) as OAuthCredentials;
       },
@@ -366,21 +331,4 @@ export class APIClient {
     });
   }
 
-}
-
-/**
- * Create an API client
- */
-export async function createClient(options: Omit<ClientOptions, 'authFile'>): Promise<APIClient> {
-  const cacheDir = path.join(options.cacheDir, 'api');
-
-  await mkdirp(cacheDir);
-
-  const client = new APIClient({
-    ...options,
-    authFile: path.join(options.cacheDir, 'auth.json'),
-    cacheDir
-  });
-
-  return client;
 }
