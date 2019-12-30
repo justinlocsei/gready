@@ -28,11 +28,6 @@ class CLI {
           describe: 'The directory in which to store processed data',
           type: 'string'
         })
-        .option('h', {
-          alias: 'help',
-          describe: 'Show usage',
-          type: 'boolean'
-        })
         .command(
           'scrape',
           'Scrape data from Goodreads',
@@ -65,7 +60,8 @@ class CLI {
         )
         .demandCommand(1, 'You must select a mode of operation')
         .strict()
-        .help(false);
+        .help('h')
+        .alias('h', 'help');
 
       const options = parser.parse(this.args.slice(1));
 
