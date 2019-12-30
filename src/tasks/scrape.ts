@@ -17,7 +17,7 @@ class Scraper {
    * Scrape data from Goodreads
    */
   async scrape(): Promise<void> {
-    console.error(await this.client.getUserID()); // TODO: delete me
+
   }
 
 }

@@ -40,6 +40,34 @@ class CLI {
           }
         )
         .command(
+          'log-in',
+          'Allow gready to access your Goodreads account',
+          y => y,
+          async (args): Promise<void> => {
+            const [client] = await this.createAPIClient({
+              outputDir: args['output-dir'],
+              useCache: false
+            });
+
+            const userID = await client.logIn();
+
+            console.log(`Logged in with user ID: ${userID}`);
+          }
+        )
+        .command(
+          'log-out',
+          'Prevent gready from accessing your Goodreads account',
+          y => y,
+          async (args): Promise<void> => {
+            const [client] = await this.createAPIClient({
+              outputDir: args['output-dir'],
+              useCache: false
+            });
+
+            return client.logOut();
+          }
+        )
+        .command(
           'scrape',
           'Scrape data from Goodreads',
           function(y) {
@@ -84,8 +112,8 @@ class CLI {
     const dirs = await prepareOutputDirectory(outputDir);
 
     const client = new APIClient({
-      authDir: dirs.authDir,
       cacheDir: dirs.cacheDir,
+      sessionFile: paths.sessionFile,
       useCache
     });
 

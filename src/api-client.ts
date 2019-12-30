@@ -2,7 +2,7 @@ import path from 'path';
 import querystring from 'querystring';
 import readline from 'readline';
 import xml2js from 'xml2js';
-import { chmod, readFile, writeFile } from 'graceful-fs';
+import { chmod, readFile, unlink, writeFile } from 'graceful-fs';
 import { OAuth } from 'oauth';
 import { promisify } from 'util';
 import { remove } from 'fs-extra';
@@ -18,6 +18,7 @@ import {
 
 const chmodAsync = promisify(chmod);
 const readFileAsync = promisify(readFile);
+const unlinkAsync = promisify(unlink);
 const writeFileAsync = promisify(writeFile);
 
 const ACCESS_TOKEN_URL = 'http://www.goodreads.com/oauth/access_token';
@@ -28,14 +29,19 @@ const REQUEST_TOKEN_URL = 'http://www.goodreads.com/oauth/request_token';
 const REQUEST_SPACING_MS = 1000;
 
 interface ClientOptions {
-  authDir: string;
   cacheDir: string;
+  sessionFile: string;
   useCache: boolean;
 }
 
 interface OAuthCredentials {
   secret: string;
   token: string;
+}
+
+interface Session {
+  credentials: OAuthCredentials;
+  userID: string;
 }
 
 /**
@@ -59,7 +65,6 @@ export default class APIClient {
   private lastRequest: number;
   private oauth: OAuth;
   private options: ClientOptions;
-  private tokenFile: string;
   private userID?: string;
 
   /**
@@ -69,7 +74,6 @@ export default class APIClient {
     this.lastRequest = Date.now();
     this.oauth = createOAuthClient();
     this.options = options;
-    this.tokenFile = path.join(options.authDir, 'token.json');
   }
 
   /**
@@ -77,6 +81,43 @@ export default class APIClient {
    */
   clearCache(): Promise<void> {
     return remove(this.options.cacheDir);
+  }
+
+  /**
+   * Log a user in and store their session information
+   */
+  async logIn(): Promise<string> {
+    const requestToken = await this.generateReqestToken();
+    await this.waitForAuthorization(requestToken.token);
+
+    const accessToken = await this.getAccessToken(requestToken);
+    this.credentials = accessToken;
+
+    const userID = await this.getUserID();
+
+    const session: Session = {
+      credentials: accessToken,
+      userID
+    };
+
+    await writeFileAsync(this.options.sessionFile, JSON.stringify(session, null, 2));
+    await chmodAsync(this.options.sessionFile, 0o600);
+
+    return userID;
+  }
+
+  /**
+   * Remove any stored session information
+   */
+  logOut(): Promise<void> {
+    return unlinkAsync(this.options.sessionFile).then(
+      () => undefined,
+      function(error) {
+        if (error.code !== 'ENOENT') {
+          throw error;
+        }
+      }
+    );
   }
 
   /**
@@ -95,7 +136,7 @@ export default class APIClient {
   /**
    * Get the ID of the authorized user
    */
-  async getUserID(): Promise<string> {
+  private async getUserID(): Promise<string> {
     if (this.userID) {
       return Promise.resolve(this.userID);
     }
@@ -231,7 +272,7 @@ export default class APIClient {
       const cached = await readFileAsync(cacheFile, 'utf8');
       return JSON.parse(cached);
     } catch(error) {
-      if (error.code && error.code === 'ENOENT') {
+      if (error.code === 'ENOENT') {
         const value = await computeValue();
         await writeFileAsync(cacheFile, JSON.stringify(value));
 
@@ -250,38 +291,19 @@ export default class APIClient {
       return Promise.resolve(this.credentials);
     }
 
-    const stored = await this.loadStoredCredentials();
+    const session = await this.loadSession();
+    this.credentials = session.credentials;
 
-    if (stored !== null) {
-      return stored;
-    }
-
-    const requestToken = await this.generateReqestToken();
-    await this.waitForAuthorization(requestToken.token);
-
-    const accessToken = await this.getAccessToken(requestToken);
-    await writeFileAsync(this.tokenFile, JSON.stringify(accessToken));
-    await chmodAsync(this.tokenFile, 0o600);
-
-    this.credentials = accessToken;
-
-    return accessToken;
+    return this.credentials;
   }
 
   /**
-   * Attempt to load credentials from a local file
+   * Load session information from the session file
    */
-  private loadStoredCredentials(): Promise<OAuthCredentials | null> {
-    return readFileAsync(this.tokenFile, 'utf8').then(
+  private loadSession(): Promise<Session> {
+    return readFileAsync(this.options.sessionFile, 'utf8').then(
       function(data) {
-        return JSON.parse(data) as OAuthCredentials;
-      },
-      function(error: NodeJS.ErrnoException) {
-        if (error.code === 'ENOENT') {
-          return null;
-        } else {
-          throw error;
-        }
+        return JSON.parse(data) as Session;
       }
     );
   }

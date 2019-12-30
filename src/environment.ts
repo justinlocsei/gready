@@ -3,7 +3,6 @@ import process from 'process';
 import { mkdirp } from 'fs-extra';
 
 export interface OutputDirectoryStructure {
-  authDir: string;
   cacheDir: string;
   dataDir: string;
 }
@@ -14,16 +13,13 @@ export interface OutputDirectoryStructure {
 export async function prepareOutputDirectory(rootPath: string): Promise<OutputDirectoryStructure> {
   await mkdirp(rootPath);
 
-  const authDir = path.join(rootPath, 'auth');
   const cacheDir = path.join(rootPath, '.cache');
   const dataDir = path.join(rootPath, 'data');
 
-  await mkdirp(authDir);
   await mkdirp(cacheDir);
   await mkdirp(dataDir);
 
   return {
-    authDir,
     cacheDir,
     dataDir
   };
@@ -50,6 +46,7 @@ function resolvePaths() {
 
   return {
     outputDir: path.join(rootDir, 'output'),
+    sessionFile: path.join(rootDir, '.session.json'),
     rootDir
   };
 }
