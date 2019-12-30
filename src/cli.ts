@@ -22,7 +22,7 @@ class CLI {
    */
   run(): Promise<void> {
     return new Promise((resolve, reject) => {
-      const parser = yargs
+      yargs
         .option('data-dir', {
           default: paths.dataDir,
           describe: 'The directory in which to store processed data',
@@ -67,14 +67,9 @@ class CLI {
         .demandCommand(1, 'You must select a mode of operation')
         .strict()
         .help('h')
-        .alias('h', 'help');
-
-      const options = parser.parse(this.args.slice(1));
-
-      if (options.h) {
-        parser.showHelp();
-        resolve();
-      }
+        .alias('h', 'help')
+        .version()
+        .parse(this.args.slice(1));
     });
   }
 
