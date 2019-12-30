@@ -257,26 +257,31 @@ export default class APIClient {
 
   /**
    * Read a value from the cache, or populate it if it is missing
+   *
+   * This returns the cached value and a boolean indicating whether the value
+   * was fetched from the cache.
    */
   private async useCachedValue<T extends JSONSerializable>(
     key: string,
     computeValue: () => Promise<T>
-  ): Promise<T> {
+  ): Promise<[T, boolean]> {
     if (!this.options.useCache) {
-      return computeValue();
+      return computeValue().then(function(value) {
+        return [value, false];
+      });
     }
 
     const cacheFile = path.join(this.options.cacheDir, `${key}.json`);
 
     try {
       const cached = await readFileAsync(cacheFile, 'utf8');
-      return JSON.parse(cached);
+      return [JSON.parse(cached), true];
     } catch(error) {
       if (error.code === 'ENOENT') {
         const value = await computeValue();
         await writeFileAsync(cacheFile, JSON.stringify(value));
 
-        return value;
+        return [value, false];
       } else {
         throw error;
       }
