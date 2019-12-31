@@ -18,7 +18,10 @@ import {
 } from './types/api';
 
 import {
-  BookReview
+  Book,
+  BookID,
+  BookReview,
+  UserID
 } from './types/data';
 
 const chmodAsync = promisify(chmod);
@@ -129,7 +132,7 @@ export default class APIClient {
   /**
    * Get information on a user's read books
    */
-  async getReadBooks(userID: string): Promise<BookReview[]> {
+  async getReadBooks(userID: UserID): Promise<BookReview[]> {
     return await this.useCachedValue(`book-reviews.${userID}`, async () => {
       let page = 1;
       let fetching = true;
@@ -175,7 +178,7 @@ export default class APIClient {
   /**
    * Get the current user's ID
    */
-  async getUserID(): Promise<string> {
+  async getUserID(): Promise<UserID> {
     const { userID } = await this.loadSession();
     return userID;
   }
@@ -183,7 +186,7 @@ export default class APIClient {
   /**
    * Get the ID of the authorized user
    */
-  private async getAuthorizedUserID(): Promise<string> {
+  private async getAuthorizedUserID(): Promise<UserID> {
     const response = await this.request('GET', 'api/auth_user');
     const data = UserResponse.conform(response);
 
