@@ -67,7 +67,7 @@ export type ResponseType<T extends APIType<any>> = ReturnType<T['conform']>;
 export const BookInfo = defineType<{
   book: {
     id: string;
-  }
+  };
 }>('book info', {
   book: {
     type: 'object',
@@ -83,7 +83,7 @@ export const BookReviews = defineType<{
       end: string;
       start: string;
       total: string;
-    },
+    };
     review: {
       book: {
         id: {
@@ -91,8 +91,8 @@ export const BookReviews = defineType<{
         };
       };
       rating: string;
-    }[]
-  }
+    }[];
+  };
 }>('book reviews', {
   reviews: {
     type: 'object',
