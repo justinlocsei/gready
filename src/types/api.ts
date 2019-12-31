@@ -64,6 +64,19 @@ export function extractResponseBody(response: unknown): ResponseBody {
 export type ResponseBody = Record<string, any>;
 export type ResponseType<T extends APIType<any>> = ReturnType<T['conform']>;
 
+export const BookInfo = defineType<{
+  book: {
+    id: string;
+  }
+}>('book info', {
+  book: {
+    type: 'object',
+    properties: {
+      id: { type: 'string' }
+    }
+  }
+});
+
 export const BookReviews = defineType<{
   reviews: {
     $: {

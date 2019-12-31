@@ -11,6 +11,7 @@ import Logger from './logger';
 import { readSecret } from './environment';
 
 import {
+  BookInfo,
   BookReviews,
   extractResponseBody,
   ResponseBody,
@@ -127,6 +128,26 @@ export default class APIClient {
         }
       }
     );
+  }
+
+  /**
+   * Get information on a book using its Goodreads ID
+   */
+  async getBook(id: BookID): Promise<Book> {
+    return await this.useCachedValue(`book.${id}`, async () => {
+      this.options.logger.info(`Fetch book: ${id}`);
+
+      const response = await this.request('GET', `book/show.xml`, {
+        id,
+        format: 'xml'
+      });
+
+      const { book } = BookInfo.conform(response);
+
+      return {
+        id: book.id
+      };
+    });
   }
 
   /**
