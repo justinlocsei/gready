@@ -7,6 +7,7 @@ import { OAuth } from 'oauth';
 import { promisify } from 'util';
 import { remove } from 'fs-extra';
 
+import Logger from './logger';
 import { readSecret } from './environment';
 
 import {
@@ -29,6 +30,7 @@ const REQUEST_SPACING_MS = 1000;
 
 interface ClientOptions {
   cacheDir: string;
+  logger: Logger;
   sessionFile: string;
   useCache: boolean;
 }
