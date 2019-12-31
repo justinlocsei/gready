@@ -7,7 +7,6 @@ import { OAuth } from 'oauth';
 import { promisify } from 'util';
 import { remove } from 'fs-extra';
 
-import { JSONSerializable } from './types/core';
 import { readSecret } from './environment';
 
 import {
@@ -61,11 +60,10 @@ function createOAuthClient(): OAuth {
 
 export default class APIClient {
 
-  private credentials?: OAuthCredentials;
   private lastRequest: number;
   private oauth: OAuth;
   private options: ClientOptions;
-  private userID?: string;
+  private session?: Session;
 
   /**
    * Create a new interface to the Goodreads API
@@ -91,14 +89,14 @@ export default class APIClient {
     await this.waitForAuthorization(requestToken.token);
 
     const accessToken = await this.getAccessToken(requestToken);
-    this.credentials = accessToken;
-
-    const userID = await this.getUserID();
+    const userID = await this.getAuthorizedUserID();
 
     const session: Session = {
       credentials: accessToken,
       userID
     };
+
+    this.session = session;
 
     await writeFileAsync(this.options.sessionFile, JSON.stringify(session, null, 2));
     await chmodAsync(this.options.sessionFile, 0o600);
@@ -121,33 +119,21 @@ export default class APIClient {
   }
 
   /**
-   * Get information on a user's read books
+   * Get the current user's ID
    */
-  async getReadBooks(): Promise<void> {
-    const response = await this.request('GET', 'review/list.xml', {
-      per_page: 20,
-      shelf: 'read',
-      v: 2
-    });
-
-    console.error(JSON.stringify(response, null, 2)); // TODO: delete me
+  async getUserID(): Promise<string> {
+    const { userID } = await this.loadSession();
+    return userID;
   }
 
   /**
    * Get the ID of the authorized user
    */
-  private async getUserID(): Promise<string> {
-    if (this.userID) {
-      return Promise.resolve(this.userID);
-    }
-
+  private async getAuthorizedUserID(): Promise<string> {
     const response = await this.request('GET', 'api/auth_user');
     const data = UserResponse.conform(response);
-    const id = data.user.$.id;
 
-    this.userID = id;
-
-    return id;
+    return data.user.$.id;
   }
 
   /**
@@ -198,7 +184,7 @@ export default class APIClient {
     url: string,
     payload?: Record<string, any>
   ): Promise<string> {
-    const { secret, token } = await this.getCredentials();
+    const { credentials: { secret, token } } = await this.loadSession();
 
     await this.respectRateLimiting();
 
@@ -226,7 +212,7 @@ export default class APIClient {
     url: string,
     payload?: Record<string, any>
   ): Promise<string> {
-    const { secret, token } = await this.getCredentials();
+    const { credentials: { secret, token } } = await this.loadSession();
 
     await this.respectRateLimiting();
 
@@ -257,17 +243,14 @@ export default class APIClient {
 
   /**
    * Read a value from the cache, or populate it if it is missing
-   *
-   * This returns the cached value and a boolean indicating whether the value
-   * was fetched from the cache.
    */
-  private async useCachedValue<T extends JSONSerializable>(
+  private async useCachedValue<T>(
     key: string,
     computeValue: () => Promise<T>
-  ): Promise<[T, boolean]> {
+  ): Promise<T> {
     if (!this.options.useCache) {
       return computeValue().then(function(value) {
-        return [value, false];
+        return value;
       });
     }
 
@@ -275,13 +258,13 @@ export default class APIClient {
 
     try {
       const cached = await readFileAsync(cacheFile, 'utf8');
-      return [JSON.parse(cached), true];
+      return JSON.parse(cached);
     } catch(error) {
       if (error.code === 'ENOENT') {
         const value = await computeValue();
-        await writeFileAsync(cacheFile, JSON.stringify(value));
+        await writeFileAsync(cacheFile, JSON.stringify(value, null, 2));
 
-        return [value, false];
+        return value;
       } else {
         throw error;
       }
@@ -289,30 +272,19 @@ export default class APIClient {
   }
 
   /**
-   * Get OAuth credentials for an authorized user
-   */
-  private async getCredentials(): Promise<OAuthCredentials> {
-    if (this.credentials) {
-      return Promise.resolve(this.credentials);
-    }
-
-    const session = await this.loadSession();
-
-    this.credentials = session.credentials;
-    this.userID = session.userID;
-
-    return this.credentials;
-  }
-
-  /**
    * Load session information from the session file
    */
-  private loadSession(): Promise<Session> {
-    return readFileAsync(this.options.sessionFile, 'utf8').then(
-      function(data) {
-        return JSON.parse(data) as Session;
-      }
-    );
+  private async loadSession(): Promise<Session> {
+    if (this.session) {
+      return Promise.resolve(this.session);
+    }
+
+    const text = await readFileAsync(this.options.sessionFile, 'utf8');
+    const session: Session = JSON.parse(text);
+
+    this.session = session;
+
+    return session;
   }
 
   /**
