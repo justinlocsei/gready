@@ -1,18 +1,32 @@
 import yargs from 'yargs';
 
 import APIClient from './api-client';
+import Logger, { Levels, LevelName, LEVEL_NAMES, NAMED_LEVELS } from './logger';
 import { OutputDirectoryStructure, paths, prepareOutputDirectory } from './environment';
 import { scrape } from './tasks/scrape';
 
+interface CLIOPtions {
+  args: string[];
+  stderr: NodeJS.WriteStream;
+  stdout: NodeJS.WriteStream;
+}
+
+interface ParsedOptions {
+  color: boolean;
+  cache?: boolean;
+  'log-level': LevelName;
+  'output-dir': string;
+}
+
 class CLI {
 
-  private args: string[];
+  private options: CLIOPtions;
 
   /**
    * Create a new CLI
    */
-  constructor(args: string[]) {
-    this.args = args;
+  constructor(options: CLIOPtions) {
+    this.options = options;
   }
 
   /**
@@ -21,6 +35,17 @@ class CLI {
   run(): Promise<void> {
     return new Promise((resolve, reject) => {
       yargs
+        .option('color', {
+          default: true,
+          describe: 'Use colored output',
+          type: 'boolean'
+        })
+        .option('log-level', {
+          choices: Object.keys(NAMED_LEVELS),
+          default: LEVEL_NAMES[Levels.Info],
+          describe: 'The log level to use',
+          type: 'string'
+        })
         .option('output-dir', {
           default: paths.outputDir,
           describe: 'The directory in which to store generated files',
@@ -31,7 +56,7 @@ class CLI {
           'Clear all cached data',
           y => y,
           async (args): Promise<void> => {
-            const [client] = await this.createAPIClient(args['output-dir']);
+            const [client] = await this.createAPIClient(args);
             return client.clearCache();
           }
         )
@@ -40,10 +65,11 @@ class CLI {
           'Allow gready to access your Goodreads account',
           y => y,
           async (args): Promise<void> => {
-            const [client] = await this.createAPIClient(args['output-dir']);
+            const [client] = await this.createAPIClient(args);
             const userID = await client.logIn();
 
-            console.log(`Logged in with user ID: ${userID}`);
+            const logger = this.createLogger(args);
+            logger.info(`Logged in with user ID: ${userID}`);
           }
         )
         .command(
@@ -51,7 +77,7 @@ class CLI {
           'Prevent gready from accessing your Goodreads account',
           y => y,
           async (args): Promise<void> => {
-            const [client] = await this.createAPIClient(args['output-dir']);
+            const [client] = await this.createAPIClient(args);
             return client.logOut();
           }
         )
@@ -67,14 +93,14 @@ class CLI {
               });
           },
           async (args): Promise<void> => {
-            const [client, dirs] = await this.createAPIClient(
-              args['output-dir'],
-              args['cache']
-            );
+            const [client, dirs] = await this.createAPIClient(args);
 
             return scrape({
               client,
               dataDir: dirs.dataDir
+            }).catch(function(error) {
+              process.exitCode = 1;
+              console.error(error);
             });
           }
         )
@@ -83,23 +109,37 @@ class CLI {
         .help('h')
         .alias('h', 'help')
         .version()
-        .parse(this.args.slice(1));
+        .parse(this.options.args.slice(1));
     });
+  }
+
+  /**
+   * Create a logger
+   */
+  private createLogger(options: ParsedOptions): Logger {
+    return new Logger(
+      this.options.stdout,
+      this.options.stderr,
+      {
+        logLevel: NAMED_LEVELS[options['log-level']],
+        useColor: options.color
+      }
+    );
   }
 
   /**
    * Create an API client
    */
-  private async createAPIClient(
-    outputDir: string,
-    useCache = false
-  ): Promise<[APIClient, OutputDirectoryStructure]> {
-    const dirs = await prepareOutputDirectory(outputDir);
+  private async createAPIClient(options: ParsedOptions): Promise<[APIClient, OutputDirectoryStructure]> {
+    const dirs = await prepareOutputDirectory(options['output-dir']);
+
+    const logger = this.createLogger(options);
 
     const client = new APIClient({
       cacheDir: dirs.cacheDir,
+      logger,
       sessionFile: paths.sessionFile,
-      useCache
+      useCache: options.cache === undefined ? false : options.cache
     });
 
     return [client, dirs];
@@ -110,6 +150,6 @@ class CLI {
 /**
  * Run the CLI
  */
-export function runCLI(args: string[]): Promise<void> {
-  return new CLI(args).run();
+export function runCLI(options: CLIOPtions): Promise<void> {
+  return new CLI(options).run();
 }

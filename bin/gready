@@ -6,4 +6,8 @@ require('ts-node').register();
 
 const { runCLI } = require('../src/cli.ts');
 
-runCLI(process.argv.slice(1));
+runCLI({
+  args: process.argv.slice(1),
+  stderr: process.stderr,
+  stdout: process.stdout
+});
