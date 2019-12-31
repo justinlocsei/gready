@@ -64,6 +64,58 @@ export function extractResponseBody(response: unknown): ResponseBody {
 export type ResponseBody = Record<string, any>;
 export type ResponseType<T extends APIType<any>> = ReturnType<T['conform']>;
 
+export const BookReviews = defineType<{
+  reviews: {
+    $: {
+      end: string;
+      start: string;
+      total: string;
+    },
+    review: {
+      book: {
+        id: {
+          _: 'string';
+        };
+      };
+      rating: string;
+    }[]
+  }
+}>('book reviews', {
+  reviews: {
+    type: 'object',
+    properties: {
+      $: {
+        type: 'object',
+        properties: {
+          end: { type: 'string' },
+          start: { type: 'string' },
+          total: { type: 'string' }
+        }
+      },
+      review: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            book: {
+              type: 'object',
+              properties: {
+                id: {
+                  type: 'object',
+                  properties: {
+                    _: { type: 'string' }
+                  }
+                }
+              }
+            },
+            rating: { type: 'string' }
+          }
+        }
+      }
+    }
+  }
+});
+
 const Response = defineType<{
   GoodreadsResponse: ResponseBody;
 }>('response', {

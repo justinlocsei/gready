@@ -11,10 +11,15 @@ import Logger from './logger';
 import { readSecret } from './environment';
 
 import {
+  BookReviews,
   extractResponseBody,
   ResponseBody,
   UserResponse
 } from './types/api';
+
+import {
+  BookReview
+} from './types/data';
 
 const chmodAsync = promisify(chmod);
 const readFileAsync = promisify(readFile);
@@ -26,6 +31,7 @@ const API_BASE_URL = 'https://www.goodreads.com';
 const AUTHORIZE_URL = 'https://www.goodreads.com/oauth/authorize';
 const REQUEST_TOKEN_URL = 'http://www.goodreads.com/oauth/request_token';
 
+const READ_BOOKS_PAGE_SIZE = 25;
 const REQUEST_SPACING_MS = 1000;
 
 interface ClientOptions {
@@ -118,6 +124,52 @@ export default class APIClient {
         }
       }
     );
+  }
+
+  /**
+   * Get information on a user's read books
+   */
+  async getReadBooks(userID: string): Promise<BookReview[]> {
+    return await this.useCachedValue(`book-reviews.${userID}`, async () => {
+      let page = 1;
+      let fetching = true;
+
+      const bookReviews: BookReview[] = [];
+
+      while (fetching) {
+        const rangeStart = (page - 1) * READ_BOOKS_PAGE_SIZE + 1;
+        const rangeEnd = page * READ_BOOKS_PAGE_SIZE;
+
+        this.options.logger.info(`Fetch read books for user ${userID}: ${rangeStart}–${rangeEnd}`);
+
+        const response = await this.request('GET', 'review/list.xml', {
+          id: userID,
+          page,
+          per_page: READ_BOOKS_PAGE_SIZE,
+          shelf: 'read',
+          v: 2
+        });
+
+        const { reviews } = BookReviews.conform(response);
+
+        reviews.review.forEach(function(review) {
+          bookReviews.push({
+            bookID: review.book.id._,
+            rating: parseInt(review.rating, 10)
+          });
+        });
+
+        const { end, total } = reviews.$;
+
+        if (total === '0' || end === total) {
+          fetching = false;
+        } else {
+          page++;
+        }
+      }
+
+      return bookReviews;
+    });
   }
 
   /**
