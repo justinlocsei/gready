@@ -1,4 +1,5 @@
 import Ajv from 'ajv';
+import util from 'util';
 
 interface APIType<T> {
   conform: (data: unknown) => T;
@@ -45,11 +46,12 @@ function conformToType<T>(typeName: string, schema: JSONSchema, data: unknown): 
 
   if (errors && errors.length) {
     error = errors[0].message || JSON.stringify(errors[0].params, null, 2);
+    error = `${errors[0].dataPath} ${error}`;
   } else {
     error = 'unknown validation error';
   }
 
-  throw new Error(`Invalid ${typeName}: ${error}`);
+  throw new Error(`Invalid ${typeName}: ${error}\n${util.inspect(data)}`);
 }
 
 /**
