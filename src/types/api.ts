@@ -1,5 +1,6 @@
 import Ajv from 'ajv';
 
+import { AuthorID, BookID, UserID, WorkID } from './goodreads';
 import { ExtractArrayType, OneOrMore } from './core';
 import { defineSchema, ExtractSchemaType, T } from '../validation';
 
@@ -16,11 +17,11 @@ export const BookInfoSchema = defineSchema<{
   book: {
     authors: {
       author: OneOrMore<{
-        id: string;
+        id: AuthorID;
         name: string;
       }>;
     };
-    id: string;
+    id: BookID;
     popular_shelves: {
       shelf: {
         $: {
@@ -32,11 +33,11 @@ export const BookInfoSchema = defineSchema<{
     publisher: string;
     similar_books: {
       book: {
-        id: string;
+        id: BookID;
       }[];
     };
     work: {
-      id: { _: string; };
+      id: { _: WorkID; };
       ratings_count: { _: string; };
       ratings_sum: { _: string; };
     };
@@ -84,7 +85,7 @@ export const BookReviewsSchema = defineSchema<{
     review: {
       book: {
         id: {
-          _: string;
+          _: BookID;
         };
       };
       rating: string;
@@ -120,7 +121,7 @@ const ResponseSchema = defineSchema<{
 export const UserResponseSchema = defineSchema<{
   user: {
     $: {
-      id: string;
+      id: UserID;
     };
   };
 }>('user data', {

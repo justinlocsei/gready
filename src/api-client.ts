@@ -24,7 +24,7 @@ import {
 import {
   BookID,
   UserID
-} from './types/data';
+} from './types/goodreads';
 
 const chmodAsync = promisify(chmod);
 const readFileAsync = promisify(readFile);

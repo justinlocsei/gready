@@ -6,11 +6,14 @@ import { ensureArray } from './data';
 import {
   Author,
   Book,
-  BookID,
   BookReview,
-  Category,
-  UserID
+  Category
 } from './types/data';
+
+import {
+  BookID,
+  UserID
+} from './types/goodreads';
 
 export default class Repository {
 

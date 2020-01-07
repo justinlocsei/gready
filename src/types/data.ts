@@ -1,9 +1,9 @@
+import { AuthorID, BookID, WorkID } from './goodreads';
+
 export interface Author {
   id: AuthorID;
   name: string;
 }
-
-type AuthorID = string;
 
 export interface Book {
   authors: Author[];
@@ -16,8 +16,6 @@ export interface Book {
   workID: WorkID;
 }
 
-export type BookID = string;
-
 export interface BookReview {
   bookID: BookID;
   rating: number;
@@ -27,7 +25,3 @@ export interface Category {
   count: number;
   name: string;
 }
-
-export type UserID = string;
-
-type WorkID = string;
