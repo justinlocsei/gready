@@ -1,27 +1,28 @@
-import path from 'path';
 import querystring from 'querystring';
 import readline from 'readline';
 import xml2js from 'xml2js';
 import { chmod, readFile, unlink, writeFile } from 'graceful-fs';
 import { OAuth } from 'oauth';
 import { promisify } from 'util';
-import { remove } from 'fs-extra';
 
+import Cache from './cache';
 import Logger from './logger';
+import { formatJSON } from './serialization';
 import { readSecret } from './environment';
 
 import {
   BookInfo,
+  BookInfoSchema,
+  BookReview,
   BookReviews,
+  BookReviewsSchema,
   extractResponseBody,
   ResponseBody,
-  UserResponse
+  UserResponseSchema
 } from './types/api';
 
 import {
-  Book,
   BookID,
-  BookReview,
   UserID
 } from './types/data';
 
@@ -39,10 +40,9 @@ const READ_BOOKS_PAGE_SIZE = 25;
 const REQUEST_SPACING_MS = 1000;
 
 interface ClientOptions {
-  cacheDir: string;
+  cache: Cache;
   logger: Logger;
   sessionFile: string;
-  useCache: boolean;
 }
 
 interface OAuthCredentials {
@@ -87,13 +87,6 @@ export default class APIClient {
   }
 
   /**
-   * Clear all cached data
-   */
-  clearCache(): Promise<void> {
-    return remove(this.options.cacheDir);
-  }
-
-  /**
    * Log a user in and store their session information
    */
   async logIn(): Promise<string> {
@@ -110,7 +103,7 @@ export default class APIClient {
 
     this.session = session;
 
-    await writeFileAsync(this.options.sessionFile, JSON.stringify(session, null, 2));
+    await writeFileAsync(this.options.sessionFile, formatJSON(session));
     await chmodAsync(this.options.sessionFile, 0o600);
 
     return userID;
@@ -133,8 +126,8 @@ export default class APIClient {
   /**
    * Get information on a book using its Goodreads ID
    */
-  async getBook(id: BookID): Promise<Book> {
-    return await this.useCachedValue(`book.${id}`, async () => {
+  getBookInfo(id: BookID): Promise<BookInfo> {
+    return this.options.cache.fetch(['books', id], async () => {
       this.options.logger.info(`Fetch book: ${id}`);
 
       const response = await this.request('GET', `book/show.xml`, {
@@ -142,48 +135,38 @@ export default class APIClient {
         format: 'xml'
       });
 
-      const { book } = BookInfo.conform(response);
-
-      return {
-        id: book.id
-      };
+      return BookInfoSchema.conform(response).book;
     });
   }
 
   /**
    * Get information on a user's read books
    */
-  async getReadBooks(userID: UserID): Promise<BookReview[]> {
-    return await this.useCachedValue(`book-reviews.${userID}`, async () => {
+  getReadBooks(userID: UserID): Promise<BookReview[]> {
+    return this.options.cache.fetch(['book-reviews', userID], async () => {
       let page = 1;
       let fetching = true;
 
       const bookReviews: BookReview[] = [];
 
+      this.options.logger.info(`Check read books for user ${userID}`);
+
+      const { reviews: { $: { total } } } = await this.fetchReviewPage(userID);
+      const totalBooks = parseInt(total, 10);
+
       while (fetching) {
         const rangeStart = (page - 1) * READ_BOOKS_PAGE_SIZE + 1;
-        const rangeEnd = page * READ_BOOKS_PAGE_SIZE;
+        const rangeEnd = Math.min(page * READ_BOOKS_PAGE_SIZE, totalBooks);
 
-        this.options.logger.info(`Fetch read books for user ${userID}: ${rangeStart}–${rangeEnd}`);
+        this.options.logger.info(`Fetch read books for user ${userID}: ${rangeStart}–${rangeEnd} / ${totalBooks}`);
 
-        const response = await this.request('GET', 'review/list.xml', {
-          id: userID,
-          page,
-          per_page: READ_BOOKS_PAGE_SIZE,
-          shelf: 'read',
-          v: 2
-        });
-
-        const { reviews } = BookReviews.conform(response);
+        const { reviews } = await this.fetchReviewPage(userID, page);
 
         reviews.review.forEach(function(review) {
-          bookReviews.push({
-            bookID: review.book.id._,
-            rating: parseInt(review.rating, 10)
-          });
+          bookReviews.push(review);
         });
 
-        const { end, total } = reviews.$;
+        const { end } = reviews.$;
 
         if (total === '0' || end === total) {
           fetching = false;
@@ -205,11 +188,26 @@ export default class APIClient {
   }
 
   /**
+   * Fetch a page of reviews
+   */
+  private async fetchReviewPage(userID: UserID, page = 1): Promise<BookReviews> {
+    const response = await this.request('GET', 'review/list.xml', {
+      id: userID,
+      page,
+      per_page: READ_BOOKS_PAGE_SIZE,
+      shelf: 'read',
+      v: 2
+    });
+
+    return BookReviewsSchema.conform(response);
+  }
+
+  /**
    * Get the ID of the authorized user
    */
   private async getAuthorizedUserID(): Promise<UserID> {
     const response = await this.request('GET', 'api/auth_user');
-    const data = UserResponse.conform(response);
+    const data = UserResponseSchema.conform(response);
 
     return data.user.$.id;
   }
@@ -317,36 +315,6 @@ export default class APIClient {
     }
 
     this.lastRequest = time;
-  }
-
-  /**
-   * Read a value from the cache, or populate it if it is missing
-   */
-  private async useCachedValue<T>(
-    key: string,
-    computeValue: () => Promise<T>
-  ): Promise<T> {
-    if (!this.options.useCache) {
-      return computeValue().then(function(value) {
-        return value;
-      });
-    }
-
-    const cacheFile = path.join(this.options.cacheDir, `${key}.json`);
-
-    try {
-      const cached = await readFileAsync(cacheFile, 'utf8');
-      return JSON.parse(cached);
-    } catch(error) {
-      if (error.code === 'ENOENT') {
-        const value = await computeValue();
-        await writeFileAsync(cacheFile, JSON.stringify(value, null, 2));
-
-        return value;
-      } else {
-        throw error;
-      }
-    }
   }
 
   /**
