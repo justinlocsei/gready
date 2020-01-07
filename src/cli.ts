@@ -76,8 +76,13 @@ class CLI {
   /**
    * Scrape data from the Goodreads API
    */
-  scrape(): Promise<void> {
-    return Promise.resolve();
+  async scrape(): Promise<void> {
+    const userID = await this.apiClient.getUserID();
+    const reviews = await this.repo.getReviewsForUser(userID);
+
+    for (let review of reviews) {
+      await this.repo.getBook(review.bookID);
+    }
   }
 
 }
