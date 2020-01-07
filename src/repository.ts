@@ -1,7 +1,7 @@
 import * as API from './types/api';
 import APIClient from './api-client';
 import Cache from './cache';
-import { ensureArray } from './data';
+import { ensureArray, normalizeString } from './data';
 
 import {
   Author,
@@ -70,14 +70,14 @@ export default class Repository {
     const authors = ensureArray(rawAuthors.author).map(function(author): Author {
       return {
         id: author.id,
-        name: author.name
+        name: normalizeString(author.name)
       };
     });
 
     const categories = info.popular_shelves.shelf.map(function({ $: shelf }): Category {
       return {
         count: parseInt(shelf.count, 10),
-        name: shelf.name
+        name: normalizeString(shelf.name)
       };
     });
 
