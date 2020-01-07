@@ -1,5 +1,3 @@
-import Ajv from 'ajv';
-
 import { AuthorID, BookID, UserID, WorkID } from './goodreads';
 import { defineSchema, ExtractSchemaType, T } from '../validation';
 import { OneOrMore } from './core';
