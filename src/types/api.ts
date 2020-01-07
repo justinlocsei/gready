@@ -1,8 +1,8 @@
 import Ajv from 'ajv';
 
 import { AuthorID, BookID, UserID, WorkID } from './goodreads';
-import { ExtractArrayType, OneOrMore } from './core';
 import { defineSchema, ExtractSchemaType, T } from '../validation';
+import { OneOrMore } from './core';
 
 export type ResponseBody = Record<string, any>;
 
@@ -77,6 +77,24 @@ export const BookInfoSchema = defineSchema<{
 
 export type BookInfo = ExtractSchemaType<typeof BookInfoSchema>['book'];
 
+export const BookReviewSchema = defineSchema<{
+  book: {
+    id: {
+      _: BookID;
+    };
+  };
+  rating: string;
+}>('book review', T.object({
+  book: T.object({
+    id: T.object({
+      _: T.string()
+    })
+  }),
+  rating: T.string()
+}));
+
+export type BookReview = ExtractSchemaType<typeof BookReviewSchema>;
+
 export const BookReviewsSchema = defineSchema<{
   reviews: {
     $: {
@@ -84,14 +102,7 @@ export const BookReviewsSchema = defineSchema<{
       start: string;
       total: string;
     };
-    review: {
-      book: {
-        id: {
-          _: BookID;
-        };
-      };
-      rating: string;
-    }[];
+    review: BookReview[];
   };
 }>('book reviews', T.object({
   reviews: T.object({
@@ -100,18 +111,10 @@ export const BookReviewsSchema = defineSchema<{
       start: T.string(),
       total: T.string()
     }),
-    review: T.array(T.object({
-      book: T.object({
-        id: T.object({
-          _: T.string()
-        })
-      }),
-      rating: T.string()
-    }))
+    review: T.array(BookReviewSchema.schema)
   })
 }));
 
-export type BookReview = ExtractArrayType<BookReviews['reviews']['review']>;
 export type BookReviews = ExtractSchemaType<typeof BookReviewsSchema>;
 
 const ResponseSchema = defineSchema<{
