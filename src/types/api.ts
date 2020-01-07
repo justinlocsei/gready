@@ -29,6 +29,7 @@ export const BookInfoSchema = defineSchema<{
       }[];
     };
     publisher: string;
+    reviews_widget: string;
     similar_books: {
       book: {
         id: BookID;
@@ -59,6 +60,7 @@ export const BookInfoSchema = defineSchema<{
       }))
     }),
     publisher: T.string(),
+    reviews_widget: T.string(),
     similar_books: T.object({
       book: T.array(T.object({
         id: T.string()
@@ -134,3 +136,32 @@ export const UserResponseSchema = defineSchema<{
     })
   })
 }));
+
+export const UserReviewSchema = defineSchema<{
+  review: {
+    book: {
+      id: {
+        _: BookID;
+      };
+    };
+    rating: string;
+    user: {
+      id: UserID;
+    };
+  };
+}>('user review', T.object({
+  review: T.object({
+    book: T.object({
+      id: T.object({
+        _: T.string()
+      })
+    }),
+    rating: T.string(),
+    user: T.object({
+      id: T.string()
+    })
+  })
+}));
+
+export type UserReview = ExtractSchemaType<typeof UserReviewSchema>['review'];
+

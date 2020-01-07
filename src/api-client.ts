@@ -1,9 +1,12 @@
+import cheerio from 'cheerio';
 import querystring from 'querystring';
 import readline from 'readline';
+import superagent from 'superagent';
 import xml2js from 'xml2js';
 import { chmod, readFile, unlink, writeFile } from 'graceful-fs';
 import { OAuth } from 'oauth';
 import { promisify } from 'util';
+import { URL } from 'url';
 
 import Cache from './cache';
 import Logger from './logger';
@@ -18,11 +21,14 @@ import {
   BookReviewsSchema,
   extractResponseBody,
   ResponseBody,
-  UserResponseSchema
+  UserResponseSchema,
+  UserReview,
+  UserReviewSchema
 } from './types/api';
 
 import {
   BookID,
+  ReviewID,
   UserID
 } from './types/goodreads';
 
@@ -177,6 +183,57 @@ export default class APIClient {
 
       return bookReviews;
     });
+  }
+
+  /**
+   * Get information on a review
+   */
+  getReview(id: ReviewID): Promise<UserReview> {
+    return this.options.cache.fetch(['user-reviews', id], async () => {
+      this.options.logger.info(`Fetch review: ${id}`);
+
+      const response = await this.request('GET', 'review/show.xml', {
+        id,
+        format: 'xml'
+      });
+
+      return UserReviewSchema.conform(response).review;
+    });
+  }
+
+  /**
+   * Extract reviews of a book from the embed code for the reviews widget
+   */
+  async extractReviewsFromWidget(embedCode: string): Promise<UserReview[]> {
+    const widget = cheerio.load(embedCode);
+    const url = widget('iframe').attr('src');
+
+    if (!url) {
+      throw new Error(`No iframe URL found in reviews widget\n${embedCode}`);
+    }
+
+    const response = await superagent.get(url);
+
+    if (response.status !== 200) {
+      throw new Error(`Request for reviews widget failed with code ${response.status}\n${embedCode}`);
+    }
+
+    const $ = cheerio.load(response.text);
+    const reviews: UserReview[] = [];
+
+    $('[itemtype="http://schema.org/Review"]').each(async (i, review) => {
+      const href = $(review)
+        .find('[itemprop="discussionUrl"]')
+        .attr('href');
+
+      const reviewID = href && new URL(href).pathname.split('/').pop();
+
+      if (reviewID) {
+        reviews.push(await this.getReview(reviewID));
+      }
+    });
+
+    return reviews;
   }
 
   /**

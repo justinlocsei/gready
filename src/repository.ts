@@ -44,24 +44,28 @@ export default class Repository {
   getReviewsForUser(userID: UserID): Promise<BookReview[]> {
     return this.cache.fetch(['reviews', userID], async () => {
       const reviews = await this.apiClient.getReadBooks(userID);
-      return reviews.map(this.normalizeReview);
+
+      return reviews.map(review => {
+        return this.normalizeReview(review, userID);
+      });
     });
   }
 
   /**
    * Convert a review from the API to a book review
    */
-  private normalizeReview(review: API.BookReview): BookReview {
+  private normalizeReview(review: API.BookReview, userID: UserID): BookReview {
     return {
       bookID: review.book.id._,
-      rating: parseInt(review.rating, 10)
+      rating: parseInt(review.rating, 10),
+      userID
     };
   }
 
   /**
    * Convert book information from the API to a book
    */
-  private normalizeBookInfo(info: API.BookInfo): Book {
+  private async normalizeBookInfo(info: API.BookInfo): Promise<Book> {
     const { authors: rawAuthors, id, publisher, work } = info;
 
     const ratingsSum = parseInt(work.ratings_sum._, 10);
@@ -81,6 +85,16 @@ export default class Repository {
       };
     });
 
+    const reviews = await this.apiClient.extractReviewsFromWidget(info.reviews_widget);
+
+    const topReviews = reviews.map(function(review): BookReview {
+      return {
+        bookID: review.book.id._,
+        rating: parseInt(review.rating, 10),
+        userID: review.user.id
+      };
+    });
+
     return {
       authors,
       averageRating: totalRatings > 0 ? ratingsSum / totalRatings : undefined,
@@ -89,6 +103,7 @@ export default class Repository {
       publisher,
       similarBooks: info.similar_books.book.map(b => b.id),
       title: normalizeString(work.original_title),
+      topReviews,
       totalRatings,
       workID: work.id._
     };
