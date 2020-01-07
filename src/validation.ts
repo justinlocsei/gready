@@ -2,7 +2,7 @@ import Ajv from 'ajv';
 
 import { formatJSON } from './serialization';
 
-type JSONSchema =
+export type JSONSchema =
   | { anyOf: JSONSchema[]; }
   | { type: 'array'; items: JSONSchema; }
   | { type: 'number'; }
@@ -12,6 +12,7 @@ type JSONSchema =
 interface Schema<T> {
   conform: (data: unknown) => T;
   name: string;
+  schema: JSONSchema;
 }
 
 export type ExtractSchemaType<T extends Schema<any>> = ReturnType<T['conform']>;
@@ -21,17 +22,12 @@ export type ExtractSchemaType<T extends Schema<any>> = ReturnType<T['conform']>;
  */
 export function defineSchema<T>(
   name: string,
-  schema: Record<string, JSONSchema>
+  schema: JSONSchema
 ): Schema<T> {
-  const jsonSchema: JSONSchema = {
-    properties: schema,
-    required: Object.keys(schema),
-    type: 'object'
-  };
-
   return {
-    conform: data => conformToType<T>(name, jsonSchema, data),
-    name
+    conform: data => conformToType<T>(name, schema, data),
+    name,
+    schema
   };
 }
 

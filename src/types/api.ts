@@ -43,7 +43,7 @@ export const BookInfoSchema = defineSchema<{
       ratings_sum: { _: string; };
     };
   };
-}>('book info', {
+}>('book info', T.object({
   book: T.object({
     authors: T.object({
       author: T.oneOrMore(T.object({
@@ -73,7 +73,7 @@ export const BookInfoSchema = defineSchema<{
       ratings_sum: T.object({ _: T.string() })
     })
   })
-});
+}));
 
 export type BookInfo = ExtractSchemaType<typeof BookInfoSchema>['book'];
 
@@ -93,7 +93,7 @@ export const BookReviewsSchema = defineSchema<{
       rating: string;
     }[];
   };
-}>('book reviews', {
+}>('book reviews', T.object({
   reviews: T.object({
     $: T.object({
       end: T.string(),
@@ -109,16 +109,16 @@ export const BookReviewsSchema = defineSchema<{
       rating: T.string()
     }))
   })
-});
+}));
 
 export type BookReview = ExtractArrayType<BookReviews['reviews']['review']>;
 export type BookReviews = ExtractSchemaType<typeof BookReviewsSchema>;
 
 const ResponseSchema = defineSchema<{
   GoodreadsResponse: ResponseBody;
-}>('response', {
+}>('response', T.object({
   GoodreadsResponse: T.object()
-});
+}));
 
 export const UserResponseSchema = defineSchema<{
   user: {
@@ -126,10 +126,10 @@ export const UserResponseSchema = defineSchema<{
       id: UserID;
     };
   };
-}>('user data', {
+}>('user data', T.object({
   user: T.object({
     $: T.object({
       id: T.string()
     })
   })
-});
+}));
