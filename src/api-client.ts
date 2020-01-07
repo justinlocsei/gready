@@ -143,7 +143,7 @@ export default class APIClient {
    * Get information on a user's read books
    */
   getReadBooks(userID: UserID): Promise<BookReview[]> {
-    return this.options.cache.fetch(['book-reviews', userID], async () => {
+    return this.options.cache.fetch(['reviews', userID], async () => {
       let page = 1;
       let fetching = true;
 
