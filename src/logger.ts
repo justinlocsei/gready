@@ -50,7 +50,7 @@ export default class Logger {
    */
   info(message: string) {
     if (this.level >= Levels.Info) {
-      this.stderr.write(`${message}\n`);
+      this.stdout.write(`${message}\n`);
     }
   }
 
