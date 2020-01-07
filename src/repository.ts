@@ -88,6 +88,7 @@ export default class Repository {
       id,
       publisher,
       similarBooks: info.similar_books.book.map(b => b.id),
+      title: normalizeString(work.original_title),
       totalRatings,
       workID: work.id._
     };

@@ -38,6 +38,7 @@ export const BookInfoSchema = defineSchema<{
     };
     work: {
       id: { _: WorkID; };
+      original_title: string;
       ratings_count: { _: string; };
       ratings_sum: { _: string; };
     };
@@ -67,6 +68,7 @@ export const BookInfoSchema = defineSchema<{
     }),
     work: T.object({
       id: T.object({ _: T.string() }),
+      original_title: T.string(),
       ratings_count: T.object({ _: T.string() }),
       ratings_sum: T.object({ _: T.string() })
     })

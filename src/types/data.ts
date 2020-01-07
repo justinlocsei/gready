@@ -12,6 +12,7 @@ export interface Book {
   id: BookID;
   publisher: string;
   similarBooks: BookID[];
+  title: string;
   totalRatings: number;
   workID: WorkID;
 }
