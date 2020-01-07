@@ -1,66 +1,9 @@
 import Ajv from 'ajv';
 
-import { formatJSON } from '../serialization';
-
-interface APITypeSchema<T> {
-  conform: (data: unknown) => T;
-  name: string;
-}
-
-type JSONSchema =
-  | { anyOf: JSONSchema[]; }
-  | { type: 'array'; items: JSONSchema; }
-  | { type: 'number'; }
-  | { type: 'object'; properties?: Record<string, JSONSchema>; required?: string[]; }
-  | { type: 'string'; }
-
-type ExtractArrayType<T> = T extends (infer U)[] ? U : T;
-type ExtractSchemaType<T extends APITypeSchema<any>> = ReturnType<T['conform']>;
-type OneOrMore<T> = T | T[];
+import { ExtractArrayType, OneOrMore } from './core';
+import { defineSchema, ExtractSchemaType, T } from '../validation';
 
 export type ResponseBody = Record<string, any>;
-
-/**
- * Define a schema for a type that can be used to validate API data
- */
-function defineSchema<T>(name: string, schema: Record<string, JSONSchema>): APITypeSchema<T> {
-  const jsonSchema: JSONSchema = {
-    properties: schema,
-    required: Object.keys(schema),
-    type: 'object'
-  };
-
-  return {
-    conform: data => conformToType<T>(name, jsonSchema, data),
-    name
-  };
-}
-
-/**
- * Ensure that data conforms to an API type
- *
- * @throws If the data does not conform to the type
- */
-function conformToType<T>(typeName: string, schema: JSONSchema, data: unknown): T {
-  const validator = new Ajv();
-  const isValid = validator.validate(schema, data);
-
-  if (isValid) {
-    return data as T;
-  }
-
-  const errors = validator.errors;
-  let error: string;
-
-  if (errors && errors.length) {
-    error = errors[0].message || formatJSON(errors[0].params);
-    error = `${errors[0].dataPath} ${error}`;
-  } else {
-    error = 'unknown validation error';
-  }
-
-  throw new Error(`Invalid ${typeName}: ${error}\n${formatJSON(data)}`);
-}
 
 /**
  * Extract the body from an API response
@@ -68,31 +11,6 @@ function conformToType<T>(typeName: string, schema: JSONSchema, data: unknown): 
 export function extractResponseBody(response: unknown): ResponseBody {
   return ResponseSchema.conform(response).GoodreadsResponse;
 }
-
-const T = {
-  array: (items: JSONSchema): JSONSchema => ({
-    items ,
-    type: 'array'
-  }),
-  number: (): JSONSchema => ({
-    type: 'number'
-  }),
-  object: <T extends Record<string, JSONSchema>>(props?: T, optional: (keyof T)[] = []): JSONSchema => ({
-    properties: props,
-    required: props && Object.keys(props).filter(k => optional.includes(k)),
-    type: 'object'
-  }),
-  oneOrMore: (value: JSONSchema) => T.union([
-    value,
-    T.array(value)
-  ]),
-  string: (): JSONSchema => ({
-    type: 'string'
-  }),
-  union: (members: JSONSchema[]): JSONSchema => ({
-    anyOf: members
-  })
-};
 
 export const BookInfoSchema = defineSchema<{
   book: {
