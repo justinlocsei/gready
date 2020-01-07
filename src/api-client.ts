@@ -130,7 +130,7 @@ export default class APIClient {
     return this.options.cache.fetch(['books', id], async () => {
       this.options.logger.info(`Fetch book: ${id}`);
 
-      const response = await this.request('GET', `book/show.xml`, {
+      const response = await this.request('GET', 'book/show.xml', {
         id,
         format: 'xml'
       });
