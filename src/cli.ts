@@ -80,7 +80,7 @@ class CLI {
     const userID = await this.apiClient.getUserID();
     const reviews = await this.repo.getReviewsForUser(userID);
 
-    for (let review of reviews) {
+    for (const review of reviews) {
       await this.repo.getBook(review.bookID);
     }
   }
