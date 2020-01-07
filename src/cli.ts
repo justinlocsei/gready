@@ -1,9 +1,11 @@
 import yargs from 'yargs';
 
 import APIClient from './api-client';
+import Cache from './cache';
 import Logger, { Levels, LevelName, LEVEL_NAMES, NAMED_LEVELS } from './logger';
+import Repository from './repository';
 import { OutputDirectoryStructure, paths, prepareOutputDirectory } from './environment';
-import { scrape } from './tasks/scrape';
+import { unreachable } from './data';
 
 interface CLIOPtions {
   args: string[];
@@ -11,145 +13,177 @@ interface CLIOPtions {
   stdout: NodeJS.WriteStream;
 }
 
+type Command =
+  | 'log-in'
+  | 'log-out'
+  | 'scrape'
+
 interface ParsedOptions {
+  'cache-data': boolean;
+  'cache-responses': boolean;
   color: boolean;
-  cache?: boolean;
+  command: Command;
   'log-level': LevelName;
   'output-dir': string;
 }
 
 class CLI {
 
-  private options: CLIOPtions;
+  private apiClient: APIClient;
+  private logger: Logger;
+  private options: ParsedOptions;
+  private outputDir: OutputDirectoryStructure;
+  private repo: Repository;
 
   /**
    * Create a new CLI
    */
-  constructor(options: CLIOPtions) {
+  constructor({
+    apiClient,
+    logger,
+    options,
+    outputDir,
+    repo
+  }: {
+    apiClient: APIClient;
+    logger: Logger;
+    options: ParsedOptions;
+    outputDir: OutputDirectoryStructure;
+    repo: Repository;
+  }) {
+    this.apiClient = apiClient;
+    this.logger = logger;
     this.options = options;
+    this.outputDir = outputDir;
+    this.repo = repo;
   }
 
   /**
-   * Run the CLI
+   * Allow gready to access the current user's Goodreads account
    */
-  run(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      yargs
-        .option('color', {
-          default: true,
-          describe: 'Use colored output',
-          type: 'boolean'
-        })
-        .option('log-level', {
-          choices: Object.keys(NAMED_LEVELS),
-          default: LEVEL_NAMES[Levels.Info],
-          describe: 'The log level to use',
-          type: 'string'
-        })
-        .option('output-dir', {
-          default: paths.outputDir,
-          describe: 'The directory in which to store generated files',
-          type: 'string'
-        })
-        .command(
-          'clear-cache',
-          'Clear all cached data',
-          y => y,
-          async (args): Promise<void> => {
-            const [client] = await this.createAPIClient(args);
-            return client.clearCache();
-          }
-        )
-        .command(
-          'log-in',
-          'Allow gready to access your Goodreads account',
-          y => y,
-          async (args): Promise<void> => {
-            const [client] = await this.createAPIClient(args);
-            const userID = await client.logIn();
-
-            const logger = this.createLogger(args);
-            logger.info(`Logged in with user ID: ${userID}`);
-          }
-        )
-        .command(
-          'log-out',
-          'Prevent gready from accessing your Goodreads account',
-          y => y,
-          async (args): Promise<void> => {
-            const [client] = await this.createAPIClient(args);
-            return client.logOut();
-          }
-        )
-        .command(
-          'scrape',
-          'Scrape data from Goodreads',
-          function(y) {
-            return y
-              .option('cache', {
-                default: true,
-                describe: 'Cache API responses',
-                type: 'boolean'
-              });
-          },
-          async (args): Promise<void> => {
-            const [client, dirs] = await this.createAPIClient(args);
-
-            return scrape({
-              client,
-              dataDir: dirs.dataDir
-            }).catch(function(error) {
-              process.exitCode = 1;
-              console.error(error);
-            });
-          }
-        )
-        .demandCommand(1, 'You must select a mode of operation')
-        .strict()
-        .help('h')
-        .alias('h', 'help')
-        .version()
-        .parse(this.options.args.slice(1));
-    });
+  async logIn(): Promise<void> {
+    const userID = await this.apiClient.logIn();
+    this.logger.info(`Logged in with user ID: ${userID}`);
   }
 
   /**
-   * Create a logger
+   * Prevent gready from accessing the current user's Goodreads account
    */
-  private createLogger(options: ParsedOptions): Logger {
-    return new Logger(
-      this.options.stdout,
-      this.options.stderr,
-      {
-        logLevel: NAMED_LEVELS[options['log-level']],
-        useColor: options.color
-      }
-    );
+  logOut(): Promise<void> {
+    return this.apiClient.logOut();
   }
 
   /**
-   * Create an API client
+   * Scrape data from the Goodreads API
    */
-  private async createAPIClient(options: ParsedOptions): Promise<[APIClient, OutputDirectoryStructure]> {
-    const dirs = await prepareOutputDirectory(options['output-dir']);
-
-    const logger = this.createLogger(options);
-
-    const client = new APIClient({
-      cacheDir: dirs.cacheDir,
-      logger,
-      sessionFile: paths.sessionFile,
-      useCache: options.cache === undefined ? false : options.cache
-    });
-
-    return [client, dirs];
+  scrape(): Promise<void> {
+    return Promise.resolve();
   }
 
 }
 
 /**
+ * Parse command-line options
+ */
+function parseOptions(options: CLIOPtions): Promise<ParsedOptions> {
+  return new Promise(function(resolve, reject) {
+    yargs
+     .option('cache-data', {
+        default: true,
+        describe: 'Cache normalized data',
+        type: 'boolean'
+      })
+      .option('cache-responses', {
+        default: true,
+        describe: 'Cache responses to Goodreads API requests',
+        type: 'boolean'
+      })
+      .option('color', {
+        default: true,
+        describe: 'Use colored output',
+        type: 'boolean'
+      })
+      .option('log-level', {
+        choices: Object.keys(NAMED_LEVELS),
+        default: LEVEL_NAMES[Levels.Info],
+        describe: 'The log level to use',
+        type: 'string'
+      })
+      .option('output-dir', {
+        default: paths.outputDir,
+        describe: 'The directory in which to store generated files',
+        type: 'string'
+      })
+      .command(
+        'log-in',
+        'Allow gready to access your Goodreads account',
+        y => y,
+        args => resolve({ ...args, command: 'log-in' })
+      )
+      .command(
+        'log-out',
+        'Prevent gready from accessing your Goodreads account',
+        y => y,
+        args => resolve({ ...args, command: 'log-out' })
+      )
+      .command(
+        'scrape',
+        'Scrape data from Goodreads',
+        y => y,
+        args => resolve({ ...args, command: 'scrape' })
+      )
+      .demandCommand(1, 'You must specify a subcommand')
+      .strict()
+      .help('h')
+      .alias('h', 'help')
+      .version()
+      .parse(options.args.slice(1));
+  });
+}
+
+/**
  * Run the CLI
  */
-export function runCLI(options: CLIOPtions): Promise<void> {
-  return new CLI(options).run();
+export async function runCLI(options: CLIOPtions): Promise<void> {
+  const parsedOptions = await parseOptions(options);
+  const outputDir = await prepareOutputDirectory(parsedOptions['output-dir']);
+
+  const logger = new Logger(
+    options.stdout,
+    options.stderr,
+    {
+      logLevel: NAMED_LEVELS[parsedOptions['log-level']],
+      useColor: parsedOptions.color
+    }
+  );
+
+  const apiCache = new Cache(outputDir.apiRequestsDir, { enabled: parsedOptions['cache-responses'] });
+  const dataCache = new Cache(outputDir.dataDir, { enabled: parsedOptions['cache-data'] });
+
+  const apiClient = new APIClient({
+    cache: apiCache,
+    logger,
+    sessionFile: paths.sessionFile
+  });
+
+  const repo = new Repository(apiClient, dataCache);
+
+  const cli = new CLI({
+    apiClient,
+    logger,
+    options: parsedOptions,
+    outputDir,
+    repo
+  });
+
+  switch (parsedOptions.command) {
+    case 'log-in':
+      return cli.logIn();
+    case 'log-out':
+      return cli.logOut();
+    case 'scrape':
+      return cli.scrape();
+    default:
+      unreachable(parsedOptions.command);
+  }
 }
