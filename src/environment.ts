@@ -3,7 +3,7 @@ import process from 'process';
 import { mkdirp } from 'fs-extra';
 
 export interface OutputDirectoryStructure {
-  cacheDir: string;
+  apiRequestsDir: string;
   dataDir: string;
 }
 
@@ -13,14 +13,14 @@ export interface OutputDirectoryStructure {
 export async function prepareOutputDirectory(rootPath: string): Promise<OutputDirectoryStructure> {
   await mkdirp(rootPath);
 
-  const cacheDir = path.join(rootPath, '.cache');
+  const apiRequestsDir = path.join(rootPath, 'api-requests');
   const dataDir = path.join(rootPath, 'data');
 
-  await mkdirp(cacheDir);
+  await mkdirp(apiRequestsDir);
   await mkdirp(dataDir);
 
   return {
-    cacheDir,
+    apiRequestsDir,
     dataDir
   };
 }
