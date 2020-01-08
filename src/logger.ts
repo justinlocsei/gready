@@ -1,21 +1,21 @@
 export enum Levels {
   None = 0,
   Info = 1,
-  Verbose = 2
+  Debug = 2
 }
 
-export type LevelName = 'info' | 'none' | 'verbose'
+export type LevelName = 'debug' | 'info' | 'none'
 
 export const LEVEL_NAMES: Record<Levels, LevelName> = {
+  [Levels.Debug]: 'debug',
   [Levels.Info]: 'info',
-  [Levels.None]: 'none',
-  [Levels.Verbose]: 'verbose'
+  [Levels.None]: 'none'
 } as const;
 
 export const NAMED_LEVELS: Record<LevelName, Levels> = {
+  debug: Levels.Debug,
   info: Levels.Info,
-  none: Levels.None,
-  verbose: Levels.Verbose
+  none: Levels.None
 } as const;
 
 export default class Logger {
@@ -49,7 +49,7 @@ export default class Logger {
    * Log a debug message
    */
   debug(message: string) {
-    if (this.level >= Levels.Verbose) {
+    if (this.level >= Levels.Debug) {
       this.stdout.write(`${message}\n`);
     }
   }
