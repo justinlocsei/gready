@@ -122,7 +122,7 @@ export default class Repository {
       previous[publisher]++;
 
       return previous;
-    }, {[official]: 1});
+    }, { [official]: 1 });
 
     const ordered = sortBy(
       Object.keys(ranked).filter(Boolean),
