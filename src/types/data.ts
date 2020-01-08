@@ -10,7 +10,7 @@ export interface Book {
   averageRating?: number;
   categories: Category[];
   id: BookID;
-  publisher: string;
+  publisher?: string;
   similarBooks: BookID[];
   title: string;
   topReviews: Review[];
