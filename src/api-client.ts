@@ -187,9 +187,9 @@ export default class APIClient {
           [
             'Fetch read books',
             `UserID=${userID}`,
-            `From=${rangeStart}`,
-            `To=${rangeEnd}`,
-            `Total=${totalBooks}`
+            `Total=${totalBooks}`,
+            `Start=${rangeStart}`,
+            `End=${rangeEnd}`
           ],
           userID,
           page
