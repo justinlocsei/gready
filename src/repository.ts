@@ -1,3 +1,5 @@
+import { sortBy } from 'lodash';
+
 import * as API from './types/api';
 import APIClient from './api-client';
 import Cache from './cache';
@@ -63,7 +65,7 @@ export default class Repository {
    * Convert book information from the API to a book
    */
   private async normalizeBookInfo(book: API.Book): Promise<Book> {
-    const { authors: rawAuthors, id, publisher, work } = book;
+    const { authors: rawAuthors, id, work } = book;
 
     const ratingsSum = parseInt(work.ratings_sum._, 10);
     const totalRatings = parseInt(work.ratings_count._, 10);
@@ -91,6 +93,11 @@ export default class Repository {
       };
     });
 
+    const publisher = this.determinePublisher(
+      book.publisher,
+      reviews.map(r => r.book.publisher)
+    );
+
     return {
       authors,
       averageRating: totalRatings > 0 ? ratingsSum / totalRatings : undefined,
@@ -103,6 +110,29 @@ export default class Repository {
       totalRatings,
       workID: work.id._
     };
+  }
+
+  /**
+   * Determine the publisher of a book by taking the most popular publisher from
+   * the book's official data and its reviews
+   */
+  private determinePublisher(official: string, fromReviews: string[]): string | undefined {
+    const ranked = fromReviews.reduce(function(previous, publisher) {
+      previous[publisher] = previous[publisher] || 0;
+      previous[publisher]++;
+
+      return previous;
+    }, {[official]: 1});
+
+    const ordered = sortBy(
+      Object.keys(ranked).filter(Boolean),
+      [
+        k => ranked[k] * -1,
+        k => k
+      ]
+    );
+
+    return ordered.shift();
   }
 
 }
