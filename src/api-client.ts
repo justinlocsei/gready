@@ -1,3 +1,4 @@
+import async from 'async';
 import cheerio from 'cheerio';
 import querystring from 'querystring';
 import readline from 'readline';
@@ -76,20 +77,33 @@ function createOAuthClient(): OAuth {
   );
 }
 
+interface PendingRequest {
+  execute: () => Promise<string>;
+  handleResponse: (text: string) => void;
+}
+
 export default class APIClient {
 
-  private lastRequest: number;
+  private lastRequestTime: number;
   private oauth: OAuth;
   private options: ClientOptions;
+  private requestQueue: async.AsyncQueue<PendingRequest>;
   private session?: Session;
 
   /**
    * Create a new interface to the Goodreads API
    */
   constructor(options: ClientOptions) {
-    this.lastRequest = Date.now();
+    this.lastRequestTime = Date.now();
     this.oauth = createOAuthClient();
     this.options = options;
+
+    this.requestQueue = async.queue(async function(task, callback) {
+      const text = await task.execute();
+      task.handleResponse(text);
+
+      callback();
+    }, 1);
   }
 
   /**
@@ -134,12 +148,15 @@ export default class APIClient {
    */
   getBookInfo(id: BookID): Promise<BookInfo> {
     return this.options.cache.fetch(['books', id], async () => {
-      this.options.logger.info(`Fetch book: ${id}`);
-
-      const response = await this.request('GET', 'book/show.xml', {
-        id,
-        format: 'xml'
-      });
+      const response = await this.request(
+        `Fetch book: ${id}`,
+        'GET',
+        'book/show.xml',
+        {
+          id,
+          format: 'xml'
+        }
+      );
 
       return BookInfoSchema.conform(response).book;
     });
@@ -155,18 +172,22 @@ export default class APIClient {
 
       const bookReviews: BookReview[] = [];
 
-      this.options.logger.info(`Check read books for user ${userID}`);
+      const { reviews: { $: { total } } } = await this.fetchReviewPage(
+        `Check read books for user ${userID}`,
+        userID
+      );
 
-      const { reviews: { $: { total } } } = await this.fetchReviewPage(userID);
       const totalBooks = parseInt(total, 10);
 
       while (fetching) {
         const rangeStart = (page - 1) * READ_BOOKS_PAGE_SIZE + 1;
         const rangeEnd = Math.min(page * READ_BOOKS_PAGE_SIZE, totalBooks);
 
-        this.options.logger.info(`Fetch read books for user ${userID}: ${rangeStart}–${rangeEnd} / ${totalBooks}`);
-
-        const { reviews } = await this.fetchReviewPage(userID, page);
+        const { reviews } = await this.fetchReviewPage(
+          `Fetch read books for user ${userID}: ${rangeStart}–${rangeEnd} / ${totalBooks}`,
+          userID,
+          page
+        );
 
         reviews.review.forEach(function(review) {
           bookReviews.push(review);
@@ -190,12 +211,14 @@ export default class APIClient {
    */
   getReview(id: ReviewID): Promise<UserReview> {
     return this.options.cache.fetch(['user-reviews', id], async () => {
-      this.options.logger.info(`Fetch review: ${id}`);
-
-      const response = await this.request('GET', 'review/show.xml', {
-        id,
-        format: 'xml'
-      });
+      const response = await this.request(
+        `Fetch review: ${id}`,
+        'GET',
+        'review/show.xml',
+        {
+          id,
+          format: 'xml'
+        });
 
       return UserReviewSchema.conform(response).review;
     });
@@ -247,14 +270,19 @@ export default class APIClient {
   /**
    * Fetch a page of reviews
    */
-  private async fetchReviewPage(userID: UserID, page = 1): Promise<BookReviews> {
-    const response = await this.request('GET', 'review/list.xml', {
-      id: userID,
-      page,
-      per_page: READ_BOOKS_PAGE_SIZE,
-      shelf: 'read',
-      v: 2
-    });
+  private async fetchReviewPage(message: string, userID: UserID, page = 1): Promise<BookReviews> {
+    const response = await this.request(
+      message,
+      'GET',
+      'review/list.xml',
+      {
+        id: userID,
+        page,
+        per_page: READ_BOOKS_PAGE_SIZE,
+        shelf: 'read',
+        v: 2
+      }
+    );
 
     return BookReviewsSchema.conform(response);
   }
@@ -263,7 +291,7 @@ export default class APIClient {
    * Get the ID of the authorized user
    */
   private async getAuthorizedUserID(): Promise<UserID> {
-    const response = await this.request('GET', 'api/auth_user');
+    const response = await this.request('Get authorized user ID', 'GET', 'api/auth_user');
     const data = UserResponseSchema.conform(response);
 
     return data.user.$.id;
@@ -273,32 +301,69 @@ export default class APIClient {
    * Make a request to the Goodreads API
    */
   private async request(
+    label: string,
     method: 'GET' | 'POST',
     relativeURL: string,
     payload?: object
   ): Promise<ResponseBody> {
-    let response;
-
     const url = `${API_BASE_URL}/${relativeURL}`;
 
-    switch (method) {
-      case 'GET':
-        response = await this.makeGetRequest(url, payload);
-        break;
-
-      case 'POST':
-        response = await this.makePostRequest(url, payload);
-        break;
-
-      default:
-        throw new Error(`Unhandled request type: ${method}`);
-    }
+    const response = await this.executeRequest(label, () => {
+      switch (method) {
+        case 'GET':
+          return this.makeGetRequest(url, payload);
+        case 'POST':
+          return this.makePostRequest(url, payload);
+      }
+    });
 
     const parsed = await xml2js.parseStringPromise(response, {
       explicitArray: false
     });
 
     return extractResponseBody(parsed);
+  }
+
+  /**
+   * Execute a single HTTP request
+   */
+  private executeRequest(
+    label: string,
+    requestFn: () => Promise<string>
+  ): Promise<string> {
+    const { logger } = this.options;
+
+    const execute = async () => {
+      logger.debug(`${label} | Process`);
+
+      const time = Date.now();
+      const elapsed = time - this.lastRequestTime;
+
+      if (elapsed < REQUEST_SPACING_MS) {
+        const delay = REQUEST_SPACING_MS - elapsed
+        logger.debug(`${label} | Wait ${delay}ms`);
+
+        await this.sleep(delay);
+      }
+
+      this.lastRequestTime = time;
+
+      logger.info(label);
+
+      return requestFn();
+    };
+
+    logger.debug(`${label} | Enqueue`);
+
+    return new Promise(resolve => {
+      this.requestQueue.push({
+        execute,
+        handleResponse: function(text: string) {
+          logger.debug(`${label} | Handle response`);
+          resolve(text);
+        }
+      });
+    });
   }
 
   /**
@@ -318,8 +383,6 @@ export default class APIClient {
     payload?: Record<string, any>
   ): Promise<string> {
     const { credentials: { secret, token } } = await this.loadSession();
-
-    await this.respectRateLimiting();
 
     let endpoint = url;
 
@@ -347,8 +410,6 @@ export default class APIClient {
   ): Promise<string> {
     const { credentials: { secret, token } } = await this.loadSession();
 
-    await this.respectRateLimiting();
-
     return new Promise((resolve, reject) => {
       this.oauth.post(url, token, secret, payload || {}, 'application/x-www-form-urlencoded', function(error, result) {
         if (error) {
@@ -358,20 +419,6 @@ export default class APIClient {
         }
       });
     });
-  }
-
-  /**
-   * Prevent requests from being made too quickly
-   */
-  private async respectRateLimiting(): Promise<void> {
-    const time = Date.now();
-    const elapsed = time - this.lastRequest;
-
-    if (elapsed < REQUEST_SPACING_MS) {
-      await this.sleep(elapsed);
-    }
-
-    this.lastRequest = time;
   }
 
   /**
