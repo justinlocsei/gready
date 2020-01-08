@@ -86,7 +86,6 @@ export default class Repository {
 
     const topReviews = reviews.map(function(review): Review {
       return {
-        bookID: review.book.id._,
         rating: parseInt(review.rating, 10),
         userID: review.user.id
       };

@@ -29,7 +29,6 @@ export interface ReadBook {
 }
 
 export interface Review {
-  bookID: BookID;
   rating: number;
   userID: UserID;
 }
