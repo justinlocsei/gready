@@ -149,7 +149,7 @@ export default class APIClient {
   getBook(id: BookID): Promise<Book> {
     return this.options.cache.fetch(['books', id], async () => {
       const response = await this.request(
-        `Fetch book: ${id}`,
+        ['Fetch book', `ID=${id}`],
         'GET',
         'book/show.xml',
         {
@@ -173,7 +173,7 @@ export default class APIClient {
       const books: ReadBook[] = [];
 
       const { reviews: { $: { total } } } = await this.fetchReadBooksPage(
-        `Check read books for user ${userID}`,
+        ['Check read books', `UserID=${userID}`],
         userID
       );
 
@@ -184,7 +184,13 @@ export default class APIClient {
         const rangeEnd = Math.min(page * READ_BOOKS_PAGE_SIZE, totalBooks);
 
         const { reviews } = await this.fetchReadBooksPage(
-          `Fetch read books for user ${userID}: ${rangeStart}–${rangeEnd} / ${totalBooks}`,
+          [
+            'Fetch read books',
+            `UserID=${userID}`,
+            `From=${rangeStart}`,
+            `To=${rangeEnd}`,
+            `Total=${totalBooks}`
+          ],
           userID,
           page
         );
@@ -212,7 +218,7 @@ export default class APIClient {
   getReview(id: ReviewID): Promise<Review> {
     return this.options.cache.fetch(['reviews', id], async () => {
       const response = await this.request(
-        `Fetch review: ${id}`,
+        ['Fetch review', `ID=${id}`],
         'GET',
         'review/show.xml',
         {
@@ -271,7 +277,7 @@ export default class APIClient {
   /**
    * Fetch a page of reviews
    */
-  private async fetchReadBooksPage(message: string, userID: UserID, page = 1): Promise<ReadBooks> {
+  private async fetchReadBooksPage(message: string[], userID: UserID, page = 1): Promise<ReadBooks> {
     const response = await this.request(
       message,
       'GET',
@@ -292,7 +298,7 @@ export default class APIClient {
    * Get the ID of the authorized user
    */
   private async getAuthorizedUserID(): Promise<UserID> {
-    const response = await this.request('Get authorized user ID', 'GET', 'api/auth_user');
+    const response = await this.request(['Get authorized user ID'], 'GET', 'api/auth_user');
     const data = UserDataSchema.conform(response);
 
     return data.user.$.id;
@@ -302,14 +308,14 @@ export default class APIClient {
    * Make a request to the Goodreads API
    */
   private async request(
-    label: string,
+    message: string[],
     method: 'GET' | 'POST',
     relativeURL: string,
     payload?: object
   ): Promise<ResponseBody> {
     const url = `${API_BASE_URL}/${relativeURL}`;
 
-    const response = await this.executeRequest(label, () => {
+    const response = await this.executeRequest(message, () => {
       switch (method) {
         case 'GET':
           return this.makeGetRequest(url, payload);
@@ -329,38 +335,38 @@ export default class APIClient {
    * Execute a single HTTP request
    */
   private executeRequest(
-    label: string,
+    message: string[],
     requestFn: () => Promise<string>
   ): Promise<string> {
     const { logger } = this.options;
 
     const execute = async () => {
-      logger.debug(`${label} | Process`);
+      logger.debug(...message, 'Process');
 
       const time = Date.now();
       const elapsed = time - this.lastRequestTime;
 
       if (elapsed < REQUEST_SPACING_MS) {
         const delay = REQUEST_SPACING_MS - elapsed
-        logger.debug(`${label} | Wait ${delay}ms`);
+        logger.debug(...message, `Wait ${delay}ms`);
 
         await this.sleep(delay);
       }
 
       this.lastRequestTime = time;
 
-      logger.info(label);
+      logger.info(...message);
 
       return requestFn();
     };
 
-    logger.debug(`${label} | Enqueue`);
+    logger.debug(...message, 'Enqueue');
 
     return new Promise(resolve => {
       this.requestQueue.push({
         execute,
         handleResponse: function(text: string) {
-          logger.debug(`${label} | Handle response`);
+          logger.debug(...message, 'Handle response');
           resolve(text);
         }
       });

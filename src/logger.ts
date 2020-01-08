@@ -1,26 +1,27 @@
-export enum Levels {
-  None = 0,
-  Info = 1,
-  Debug = 2
+import { ExtractArrayType } from './types/core';
+
+const LEVELS = [
+  { rank: 0, name: 'none' },
+  { rank: 1, name: 'info' },
+  { rank: 2, name: 'debug' }
+] as const;
+
+const LEVEL_NAMES = LEVELS.map(l => l.name);
+
+export const DEFAULT_LEVEL: LevelName = 'info';
+
+export type LevelName = ExtractArrayType<typeof LEVEL_NAMES>;
+
+/**
+ * Get the names of all levels
+ */
+export function getLevelNames(): string[] {
+  return LEVELS.map(l => l.name).sort();
 }
-
-export type LevelName = 'debug' | 'info' | 'none'
-
-export const LEVEL_NAMES: Record<Levels, LevelName> = {
-  [Levels.Debug]: 'debug',
-  [Levels.Info]: 'info',
-  [Levels.None]: 'none'
-} as const;
-
-export const NAMED_LEVELS: Record<LevelName, Levels> = {
-  debug: Levels.Debug,
-  info: Levels.Info,
-  none: Levels.None
-} as const;
 
 export default class Logger {
 
-  private level: Levels;
+  private level: number;
   private stderr: NodeJS.WritableStream;
   private stdout: NodeJS.WritableStream;
   private useColor: boolean;
@@ -32,14 +33,14 @@ export default class Logger {
     stdout: NodeJS.WritableStream,
     stderr: NodeJS.WritableStream,
     options: {
-      logLevel: Levels;
+      logLevel: LevelName;
       useColor: boolean;
     } = {
-      logLevel: Levels.Info,
+      logLevel: DEFAULT_LEVEL,
       useColor: true
     }
   ) {
-    this.level = options.logLevel;
+    this.level = LEVELS.find(l => l.name === options.logLevel)!.rank;
     this.stdout = stdout;
     this.stderr = stderr;
     this.useColor = options.useColor;
@@ -48,19 +49,39 @@ export default class Logger {
   /**
    * Log a debug message
    */
-  debug(message: string) {
-    if (this.level >= Levels.Debug) {
-      this.stdout.write(`${message}\n`);
-    }
+  debug(...message: string[]) {
+    this.log(this.stderr, 'debug', message);
   }
 
   /**
    * Log an info message
    */
-  info(message: string) {
-    if (this.level >= Levels.Info) {
-      this.stdout.write(`${message}\n`);
+  info(...message: string[]) {
+    this.log(this.stderr, 'info', message);
+  }
+
+  /**
+   * Log a message
+   */
+  private log(
+    stream: NodeJS.WritableStream,
+    levelName: LevelName,
+    parts: string[]
+  ) {
+    const rank = LEVELS.find(l => l.name === levelName)!.rank;
+
+    const levelNames = LEVELS
+      .filter(l => l.rank >= rank)
+      .map(l => l.name);
+
+    if (!levelNames.length) {
+      return;
     }
+
+    const longestLabel = Math.max(...levelNames.map(n => n.length));
+    const label = levelName.toUpperCase().padEnd(longestLabel);
+
+    stream.write(`[${label}] ${parts.join(' | ')}\n`);
   }
 
 }

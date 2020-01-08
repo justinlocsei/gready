@@ -2,7 +2,7 @@ import yargs from 'yargs';
 
 import APIClient from './api-client';
 import Cache from './cache';
-import Logger, { Levels, LevelName, LEVEL_NAMES, NAMED_LEVELS } from './logger';
+import Logger, { DEFAULT_LEVEL, getLevelNames, LevelName } from './logger';
 import Repository from './repository';
 import { OutputDirectoryStructure, paths, prepareOutputDirectory } from './environment';
 import { unreachable } from './data';
@@ -23,7 +23,7 @@ interface ParsedOptions {
   'cache-responses': boolean;
   color: boolean;
   command: Command;
-  'log-level': LevelName;
+  'log-level': string;
   'output-dir': string;
 }
 
@@ -63,7 +63,7 @@ class CLI {
    */
   async logIn(): Promise<void> {
     const userID = await this.apiClient.logIn();
-    this.logger.info(`Logged in as user ${userID}`);
+    this.logger.info(`Logged in | UserID=${userID}`);
   }
 
   /**
@@ -109,8 +109,8 @@ function parseOptions(options: CLIOPtions): Promise<ParsedOptions> {
         type: 'boolean'
       })
       .option('log-level', {
-        choices: Object.keys(NAMED_LEVELS),
-        default: LEVEL_NAMES[Levels.Info],
+        choices: getLevelNames(),
+        default: DEFAULT_LEVEL,
         describe: 'The log level to use',
         type: 'string'
       })
@@ -157,7 +157,7 @@ export async function runCLI(options: CLIOPtions): Promise<void> {
     options.stdout,
     options.stderr,
     {
-      logLevel: NAMED_LEVELS[parsedOptions['log-level']],
+      logLevel: parsedOptions['log-level'] as LevelName,
       useColor: parsedOptions.color
     }
   );
