@@ -20,6 +20,7 @@
   "dependencies": {
     "@types/oauth": "^0.9.1",
     "ajv": "^6.10.2",
+    "async": "^3.1.0",
     "cheerio": "^1.0.0-rc.3",
     "fs-extra": "^8.1.0",
     "graceful-fs": "^4.2.3",
@@ -30,6 +31,7 @@
     "yargs": "^15.0.2"
   },
   "devDependencies": {
+    "@types/async": "^3.0.3",
     "@types/cheerio": "^0.22.15",
     "@types/fs-extra": "^8.0.1",
     "@types/graceful-fs": "^4.1.3",
