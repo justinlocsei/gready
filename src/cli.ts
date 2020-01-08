@@ -88,6 +88,13 @@ class CLI {
 }
 
 /**
+ * A function used for a command that lacks options
+ */
+function noOptions<T>(opts: T) {
+  return opts;
+}
+
+/**
  * Parse command-line options
  */
 function parseOptions(options: CLIOPtions): Promise<ParsedOptions> {
@@ -122,19 +129,19 @@ function parseOptions(options: CLIOPtions): Promise<ParsedOptions> {
       .command(
         'log-in',
         'Allow gready to access your Goodreads account',
-        y => y,
+        noOptions,
         args => resolve({ ...args, command: 'log-in' })
       )
       .command(
         'log-out',
         'Prevent gready from accessing your Goodreads account',
-        y => y,
+        noOptions,
         args => resolve({ ...args, command: 'log-out' })
       )
       .command(
         'scrape',
         'Scrape data from Goodreads',
-        y => y,
+        noOptions,
         args => resolve({ ...args, command: 'scrape' })
       )
       .demandCommand(1, 'You must specify a subcommand')
