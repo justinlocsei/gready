@@ -242,9 +242,9 @@ export default class APIClient {
     }
 
     const $ = cheerio.load(response.text);
-    const reviews: Review[] = [];
+    const reviewIDs: ReviewID[] = [];
 
-    $('[itemtype="http://schema.org/Review"]').each(async (i, review) => {
+    $('[itemtype="http://schema.org/Review"]').each(function(i, review) {
       const href = $(review)
         .find('[itemprop="discussionUrl"]')
         .attr('href');
@@ -252,11 +252,13 @@ export default class APIClient {
       const reviewID = href && new URL(href).pathname.split('/').pop();
 
       if (reviewID) {
-        reviews.push(await this.getReview(reviewID));
+        reviewIDs.push(reviewID);
       }
     });
 
-    return reviews;
+    return Promise.all(reviewIDs.map(async (id): Promise<Review> => {
+      return this.getReview(id);
+    }));
   }
 
   /**
