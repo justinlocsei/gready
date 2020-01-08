@@ -129,6 +129,7 @@ export const ReviewSchema = defineSchema<{
       id: {
         _: BookID;
       };
+      publisher: string;
     };
     rating: string;
     user: {
@@ -140,7 +141,8 @@ export const ReviewSchema = defineSchema<{
     book: T.object({
       id: T.object({
         _: T.string()
-      })
+      }),
+      publisher: T.string()
     }),
     rating: T.string(),
     user: T.object({
