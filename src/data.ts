@@ -17,4 +17,6 @@ export function normalizeString(value: string): string {
 /**
  * A function that should never be called
  */
-export function unreachable(param: never) {}
+export function unreachable(reason: never): never {
+  throw new Error(reason);
+}
