@@ -84,6 +84,7 @@ interface PendingRequest {
 
 export default class APIClient {
 
+  private lastRequestID: number;
   private lastRequestTime: number;
   private oauth: OAuth;
   private options: ClientOptions;
@@ -94,6 +95,7 @@ export default class APIClient {
    * Create a new interface to the Goodreads API
    */
   constructor(options: ClientOptions) {
+    this.lastRequestID = 0;
     this.lastRequestTime = Date.now();
     this.oauth = createOAuthClient();
     this.options = options;
@@ -340,15 +342,18 @@ export default class APIClient {
   ): Promise<string> {
     const { logger } = this.options;
 
+    const requestID = ++this.lastRequestID;
+    const requestMessage = [...message, `RequestID=${requestID}`];
+
     const execute = async () => {
-      logger.debug(...message, 'Process');
+      logger.debug(...requestMessage, 'Process');
 
       const time = Date.now();
       const elapsed = time - this.lastRequestTime;
 
       if (elapsed < REQUEST_SPACING_MS) {
         const delay = REQUEST_SPACING_MS - elapsed
-        logger.debug(...message, `Wait ${delay}ms`);
+        logger.debug(...requestMessage, `Wait ${delay}ms`);
 
         await this.sleep(delay);
       }
@@ -360,13 +365,13 @@ export default class APIClient {
       return requestFn();
     };
 
-    logger.debug(...message, 'Enqueue');
+    logger.debug(...requestMessage, 'Enqueue');
 
     return new Promise(resolve => {
       this.requestQueue.push({
         execute,
         handleResponse: function(text: string) {
-          logger.debug(...message, 'Handle response');
+          logger.debug(...requestMessage, 'Handle response');
           resolve(text);
         }
       });
