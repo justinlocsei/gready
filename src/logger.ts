@@ -46,6 +46,15 @@ export default class Logger {
   }
 
   /**
+   * Log a debug message
+   */
+  debug(message: string) {
+    if (this.level >= Levels.Verbose) {
+      this.stdout.write(`${message}\n`);
+    }
+  }
+
+  /**
    * Log an info message
    */
   info(message: string) {
