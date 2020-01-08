@@ -43,7 +43,7 @@ export default class Repository {
    * Get all books read byu a user
    */
   getReadBooks(userID: UserID): Promise<ReadBook[]> {
-    return this.cache.fetch(['reviews', userID], async () => {
+    return this.cache.fetch(['read-books', userID], async () => {
       const books = await this.apiClient.getReadBooks(userID);
       return books.map(this.normalizeReadBook);
     });
