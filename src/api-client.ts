@@ -264,9 +264,8 @@ export default class APIClient {
   /**
    * Get the current user's ID
    */
-  async getUserID(): Promise<UserID> {
-    const { userID } = await this.loadSession();
-    return userID;
+  getUserID(): Promise<UserID> {
+    return this.loadSession().then(s => s.userID);
   }
 
   /**
