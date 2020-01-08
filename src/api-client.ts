@@ -15,16 +15,16 @@ import { formatJSON } from './serialization';
 import { readSecret } from './environment';
 
 import {
-  BookInfo,
-  BookInfoSchema,
-  BookReview,
-  BookReviews,
-  BookReviewsSchema,
+  Book,
+  BookSchema,
   extractResponseBody,
+  ReadBook,
+  ReadBooks,
+  ReadBooksSchema,
   ResponseBody,
-  UserResponseSchema,
-  UserReview,
-  UserReviewSchema
+  Review,
+  ReviewSchema,
+  UserDataSchema
 } from './types/api';
 
 import {
@@ -146,7 +146,7 @@ export default class APIClient {
   /**
    * Get information on a book using its Goodreads ID
    */
-  getBookInfo(id: BookID): Promise<BookInfo> {
+  getBook(id: BookID): Promise<Book> {
     return this.options.cache.fetch(['books', id], async () => {
       const response = await this.request(
         `Fetch book: ${id}`,
@@ -158,21 +158,21 @@ export default class APIClient {
         }
       );
 
-      return BookInfoSchema.conform(response).book;
+      return BookSchema.conform(response).book;
     });
   }
 
   /**
    * Get information on a user's read books
    */
-  getReadBooks(userID: UserID): Promise<BookReview[]> {
+  getReadBooks(userID: UserID): Promise<ReadBook[]> {
     return this.options.cache.fetch(['reviews', userID], async () => {
       let page = 1;
       let fetching = true;
 
-      const bookReviews: BookReview[] = [];
+      const books: ReadBook[] = [];
 
-      const { reviews: { $: { total } } } = await this.fetchReviewPage(
+      const { reviews: { $: { total } } } = await this.fetchReadBooksPage(
         `Check read books for user ${userID}`,
         userID
       );
@@ -183,14 +183,14 @@ export default class APIClient {
         const rangeStart = (page - 1) * READ_BOOKS_PAGE_SIZE + 1;
         const rangeEnd = Math.min(page * READ_BOOKS_PAGE_SIZE, totalBooks);
 
-        const { reviews } = await this.fetchReviewPage(
+        const { reviews } = await this.fetchReadBooksPage(
           `Fetch read books for user ${userID}: ${rangeStart}–${rangeEnd} / ${totalBooks}`,
           userID,
           page
         );
 
         reviews.review.forEach(function(review) {
-          bookReviews.push(review);
+          books.push(review);
         });
 
         const { end } = reviews.$;
@@ -202,15 +202,15 @@ export default class APIClient {
         }
       }
 
-      return bookReviews;
+      return books;
     });
   }
 
   /**
    * Get information on a review
    */
-  getReview(id: ReviewID): Promise<UserReview> {
-    return this.options.cache.fetch(['user-reviews', id], async () => {
+  getReview(id: ReviewID): Promise<Review> {
+    return this.options.cache.fetch(['reviews', id], async () => {
       const response = await this.request(
         `Fetch review: ${id}`,
         'GET',
@@ -220,14 +220,14 @@ export default class APIClient {
           format: 'xml'
         });
 
-      return UserReviewSchema.conform(response).review;
+      return ReviewSchema.conform(response).review;
     });
   }
 
   /**
    * Extract reviews of a book from the embed code for the reviews widget
    */
-  async extractReviewsFromWidget(embedCode: string): Promise<UserReview[]> {
+  async extractReviewsFromWidget(embedCode: string): Promise<Review[]> {
     const widget = cheerio.load(embedCode);
     const url = widget('iframe').attr('src');
 
@@ -242,7 +242,7 @@ export default class APIClient {
     }
 
     const $ = cheerio.load(response.text);
-    const reviews: UserReview[] = [];
+    const reviews: Review[] = [];
 
     $('[itemtype="http://schema.org/Review"]').each(async (i, review) => {
       const href = $(review)
@@ -270,7 +270,7 @@ export default class APIClient {
   /**
    * Fetch a page of reviews
    */
-  private async fetchReviewPage(message: string, userID: UserID, page = 1): Promise<BookReviews> {
+  private async fetchReadBooksPage(message: string, userID: UserID, page = 1): Promise<ReadBooks> {
     const response = await this.request(
       message,
       'GET',
@@ -284,7 +284,7 @@ export default class APIClient {
       }
     );
 
-    return BookReviewsSchema.conform(response);
+    return ReadBooksSchema.conform(response);
   }
 
   /**
@@ -292,7 +292,7 @@ export default class APIClient {
    */
   private async getAuthorizedUserID(): Promise<UserID> {
     const response = await this.request('Get authorized user ID', 'GET', 'api/auth_user');
-    const data = UserResponseSchema.conform(response);
+    const data = UserDataSchema.conform(response);
 
     return data.user.$.id;
   }

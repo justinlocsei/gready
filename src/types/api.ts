@@ -11,7 +11,7 @@ export function extractResponseBody(response: unknown): ResponseBody {
   return ResponseSchema.conform(response).GoodreadsResponse;
 }
 
-export const BookInfoSchema = defineSchema<{
+export const BookSchema = defineSchema<{
   book: {
     authors: {
       author: OneOrMore<{
@@ -42,7 +42,7 @@ export const BookInfoSchema = defineSchema<{
       ratings_sum: { _: string; };
     };
   };
-}>('book info', T.object({
+}>('book', T.object({
   book: T.object({
     authors: T.object({
       author: T.oneOrMore(T.object({
@@ -75,16 +75,16 @@ export const BookInfoSchema = defineSchema<{
   })
 }));
 
-export type BookInfo = ExtractSchemaType<typeof BookInfoSchema>['book'];
+export type Book = ExtractSchemaType<typeof BookSchema>['book'];
 
-export const BookReviewSchema = defineSchema<{
+export const ReadBookSchema = defineSchema<{
   book: {
     id: {
       _: BookID;
     };
   };
   rating: string;
-}>('book review', T.object({
+}>('read book', T.object({
   book: T.object({
     id: T.object({
       _: T.string()
@@ -93,29 +93,29 @@ export const BookReviewSchema = defineSchema<{
   rating: T.string()
 }));
 
-export type BookReview = ExtractSchemaType<typeof BookReviewSchema>;
+export type ReadBook = ExtractSchemaType<typeof ReadBookSchema>;
 
-export const BookReviewsSchema = defineSchema<{
+export const ReadBooksSchema = defineSchema<{
   reviews: {
     $: {
       end: string;
       start: string;
       total: string;
     };
-    review: BookReview[];
+    review: ReadBook[];
   };
-}>('book reviews', T.object({
+}>('read books', T.object({
   reviews: T.object({
     $: T.object({
       end: T.string(),
       start: T.string(),
       total: T.string()
     }),
-    review: T.array(BookReviewSchema.schema)
+    review: T.array(ReadBookSchema.schema)
   })
 }));
 
-export type BookReviews = ExtractSchemaType<typeof BookReviewsSchema>;
+export type ReadBooks = ExtractSchemaType<typeof ReadBooksSchema>;
 
 const ResponseSchema = defineSchema<{
   GoodreadsResponse: ResponseBody;
@@ -123,21 +123,7 @@ const ResponseSchema = defineSchema<{
   GoodreadsResponse: T.object()
 }));
 
-export const UserResponseSchema = defineSchema<{
-  user: {
-    $: {
-      id: UserID;
-    };
-  };
-}>('user data', T.object({
-  user: T.object({
-    $: T.object({
-      id: T.string()
-    })
-  })
-}));
-
-export const UserReviewSchema = defineSchema<{
+export const ReviewSchema = defineSchema<{
   review: {
     book: {
       id: {
@@ -149,7 +135,7 @@ export const UserReviewSchema = defineSchema<{
       id: UserID;
     };
   };
-}>('user review', T.object({
+}>('review', T.object({
   review: T.object({
     book: T.object({
       id: T.object({
@@ -163,5 +149,18 @@ export const UserReviewSchema = defineSchema<{
   })
 }));
 
-export type UserReview = ExtractSchemaType<typeof UserReviewSchema>['review'];
+export type Review = ExtractSchemaType<typeof ReviewSchema>['review'];
 
+export const UserDataSchema = defineSchema<{
+  user: {
+    $: {
+      id: UserID;
+    };
+  };
+}>('user data', T.object({
+  user: T.object({
+    $: T.object({
+      id: T.string()
+    })
+  })
+}));

@@ -13,18 +13,23 @@ export interface Book {
   publisher: string;
   similarBooks: BookID[];
   title: string;
-  topReviews: BookReview[];
+  topReviews: Review[];
   totalRatings: number;
   workID: WorkID;
-}
-
-export interface BookReview {
-  bookID: BookID;
-  rating: number;
-  userID: UserID;
 }
 
 export interface Category {
   count: number;
   name: string;
+}
+
+export interface ReadBook {
+  id: BookID;
+  rating: number;
+}
+
+export interface Review {
+  bookID: BookID;
+  rating: number;
+  userID: UserID;
 }

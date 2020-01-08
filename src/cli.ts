@@ -78,10 +78,10 @@ class CLI {
    */
   async scrape(): Promise<void> {
     const userID = await this.apiClient.getUserID();
-    const reviews = await this.repo.getReviewsForUser(userID);
+    const readBooks = await this.repo.getReadBooks(userID);
 
-    for (const review of reviews) {
-      await this.repo.getBook(review.bookID);
+    for (const readBook of readBooks) {
+      await this.repo.getBook(readBook.id);
     }
   }
 

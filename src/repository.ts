@@ -6,8 +6,9 @@ import { ensureArray, normalizeString } from './data';
 import {
   Author,
   Book,
-  BookReview,
-  Category
+  Category,
+  ReadBook,
+  Review
 } from './types/data';
 
 import {
@@ -33,40 +34,36 @@ export default class Repository {
    */
   getBook(id: BookID): Promise<Book> {
     return this.cache.fetch(['books', id], async () => {
-      const book = await this.apiClient.getBookInfo(id);
+      const book = await this.apiClient.getBook(id);
       return this.normalizeBookInfo(book);
     });
   }
 
   /**
-   * Get all reviews left by a user
+   * Get all books read byu a user
    */
-  getReviewsForUser(userID: UserID): Promise<BookReview[]> {
+  getReadBooks(userID: UserID): Promise<ReadBook[]> {
     return this.cache.fetch(['reviews', userID], async () => {
-      const reviews = await this.apiClient.getReadBooks(userID);
-
-      return reviews.map(review => {
-        return this.normalizeReview(review, userID);
-      });
+      const books = await this.apiClient.getReadBooks(userID);
+      return books.map(this.normalizeReadBook);
     });
   }
 
   /**
    * Convert a review from the API to a book review
    */
-  private normalizeReview(review: API.BookReview, userID: UserID): BookReview {
+  private normalizeReadBook(book: API.ReadBook): ReadBook {
     return {
-      bookID: review.book.id._,
-      rating: parseInt(review.rating, 10),
-      userID
+      id: book.book.id._,
+      rating: parseInt(book.rating, 10)
     };
   }
 
   /**
    * Convert book information from the API to a book
    */
-  private async normalizeBookInfo(info: API.BookInfo): Promise<Book> {
-    const { authors: rawAuthors, id, publisher, work } = info;
+  private async normalizeBookInfo(book: API.Book): Promise<Book> {
+    const { authors: rawAuthors, id, publisher, work } = book;
 
     const ratingsSum = parseInt(work.ratings_sum._, 10);
     const totalRatings = parseInt(work.ratings_count._, 10);
@@ -78,16 +75,16 @@ export default class Repository {
       };
     });
 
-    const categories = info.popular_shelves.shelf.map(function({ $: shelf }): Category {
+    const categories = book.popular_shelves.shelf.map(function({ $: shelf }): Category {
       return {
         count: parseInt(shelf.count, 10),
         name: normalizeString(shelf.name)
       };
     });
 
-    const reviews = await this.apiClient.extractReviewsFromWidget(info.reviews_widget);
+    const reviews = await this.apiClient.extractReviewsFromWidget(book.reviews_widget);
 
-    const topReviews = reviews.map(function(review): BookReview {
+    const topReviews = reviews.map(function(review): Review {
       return {
         bookID: review.book.id._,
         rating: parseInt(review.rating, 10),
@@ -101,7 +98,7 @@ export default class Repository {
       categories,
       id,
       publisher,
-      similarBooks: info.similar_books.book.map(b => b.id),
+      similarBooks: book.similar_books.book.map(b => b.id),
       title: normalizeString(work.original_title),
       topReviews,
       totalRatings,
