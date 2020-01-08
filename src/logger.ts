@@ -21,7 +21,7 @@ export function getLevelNames(): string[] {
 
 export default class Logger {
 
-  private level: number;
+  private level: LevelName;
   private stderr: NodeJS.WritableStream;
   private stdout: NodeJS.WritableStream;
   private useColor: boolean;
@@ -40,7 +40,7 @@ export default class Logger {
       useColor: true
     }
   ) {
-    this.level = LEVELS.find(l => l.name === options.logLevel)!.rank;
+    this.level = options.logLevel;
     this.stdout = stdout;
     this.stderr = stderr;
     this.useColor = options.useColor;
@@ -68,10 +68,15 @@ export default class Logger {
     levelName: LevelName,
     parts: string[]
   ) {
-    const rank = LEVELS.find(l => l.name === levelName)!.rank;
+    const currentRank = this.getLevelRank(this.level);
+    const targetRank = this.getLevelRank(levelName);
+
+    if (currentRank < targetRank) {
+      return;
+    }
 
     const levelNames = LEVELS
-      .filter(l => l.rank >= rank)
+      .filter(l => l.rank <= currentRank)
       .map(l => l.name);
 
     if (!levelNames.length) {
@@ -82,6 +87,13 @@ export default class Logger {
     const label = levelName.toUpperCase().padEnd(longestLabel);
 
     stream.write(`[${label}] ${parts.join(' | ')}\n`);
+  }
+
+  /**
+   * Get the rank for a named level
+   */
+  private getLevelRank(name: LevelName): number {
+    return LEVELS.filter(l => l.name === name)[0].rank;
   }
 
 }
