@@ -1,10 +1,11 @@
 import path from 'path';
 import { mkdirp, remove } from 'fs-extra';
 import { promisify } from 'util';
-import { readFile, writeFile } from 'graceful-fs';
+import { readdir, readFile, writeFile } from 'graceful-fs';
 
 import { formatJSON } from './serialization';
 
+const readdirAsync = promisify(readdir);
 const readFileAsync = promisify(readFile);
 const writeFileAsync = promisify(writeFile);
 
@@ -35,6 +36,26 @@ export default class Cache {
    */
   async clear() {
     return remove(this.directory);
+  }
+
+  /**
+   * Return all entries in a given namespace
+   */
+  async entries<T>(namespace: KeyPath): Promise<T[]> {
+    const dirPath = path.join(this.directory, ...namespace.map(p => p.toString()));
+    let entries: string[];
+
+    try {
+      entries = await readdirAsync(dirPath);
+    } catch {
+      return [];
+    }
+
+    const parseRequests = entries.sort().map(function(file) {
+      return readFileAsync(path.join(dirPath, file), 'utf8').then(t => JSON.parse(t) as T);
+    });
+
+    return Promise.all(parseRequests);
   }
 
   /**
