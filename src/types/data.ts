@@ -27,7 +27,10 @@ export interface ReadBook {
   id: BookID;
   rating: number;
   readOn: number;
+  shelves: Shelf[];
 }
+
+export type Shelf = string;
 
 export interface Review {
   rating: number;

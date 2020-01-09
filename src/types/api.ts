@@ -85,6 +85,13 @@ export const ReadBookSchema = defineSchema<{
   };
   date_updated: string;
   rating: string;
+  shelves: {
+    shelf: OneOrMore<{
+      $: {
+        name: string;
+      };
+    }>;
+  };
 }>('read book', T.object({
   book: T.object({
     id: T.object({
@@ -92,7 +99,14 @@ export const ReadBookSchema = defineSchema<{
     })
   }),
   date_updated: T.string(),
-  rating: T.string()
+  rating: T.string(),
+  shelves: T.object({
+    shelf: T.oneOrMore(T.object({
+      $: T.object({
+        name: T.string()
+      })
+    }))
+  })
 }));
 
 export type ReadBook = ExtractSchemaType<typeof ReadBookSchema>;

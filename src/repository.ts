@@ -11,7 +11,8 @@ import {
   Book,
   Category,
   ReadBook,
-  Review
+  Review,
+  Shelf
 } from './types/data';
 
 import {
@@ -73,10 +74,15 @@ export default class Repository {
    * Convert a review from the API to a book review
    */
   private normalizeReadBook(book: API.ReadBook): ReadBook {
+    const shelves = ensureArray(book.shelves.shelf).map(function(shelf): Shelf {
+      return shelf.$.name;
+    });
+
     return {
       id: book.book.id._,
       rating: parseInt(book.rating, 10),
-      readOn: new Date(book.date_updated).getTime()
+      readOn: new Date(book.date_updated).getTime(),
+      shelves
     };
   }
 
