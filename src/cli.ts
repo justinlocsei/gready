@@ -4,6 +4,7 @@ import APIClient from './api-client';
 import Cache from './cache';
 import Logger, { DEFAULT_LEVEL, getLevelNames, LevelName } from './logger';
 import Repository from './repository';
+import { Book } from './types/data';
 import { CLIError } from './errors';
 import { isNumeric, unreachable } from './data';
 import { OutputDirectoryStructure, paths, prepareOutputDirectory } from './environment';
@@ -88,8 +89,18 @@ class CLI {
       readBooks = readBooks.slice(0, recentBooks);
     }
 
-    for (const readBook of readBooks) {
-      await this.repo.getBook(readBook.id);
+    let index = 0;
+    const totalBooks = readBooks.length;
+
+    let book: Book;
+
+    while (index < totalBooks) {
+      this.logger.info('Get book', `Index=${index + 1}`, `Total=${totalBooks}`);
+
+      book = await this.repo.getBook(readBooks[index].id);
+      index++;
+
+      this.logger.info('Got book', `Index=${index}`, book.title);
     }
   }
 
