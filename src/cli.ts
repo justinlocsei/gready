@@ -76,9 +76,17 @@ class CLI {
   /**
    * Scrape data from the Goodreads API
    */
-  async scrape(): Promise<void> {
+  async scrape({
+    recentBooks
+  }: {
+    recentBooks?: number;
+  }): Promise<void> {
     const userID = await this.apiClient.getUserID();
-    const readBooks = await this.repo.getReadBooks(userID);
+    let readBooks = await this.repo.getReadBooks(userID);
+
+    if (recentBooks) {
+      readBooks = readBooks.slice(0, recentBooks);
+    }
 
     for (const readBook of readBooks) {
       await this.repo.getBook(readBook.id);
@@ -141,8 +149,14 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
       .command(
         'scrape',
         'Scrape data from Goodreads',
-        noOptions,
-        args => resolve({ ...args, command: 'scrape' })
+        function(opts) {
+          return opts
+            .option('recent-books', {
+              describe: 'Fetch data for the N most recent books',
+              type: 'number'
+            });
+        },
+        opts => resolve({ command: 'scrape', options: opts })
       )
       .demandCommand(1, 'You must specify a subcommand')
       .strict()
@@ -211,10 +225,20 @@ async function startCLI(cliOptions: CLIOPtions): Promise<void> {
   switch (parsed.command) {
     case 'log-in':
       return cli.logIn();
+
     case 'log-out':
       return cli.logOut();
+
     case 'scrape':
-      return cli.scrape();
+      return cli.scrape({
+        recentBooks: validateOption(
+          parsed.options,
+          'recent-books',
+          'must be a number',
+          v => v === undefined || isNumeric(v)
+        )
+      });
+
     default:
       unreachable(parsed);
   }
