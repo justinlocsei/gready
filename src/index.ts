@@ -5,7 +5,7 @@ import { runCLI } from './cli';
  * Run the gready CLI
  */
 function runGready(): Promise<void> {
-  const filePosition = process.argv.findIndex(a => a.match(/\.ts$/));
+  const filePosition = process.argv.findIndex(a => a.match(/\.[jt]s$/));
   const argsStart = filePosition >= 0 ? filePosition + 1 : 0;
 
   return runCLI({
