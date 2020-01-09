@@ -84,7 +84,7 @@ class CLI {
     const userID = await this.apiClient.getUserID();
     let readBooks = await this.repo.getReadBooks(userID);
 
-    if (recentBooks) {
+    if (recentBooks !== undefined) {
       readBooks = readBooks.slice(0, recentBooks);
     }
 
