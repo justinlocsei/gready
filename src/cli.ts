@@ -155,6 +155,24 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
 }
 
 /**
+ * Ensure that an option is valid
+ */
+function validateOption<T extends object, U extends keyof T>(
+  options: T,
+  optionName: U,
+  errorMessage: string,
+  validator: (value: unknown) => boolean
+) {
+  const value = options[optionName];
+
+  if (validator(value)) {
+    return value;
+  } else {
+    throw new CLIError(`The --${optionName} option ${errorMessage}`);
+  }
+}
+
+/**
  * Start the CLI
  */
 async function startCLI(cliOptions: CLIOPtions): Promise<void> {
