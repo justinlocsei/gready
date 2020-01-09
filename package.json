@@ -1,6 +1,6 @@
 {
   "name": "gready",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "A recommendation engine built on the Goodreads API",
   "scripts": {
     "build": "tsc --outDir dist",
