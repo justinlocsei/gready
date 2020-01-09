@@ -42,12 +42,19 @@ export default class Repository {
   }
 
   /**
-   * Get all books read byu a user
+   * Get all books read by a user, with the most recently read books first
    */
   getReadBooks(userID: UserID): Promise<ReadBook[]> {
     return this.cache.fetch(['read-books', userID], async () => {
       const books = await this.apiClient.getReadBooks(userID);
-      return books.map(this.normalizeReadBook);
+
+      return sortBy(
+        books.map(this.normalizeReadBook),
+        [
+          b => b.readOn * -1,
+          b => b.id
+        ]
+      );
     });
   }
 
