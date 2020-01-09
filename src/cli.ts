@@ -4,8 +4,9 @@ import APIClient from './api-client';
 import Cache from './cache';
 import Logger, { DEFAULT_LEVEL, getLevelNames, LevelName } from './logger';
 import Repository from './repository';
+import { CLIError } from './errors';
+import { isNumeric, unreachable } from './data';
 import { OutputDirectoryStructure, paths, prepareOutputDirectory } from './environment';
-import { unreachable } from './data';
 
 interface CLIOPtions {
   args: string[];
@@ -13,25 +14,27 @@ interface CLIOPtions {
   stdout: NodeJS.WriteStream;
 }
 
-type Command =
-  | 'log-in'
-  | 'log-out'
-  | 'scrape'
-
-interface ParsedOptions {
+interface CoreOptions {
   'cache-data': boolean;
   'cache-responses': boolean;
   color: boolean;
-  command: Command;
   'log-level': string;
   'output-dir': string;
 }
+
+interface ScrapeOptions extends CoreOptions {
+  'recent-books'?: number;
+}
+
+type CommandOptions =
+  | { command: 'log-in'; options: CoreOptions; }
+  | { command: 'log-out'; options: CoreOptions; }
+  | { command: 'scrape'; options: ScrapeOptions; }
 
 class CLI {
 
   private apiClient: APIClient;
   private logger: Logger;
-  private options: ParsedOptions;
   private outputDir: OutputDirectoryStructure;
   private repo: Repository;
 
@@ -41,19 +44,16 @@ class CLI {
   constructor({
     apiClient,
     logger,
-    options,
     outputDir,
     repo
   }: {
     apiClient: APIClient;
     logger: Logger;
-    options: ParsedOptions;
     outputDir: OutputDirectoryStructure;
     repo: Repository;
   }) {
     this.apiClient = apiClient;
     this.logger = logger;
-    this.options = options;
     this.outputDir = outputDir;
     this.repo = repo;
   }
@@ -95,9 +95,9 @@ function noOptions<T>(opts: T) {
 }
 
 /**
- * Parse command-line options
+ * Parse command-line arguments
  */
-function parseOptions(options: CLIOPtions): Promise<ParsedOptions> {
+function parseCLIArgs(args: string[]): Promise<CommandOptions> {
   return new Promise(function(resolve, reject) {
     yargs
      .option('cache-data', {
@@ -130,13 +130,13 @@ function parseOptions(options: CLIOPtions): Promise<ParsedOptions> {
         'log-in',
         'Allow gready to access your Goodreads account',
         noOptions,
-        args => resolve({ ...args, command: 'log-in' })
+        opts => resolve({ command: 'log-in', options: opts })
       )
       .command(
         'log-out',
         'Prevent gready from accessing your Goodreads account',
         noOptions,
-        args => resolve({ ...args, command: 'log-out' })
+        opts => resolve({ command: 'log-out', options: opts })
       )
       .command(
         'scrape',
@@ -148,29 +148,32 @@ function parseOptions(options: CLIOPtions): Promise<ParsedOptions> {
       .strict()
       .help('h')
       .alias('h', 'help')
+      .scriptName('gready')
       .version()
-      .parse(options.args.slice(1));
+      .parse(args);
   });
 }
 
 /**
- * Run the CLI
+ * Start the CLI
  */
-export async function runCLI(options: CLIOPtions): Promise<void> {
-  const parsedOptions = await parseOptions(options);
-  const outputDir = await prepareOutputDirectory(parsedOptions['output-dir']);
+async function startCLI(cliOptions: CLIOPtions): Promise<void> {
+  const parsed = await parseCLIArgs(cliOptions.args);
+  const { options } = parsed;
+
+  const outputDir = await prepareOutputDirectory(options['output-dir']);
 
   const logger = new Logger(
-    options.stdout,
-    options.stderr,
+    cliOptions.stdout,
+    cliOptions.stderr,
     {
-      logLevel: parsedOptions['log-level'] as LevelName,
-      useColor: parsedOptions.color
+      logLevel: options['log-level'] as LevelName,
+      useColor: options.color
     }
   );
 
-  const apiCache = new Cache(outputDir.apiRequestsDir, { enabled: parsedOptions['cache-responses'] });
-  const dataCache = new Cache(outputDir.dataDir, { enabled: parsedOptions['cache-data'] });
+  const apiCache = new Cache(outputDir.apiRequestsDir, { enabled: options['cache-responses'] });
+  const dataCache = new Cache(outputDir.dataDir, { enabled: options['cache-data'] });
 
   const apiClient = new APIClient({
     cache: apiCache,
@@ -183,12 +186,11 @@ export async function runCLI(options: CLIOPtions): Promise<void> {
   const cli = new CLI({
     apiClient,
     logger,
-    options: parsedOptions,
     outputDir,
     repo
   });
 
-  switch (parsedOptions.command) {
+  switch (parsed.command) {
     case 'log-in':
       return cli.logIn();
     case 'log-out':
@@ -196,6 +198,22 @@ export async function runCLI(options: CLIOPtions): Promise<void> {
     case 'scrape':
       return cli.scrape();
     default:
-      unreachable(parsedOptions.command);
+      unreachable(parsed);
   }
+}
+
+/**
+ * Run the CLI
+ */
+export function runCLI(options: CLIOPtions): Promise<void> {
+  return startCLI(options).catch(function(error) {
+    if (error instanceof CLIError) {
+      process.exitCode = 1;
+
+      console.error(`${error.message}\n\nUsage\n-----\n`);
+      yargs.showHelp('error');
+    } else {
+      throw error;
+    }
+  });
 }

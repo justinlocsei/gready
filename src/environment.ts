@@ -2,6 +2,8 @@ import path from 'path';
 import process from 'process';
 import { mkdirp } from 'fs-extra';
 
+import { OperationalError } from './errors';
+
 export interface OutputDirectoryStructure {
   apiRequestsDir: string;
   dataDir: string;
@@ -32,7 +34,7 @@ export function readSecret(varName: string): string {
   const value = process.env[varName];
 
   if (!value) {
-    throw new Error(`Secret not found in environment: ${varName}`);
+    throw new OperationalError(`Secret not found in environment: ${varName}`);
   }
 
   return value;

@@ -12,6 +12,7 @@ import { URL } from 'url';
 import Cache from './cache';
 import Logger from './logger';
 import { formatJSON } from './serialization';
+import { OperationalError } from './errors';
 import { readSecret } from './environment';
 
 import {
@@ -240,13 +241,13 @@ export default class APIClient {
     const url = widget('iframe').attr('src');
 
     if (!url) {
-      throw new Error(`No iframe URL found in reviews widget\n${embedCode}`);
+      throw new OperationalError(`No iframe URL found in reviews widget\n${embedCode}`);
     }
 
     const response = await superagent.get(url);
 
     if (response.status !== 200) {
-      throw new Error(`Request for reviews widget failed with code ${response.status}\n${embedCode}`);
+      throw new OperationalError(`Request for reviews widget failed with code ${response.status}\n${embedCode}`);
     }
 
     const $ = cheerio.load(response.text);

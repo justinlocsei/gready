@@ -6,6 +6,13 @@ export function ensureArray<T>(value: T | T[]): T[] {
 }
 
 /**
+ * Whether a value is numeric
+ */
+export function isNumeric(value: unknown): boolean {
+  return typeof value === 'number' && !isNaN(value);
+}
+
+/**
  * Remove non-essential information from a string
  */
 export function normalizeString(value: string): string {
