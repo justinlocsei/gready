@@ -149,13 +149,13 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
         'log-in',
         'Allow gready to access your Goodreads account',
         noOptions,
-        opts => resolve({ command: 'log-in', options: opts })
+        options => resolve({ command: 'log-in', options })
       )
       .command(
         'log-out',
         'Prevent gready from accessing your Goodreads account',
         noOptions,
-        opts => resolve({ command: 'log-out', options: opts })
+        options => resolve({ command: 'log-out', options })
       )
       .command(
         'scrape',
@@ -167,7 +167,7 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
               type: 'number'
             });
         },
-        opts => resolve({ command: 'scrape', options: opts })
+        options => resolve({ command: 'scrape', options })
       )
       .demandCommand(1, 'You must specify a subcommand')
       .strict()
