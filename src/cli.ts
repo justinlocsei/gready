@@ -215,7 +215,8 @@ async function startCLI(cliOptions: CLIOPtions): Promise<void> {
 
   const repo = new Repository({
     apiClient,
-    cache: dataCache
+    cache: dataCache,
+    logger
   });
 
   const cli = new CLI({

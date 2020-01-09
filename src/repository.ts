@@ -3,6 +3,7 @@ import { sortBy } from 'lodash';
 import * as API from './types/api';
 import APIClient from './api-client';
 import Cache from './cache';
+import Logger from './logger';
 import { ensureArray, normalizeString } from './data';
 
 import {
@@ -22,19 +23,23 @@ export default class Repository {
 
   private apiClient: APIClient;
   private cache: Cache;
+  private logger: Logger;
 
   /**
    * Create a data repository
    */
   constructor({
     apiClient,
-    cache
+    cache,
+    logger
   }: {
-    apiClient: APIClient,
-    cache: Cache
+    apiClient: APIClient;
+    cache: Cache;
+    logger: Logger;
   }) {
     this.apiClient = apiClient;
     this.cache = cache;
+    this.logger = logger;
   }
 
   /**
