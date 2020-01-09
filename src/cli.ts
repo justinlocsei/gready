@@ -213,7 +213,10 @@ async function startCLI(cliOptions: CLIOPtions): Promise<void> {
     sessionFile: paths.sessionFile
   });
 
-  const repo = new Repository(apiClient, dataCache);
+  const repo = new Repository({
+    apiClient,
+    cache: dataCache
+  });
 
   const cli = new CLI({
     apiClient,

@@ -26,7 +26,13 @@ export default class Repository {
   /**
    * Create a data repository
    */
-  constructor(apiClient: APIClient, cache: Cache) {
+  constructor({
+    apiClient,
+    cache
+  }: {
+    apiClient: APIClient,
+    cache: Cache
+  }) {
     this.apiClient = apiClient;
     this.cache = cache;
   }
