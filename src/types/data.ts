@@ -8,9 +8,9 @@ export interface Author {
 export interface Book {
   authors: Author[];
   averageRating?: number;
-  categories: Category[];
   id: BookID;
   publisher?: string;
+  shelves: Shelf[];
   similarBooks: BookID[];
   title: string;
   topReviews: Review[];
@@ -18,7 +18,7 @@ export interface Book {
   workID: WorkID;
 }
 
-export interface Category {
+export interface Shelf {
   count: number;
   name: string;
 }
@@ -27,10 +27,8 @@ export interface ReadBook {
   id: BookID;
   rating: number;
   readOn: number;
-  shelves: Shelf[];
+  shelves: string[];
 }
-
-export type Shelf = string;
 
 export interface Review {
   rating: number;

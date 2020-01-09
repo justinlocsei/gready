@@ -9,7 +9,6 @@ import { ensureArray, normalizeString } from './data';
 import {
   Author,
   Book,
-  Category,
   ReadBook,
   Review,
   Shelf
@@ -91,7 +90,7 @@ export default class Repository {
    * Convert a review from the API to a book review
    */
   private normalizeReadBook(book: API.ReadBook): ReadBook {
-    const shelves = ensureArray(book.shelves.shelf).map(function(shelf): Shelf {
+    const shelves = ensureArray(book.shelves.shelf).map(function(shelf): string {
       return shelf.$.name;
     });
 
@@ -119,7 +118,7 @@ export default class Repository {
       };
     });
 
-    const categories = book.popular_shelves.shelf.map(function({ $: shelf }): Category {
+    const shelves = book.popular_shelves.shelf.map(function({ $: shelf }): Shelf {
       return {
         count: parseInt(shelf.count, 10),
         name: normalizeString(shelf.name)
@@ -143,9 +142,9 @@ export default class Repository {
     return {
       authors,
       averageRating: totalRatings > 0 ? ratingsSum / totalRatings : undefined,
-      categories,
       id,
       publisher,
+      shelves,
       similarBooks: book.similar_books.book.map(b => b.id),
       title: normalizeString(work.original_title),
       topReviews,
