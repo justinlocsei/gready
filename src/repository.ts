@@ -81,7 +81,7 @@ export default class Repository {
     return {
       id: book.book.id._,
       rating: parseInt(book.rating, 10),
-      readOn: new Date(book.date_updated).getTime(),
+      readOn: new Date(book.read_at || book.date_added).getTime(),
       shelves
     };
   }

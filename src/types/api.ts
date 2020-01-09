@@ -83,8 +83,9 @@ export const ReadBookSchema = defineSchema<{
       _: BookID;
     };
   };
-  date_updated: string;
+  date_added: string;
   rating: string;
+  read_at: string;
   shelves: {
     shelf: OneOrMore<{
       $: {
@@ -98,8 +99,9 @@ export const ReadBookSchema = defineSchema<{
       _: T.string()
     })
   }),
-  date_updated: T.string(),
+  date_added: T.string(),
   rating: T.string(),
+  read_at: T.string(),
   shelves: T.object({
     shelf: T.oneOrMore(T.object({
       $: T.object({
