@@ -83,6 +83,7 @@ export const ReadBookSchema = defineSchema<{
       _: BookID;
     };
   };
+  date_updated: string;
   rating: string;
 }>('read book', T.object({
   book: T.object({
@@ -90,6 +91,7 @@ export const ReadBookSchema = defineSchema<{
       _: T.string()
     })
   }),
+  date_updated: T.string(),
   rating: T.string()
 }));
 
