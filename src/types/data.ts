@@ -26,6 +26,7 @@ export interface Category {
 export interface ReadBook {
   id: BookID;
   rating: number;
+  readOn: number;
 }
 
 export interface Review {

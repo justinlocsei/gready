@@ -57,7 +57,8 @@ export default class Repository {
   private normalizeReadBook(book: API.ReadBook): ReadBook {
     return {
       id: book.book.id._,
-      rating: parseInt(book.rating, 10)
+      rating: parseInt(book.rating, 10),
+      readOn: new Date(book.date_updated).getTime()
     };
   }
 
