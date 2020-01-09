@@ -59,6 +59,18 @@ export default class Repository {
   }
 
   /**
+   * Get information on all books in a list that are locally available
+   */
+  async getLocalBooks(ids: BookID[]): Promise<Book[]> {
+    const books = await this.cache.entries<Book>([NAMESPACES.books])
+
+    return sortBy(books.filter(b => ids.includes(b.id)), [
+      b => b.title,
+      b => b.id
+    ]);
+  }
+
+  /**
    * Get all books read by a user, with the most recently read books first
    */
   getReadBooks(userID: UserID): Promise<ReadBook[]> {
