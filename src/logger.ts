@@ -1,3 +1,5 @@
+import chalk, { ForegroundColor } from 'chalk';
+
 import { ExtractArrayType } from './types/core';
 
 const LEVELS = [
@@ -50,7 +52,7 @@ export default class Logger {
    * Log a debug message
    */
   debug(...message: string[]) {
-    this.log(this.stderr, 'debug', message);
+    this.log(this.stderr, 'debug', message, 'green');
   }
 
   /**
@@ -66,7 +68,8 @@ export default class Logger {
   private log(
     stream: NodeJS.WritableStream,
     levelName: LevelName,
-    parts: string[]
+    parts: string[],
+    color?: typeof ForegroundColor
   ) {
     const currentRank = this.getLevelRank(this.level);
     const targetRank = this.getLevelRank(levelName);
@@ -86,7 +89,13 @@ export default class Logger {
     const longestLabel = Math.max(...levelNames.map(n => n.length));
     const label = levelName.toUpperCase().padEnd(longestLabel);
 
-    stream.write(`[${label}] ${parts.join(' | ')}\n`);
+    let message = `[${label}] ${parts.join(' | ')}\n`;
+
+    if (this.useColor && color) {
+      message = chalk[color](message);
+    }
+
+    stream.write(message);
   }
 
   /**
