@@ -244,13 +244,27 @@ export default class APIClient {
       throw new OperationalError(`No iframe URL found in reviews widget\n${embedCode}`);
     }
 
-    const response = await superagent.get(url);
+    const isbn = new URL(url).searchParams.get('isbn');
 
-    if (response.status !== 200) {
-      throw new OperationalError(`Request for reviews widget failed with code ${response.status}\n${embedCode}`);
+    if (!isbn) {
+      return [];
     }
 
-    const $ = cheerio.load(response.text);
+    const markup = await this.options.cache.fetch(['top-reviews', isbn], async () => {
+      this.options.logger.debug('Load reviews', `ID=${isbn}`);
+
+      const response = await superagent.get(url);
+
+      if (response.status !== 200) {
+        throw new OperationalError(`Request for reviews widget at ${url} failed with code ${response.status}`);
+      }
+
+      return response.text;
+    });
+
+    this.options.logger.debug('Parse reviews', `ID=${isbn}`);
+
+    const $ = cheerio.load(markup);
     const reviewIDs: ReviewID[] = [];
 
     $('[itemtype="http://schema.org/Review"]').each(function(i, review) {
