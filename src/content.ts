@@ -8,7 +8,9 @@ export function formalizeAuthorName(name: string): string {
   const totalParts = parts.length;
 
   const last = parts[totalParts - 1];
-  const rest = parts.slice(0, totalParts - 1);
+  const rest = parts.slice(0, totalParts - 1).join(' ');
 
-  return [last, rest.join(' ')].join(', ');
+  return [last, rest]
+    .filter(Boolean)
+    .join(', ');
 }
