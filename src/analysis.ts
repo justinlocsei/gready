@@ -76,17 +76,10 @@ export function groupBooksByShelf(books: Book[], {
     return previous;
   }, {});
 
-  const sortedShelves = sortBy(Object.keys(byShelf), [
-    name => byShelf[name].totalCount * -1,
-    name => name
-  ]);
-
   const groups = Object.values(byShelf);
   const mostBooksInShelf = Math.max(...groups.map(g => g.books.length), 1);
 
-  const shelves = sortedShelves.map(function(name) {
-    const group = byShelf[name];
-
+  const shelves = Object.values(byShelf).map(function(group) {
     const totalBooks = group.books.length;
     const totalAffinity = group.books.reduce((p, b) => p + b.affinity, 0);
 
@@ -104,7 +97,13 @@ export function groupBooksByShelf(books: Book[], {
     };
   });
 
-  return shelves.filter(s => s.popularity >= minPercent);
+  return sortBy(
+    shelves.filter(s => s.popularity >= minPercent),
+    [
+      s => s.popularity * -1,
+      s => s.shelfName
+    ]
+  );
 }
 
 /**
