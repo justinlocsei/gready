@@ -38,6 +38,7 @@ class CLI {
   private logger: Logger;
   private outputDir: OutputDirectoryStructure;
   private repo: Repository;
+  private stdout: NodeJS.WritableStream;
 
   /**
    * Create a new CLI
@@ -46,17 +47,20 @@ class CLI {
     apiClient,
     logger,
     outputDir,
-    repo
+    repo,
+    stdout
   }: {
     apiClient: APIClient;
     logger: Logger;
     outputDir: OutputDirectoryStructure;
     repo: Repository;
+    stdout: NodeJS.WritableStream;
   }) {
     this.apiClient = apiClient;
     this.logger = logger;
     this.outputDir = outputDir;
     this.repo = repo;
+    this.stdout = stdout;
   }
 
   /**
@@ -234,7 +238,8 @@ async function startCLI(cliOptions: CLIOPtions): Promise<void> {
     apiClient,
     logger,
     outputDir,
-    repo
+    repo,
+    stdout: cliOptions.stdout
   });
 
   switch (parsed.command) {
