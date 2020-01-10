@@ -4,7 +4,7 @@ import APIClient from './api-client';
 import Cache from './cache';
 import Logger, { DEFAULT_LEVEL, getLevelNames, LevelName } from './logger';
 import Repository from './repository';
-import { Book } from './types/data';
+import { Book, ReadBook } from './types/data';
 import { CLIError } from './errors';
 import { formalizeAuthorName } from './content';
 import { groupBooksByAuthor, groupBooksByShelf } from './analysis';
@@ -101,14 +101,23 @@ class CLI {
     const totalBooks = readBooks.length;
 
     let book: Book;
+    let readBook: ReadBook;
 
     while (index < totalBooks) {
-      this.logger.info('Get book', `Index=${index + 1}`, `Total=${totalBooks}`);
+      readBook = readBooks[index];
 
-      book = await this.repo.getBook(readBooks[index].id);
+      const meta = [
+        `Index=${index + 1}`,
+        `Total=${totalBooks}`,
+        `ID=${readBook.id}`
+      ];
+
+      this.logger.info('Load book', ...meta);
+
+      book = await this.repo.getBook(readBook.id);
       index++;
 
-      this.logger.info('Got book', `Index=${index}`, book.title);
+      this.logger.info('Save book', ...meta, book.title);
     }
   }
 
