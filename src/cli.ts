@@ -214,7 +214,7 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
         type: 'string'
       })
       .option('min-shelf-percent', {
-        default: 10,
+        default: 1,
         describe: 'The minimum percentage of a shelf’s count relative to the highest count required to include it in analyses',
         type: 'number'
       })
