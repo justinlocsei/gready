@@ -141,13 +141,15 @@ export default class Repository {
       reviews.map(r => r.book.publisher)
     );
 
+    const similarBooks = (book.similar_books && book.similar_books.book) || [];
+
     return {
       authors,
       averageRating: totalRatings > 0 ? ratingsSum / totalRatings : undefined,
       id,
       publisher,
       shelves,
-      similarBooks: book.similar_books.book.map(b => b.id),
+      similarBooks: similarBooks.map(b => b.id),
       title: normalizeString(work.original_title),
       topReviews,
       totalRatings,

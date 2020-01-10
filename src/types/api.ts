@@ -30,7 +30,7 @@ export const BookSchema = defineSchema<{
     };
     publisher: string;
     reviews_widget: string;
-    similar_books: {
+    similar_books?: {
       book: {
         id: BookID;
       }[];
@@ -72,7 +72,7 @@ export const BookSchema = defineSchema<{
       ratings_count: T.object({ _: T.string() }),
       ratings_sum: T.object({ _: T.string() })
     })
-  })
+  }, ['similar_books'])
 }));
 
 export type Book = ExtractSchemaType<typeof BookSchema>['book'];
