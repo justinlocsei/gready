@@ -6,7 +6,9 @@ import Logger, { DEFAULT_LEVEL, getLevelNames, LevelName } from './logger';
 import Repository from './repository';
 import { Book } from './types/data';
 import { CLIError } from './errors';
-import { isNumeric, unreachable } from './data';
+import { formalizeAuthorName } from './content';
+import { groupBooksByAuthor, groupBooksByShelf } from './analysis';
+import { isNumeric, underline, unreachable } from './data';
 import { OutputDirectoryStructure, paths, prepareOutputDirectory } from './environment';
 
 interface CLIOPtions {
@@ -32,6 +34,7 @@ type CommandOptions =
   | { command: 'log-in'; options: CoreOptions; }
   | { command: 'log-out'; options: CoreOptions; }
   | { command: 'scrape'; options: ScrapeOptions; }
+  | { command: 'summarize'; options: CoreOptions; }
 
 class CLI {
 
@@ -109,6 +112,43 @@ class CLI {
     }
   }
 
+  /**
+   * Summarize the local book data
+   */
+  async summarize({
+    minShelfPercent
+  }: {
+    minShelfPercent: number;
+  }): Promise<void> {
+    const userID = await this.apiClient.getUserID();
+    const readBooks = await this.repo.getReadBooks(userID);
+    const books = await this.repo.getLocalBooks(readBooks.map(b => b.id));
+
+    const booksByAuthor = groupBooksByAuthor(books);
+    const booksByShelf = groupBooksByShelf(books, { minPercent: minShelfPercent });
+
+    this.stdout.write(underline('Books by Author') + '\n\n');
+
+    const bookSummary = booksByAuthor.map(function({ author, books: authorBooks }) {
+      return [
+        `* ${formalizeAuthorName(author.name)} (ID=${author.id})`,
+        ...authorBooks.map(b => `  - ${b.title} (ID=${b.id})`)
+      ].join('\n');
+    });
+
+    this.stdout.write(bookSummary.join('\n\n') + '\n\n');
+    this.stdout.write(underline('Popular Shelves') + '\n\n');
+
+    const shelfSummary = booksByShelf.map(function({ books: shelfBooks, popularity, shelfName, totalCount }) {
+      return [
+        `* ${shelfName} (${popularity}%)`,
+        ...shelfBooks.map(b => `  - ${b.book.title} (${b.affinity}%)`)
+      ].join('\n');
+    });
+
+    this.stdout.write(shelfSummary.join('\n\n') + '\n');
+  }
+
 }
 
 /**
@@ -178,6 +218,12 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
             });
         },
         options => resolve({ command: 'scrape', options })
+      )
+      .command(
+        'summarize',
+        'Summarize local data',
+        noOptions,
+        options => resolve({ command: 'summarize', options })
       )
       .demandCommand(1, 'You must specify a subcommand')
       .strict()
@@ -270,6 +316,11 @@ async function startCLI(cliOptions: CLIOPtions): Promise<void> {
           'must be a number',
           v => v === undefined || isNumeric(v)
         )
+      });
+
+    case 'summarize':
+      return cli.summarize({
+        minShelfPercent
       });
 
     default:
