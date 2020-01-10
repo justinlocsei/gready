@@ -22,6 +22,13 @@ export function normalizeString(value: string): string {
 }
 
 /**
+ * Underline a string
+ */
+export function underline(value: string, character = '='): string {
+  return `${value}\n${character.repeat(value.length)}`;
+}
+
+/**
  * A function that should never be called
  */
 export function unreachable(reason: never): never {
