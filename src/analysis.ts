@@ -9,6 +9,11 @@ interface BooksByAuthor {
   books: Book[];
 }
 
+interface BooksByPublisher {
+  books: Book[];
+  publisherName: string;
+}
+
 interface BooksByShelf {
   books: {
     affinity: number;
@@ -46,6 +51,31 @@ export function groupBooksByAuthor(books: Book[]): BooksByAuthor[] {
       books: sortBy(booksByAuthor[id], [b => b.title, b => b.id])
     };
   });
+}
+
+/**
+ * Group a set of books by publisher
+ */
+export function groupBooksByPublisher(books: Book[]): BooksByPublisher[] {
+  const byPublisher = books.reduce(function(previous: Record<string, Book[]>, book) {
+    const { publisher } = book;
+
+    if (publisher) {
+      previous[publisher] = previous[publisher] || [];
+      previous[publisher].push(book);
+    }
+
+    return previous;
+  }, {});
+
+  const groups = Object.keys(byPublisher).map(function(publisher): BooksByPublisher {
+    return {
+      books: sortBy(byPublisher[publisher], [b => b.title, b => b.id]),
+      publisherName: publisher
+    };
+  });
+
+  return sortBy(groups, g => g.publisherName);
 }
 
 /**
