@@ -1,4 +1,5 @@
 import yargs from 'yargs';
+import { sortBy } from 'lodash';
 
 import APIClient from './api-client';
 import Cache from './cache';
@@ -155,7 +156,19 @@ class CLI {
       ].join('\n');
     });
 
-    this.stdout.write(shelfSummary.join('\n\n') + '\n');
+    this.stdout.write(shelfSummary.join('\n\n') + '\n\n');
+    this.stdout.write(underline('Shelves') + '\n\n');
+
+    const allShelves = sortBy(booksByShelf, [
+      s => s.shelfName,
+      s => s.popularity * -1
+    ]);
+
+    const shelves = allShelves.map(function({ popularity, shelfName }) {
+      return `* ${shelfName} (${popularity}%)`;
+    });
+
+    this.stdout.write(shelves.join('\n') + '\n');
   }
 
 }
