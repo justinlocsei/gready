@@ -150,7 +150,7 @@ export default class Repository {
       publisher,
       shelves,
       similarBooks: similarBooks.map(b => b.id),
-      title: normalizeString(work.original_title),
+      title: normalizeString(book.title || work.original_title),
       topReviews,
       totalRatings,
       workID: work.id._

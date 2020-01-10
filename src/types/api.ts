@@ -35,6 +35,7 @@ export const BookSchema = defineSchema<{
         id: BookID;
       }[];
     };
+    title: string;
     work: {
       id: { _: WorkID; };
       original_title: string;
@@ -66,6 +67,7 @@ export const BookSchema = defineSchema<{
         id: T.string()
       }))
     }),
+    title: T.string(),
     work: T.object({
       id: T.object({ _: T.string() }),
       original_title: T.string(),
