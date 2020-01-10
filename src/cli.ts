@@ -10,6 +10,7 @@ import { CLIError } from './errors';
 import { formalizeAuthorName } from './content';
 import { groupBooksByAuthor, groupBooksByShelf } from './analysis';
 import { isNumeric, underline, unreachable } from './data';
+import { loadConfig } from './config';
 import { OutputDirectoryStructure, paths, prepareOutputDirectory } from './environment';
 
 interface CLIOPtions {
@@ -22,6 +23,7 @@ interface CoreOptions {
   'cache-data': boolean;
   'cache-responses': boolean;
   color: boolean;
+  config?: string;
   'log-level': string;
   'min-shelf-percent': number;
   'output-dir': string;
@@ -201,6 +203,10 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
         describe: 'Use colored output',
         type: 'boolean'
       })
+      .option('config', {
+        describe: 'A path to a JSON configuration file',
+        type: 'string'
+      })
       .option('log-level', {
         choices: getLevelNames(),
         default: DEFAULT_LEVEL,
@@ -283,6 +289,7 @@ async function startCLI(cliOptions: CLIOPtions): Promise<void> {
   const { options } = parsed;
 
   const outputDir = await prepareOutputDirectory(options['output-dir']);
+  const config = await loadConfig(options['config']);
 
   const logger = new Logger(
     cliOptions.stdout,
@@ -305,6 +312,7 @@ async function startCLI(cliOptions: CLIOPtions): Promise<void> {
   const repo = new Repository({
     apiClient,
     cache: dataCache,
+    config,
     logger
   });
 
