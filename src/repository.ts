@@ -53,6 +53,8 @@ export default class Repository {
   getBook(id: BookID): Promise<Book> {
     return this.cache.fetch([NAMESPACES.books, id], async () => {
       const book = await this.apiClient.getBook(id);
+      this.logger.debug('Normalize book', `ID=${book.id}`);
+
       return this.normalizeBookInfo(book);
     });
   }
