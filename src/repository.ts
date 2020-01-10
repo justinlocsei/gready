@@ -187,7 +187,9 @@ export default class Repository {
       ]
     );
 
-    return ordered.shift();
+    const publisher = ordered.shift();
+
+    return publisher && normalizeString(publisher);
   }
 
   /**
