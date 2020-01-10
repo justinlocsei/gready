@@ -11,7 +11,7 @@ import { formalizeAuthorName } from './content';
 import { groupBooksByAuthor, groupBooksByPublisher, groupBooksByShelf } from './analysis';
 import { isNumeric, underline, unreachable } from './data';
 import { loadConfig } from './config';
-import { OutputDirectoryStructure, paths, prepareOutputDirectory } from './environment';
+import { paths, prepareOutputDirectory } from './environment';
 
 interface CLIOPtions {
   args: string[];
@@ -43,7 +43,6 @@ class CLI {
 
   private apiClient: APIClient;
   private logger: Logger;
-  private outputDir: OutputDirectoryStructure;
   private repo: Repository;
   private stdout: NodeJS.WritableStream;
 
@@ -53,19 +52,16 @@ class CLI {
   constructor({
     apiClient,
     logger,
-    outputDir,
     repo,
     stdout
   }: {
     apiClient: APIClient;
     logger: Logger;
-    outputDir: OutputDirectoryStructure;
     repo: Repository;
     stdout: NodeJS.WritableStream;
   }) {
     this.apiClient = apiClient;
     this.logger = logger;
-    this.outputDir = outputDir;
     this.repo = repo;
     this.stdout = stdout;
   }
@@ -335,7 +331,6 @@ async function startCLI(cliOptions: CLIOPtions): Promise<void> {
   const cli = new CLI({
     apiClient,
     logger,
-    outputDir,
     repo,
     stdout: cliOptions.stdout
   });
