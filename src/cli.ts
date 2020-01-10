@@ -9,7 +9,7 @@ import { CLIError } from './errors';
 import { isNumeric, unreachable } from './data';
 import { loadConfig } from './config';
 import { paths, prepareOutputDirectory } from './environment';
-import { summarizeBooks } from './summary';
+import { SectionID, SECTION_IDS, summarizeBooks } from './summary';
 
 interface CLIOPtions {
   args: string[];
@@ -31,11 +31,15 @@ interface ScrapeOptions extends CoreOptions {
   'recent-books'?: number;
 }
 
+interface SummarizeOptions extends CoreOptions {
+  section?: (string | number)[];
+}
+
 type CommandOptions =
   | { command: 'log-in'; options: CoreOptions; }
   | { command: 'log-out'; options: CoreOptions; }
   | { command: 'scrape'; options: ScrapeOptions; }
-  | { command: 'summarize'; options: CoreOptions; }
+  | { command: 'summarize'; options: SummarizeOptions; }
 
 class CLI {
 
@@ -122,15 +126,20 @@ class CLI {
    * Summarize the local book data
    */
   async summarize({
-    minShelfPercent
+    minShelfPercent,
+    sections
   }: {
     minShelfPercent: number;
+    sections?: SectionID[];
   }): Promise<void> {
     const userID = await this.apiClient.getUserID();
     const readBooks = await this.repo.getReadBooks(userID);
     const books = await this.repo.getLocalBooks(readBooks.map(b => b.id));
 
-    const summary = summarizeBooks(books, { minShelfPercent });
+    const summary = summarizeBooks(books, {
+      minShelfPercent,
+      sections
+    });
 
     this.stdout.write(summary + '\n');
   }
@@ -212,7 +221,14 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
       .command(
         'summarize',
         'Summarize local data',
-        noOptions,
+        function(opts) {
+          return opts
+            .option('section', {
+              choices: SECTION_IDS,
+              describe: 'A specific section to show',
+              type: 'array'
+            });
+        },
         options => resolve({ command: 'summarize', options })
       )
       .demandCommand(1, 'You must specify a subcommand')
@@ -311,7 +327,8 @@ async function startCLI(cliOptions: CLIOPtions): Promise<void> {
 
     case 'summarize':
       return cli.summarize({
-        minShelfPercent
+        minShelfPercent,
+        sections: parsed.options.section && parsed.options.section.map(s => s as SectionID)
       });
 
     default:
