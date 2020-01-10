@@ -20,6 +20,7 @@ interface CoreOptions {
   'cache-responses': boolean;
   color: boolean;
   'log-level': string;
+  'min-shelf-percent': number;
   'output-dir': string;
 }
 
@@ -144,6 +145,11 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
         describe: 'The log level to use',
         type: 'string'
       })
+      .option('min-shelf-percent', {
+        default: 10,
+        describe: 'The minimum percentage of a shelf’s count relative to the highest count required to include it in analyses',
+        type: 'number'
+      })
       .option('output-dir', {
         default: paths.outputDir,
         describe: 'The directory in which to store generated files',
@@ -241,6 +247,13 @@ async function startCLI(cliOptions: CLIOPtions): Promise<void> {
     repo,
     stdout: cliOptions.stdout
   });
+
+  const minShelfPercent = validateOption(
+    parsed.options,
+    'min-shelf-percent',
+    'must be a number',
+    isNumeric
+  );
 
   switch (parsed.command) {
     case 'log-in':
