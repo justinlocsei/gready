@@ -2,7 +2,6 @@ import { sortBy } from 'lodash';
 
 import { Author, Book, Shelf } from './types/data';
 import { AuthorID } from './types/goodreads';
-import { CORE_SHELVES } from './config';
 import { formalizeAuthorName } from './content';
 
 interface BooksByAuthor {
@@ -58,9 +57,7 @@ export function groupBooksByShelf(books: Book[], {
   minPercent?: number;
 }): BooksByShelf[] {
   const byShelf = books.reduce(function(previous: Record<string, BooksByShelf>, book) {
-    const shelves = book.shelves.filter(s => !CORE_SHELVES.includes(s.name));
-
-    annotateShelves(shelves).forEach(function({ affinity, shelf }) {
+    annotateShelves(book.shelves).forEach(function({ affinity, shelf }) {
       if (affinity < minPercent) { return; }
 
       if (!previous[shelf.name]) {

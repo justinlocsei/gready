@@ -4,6 +4,8 @@ import * as API from './types/api';
 import APIClient from './api-client';
 import Cache from './cache';
 import Logger from './logger';
+import { Configuration } from './types/config';
+import { CORE_SHELVES } from './config';
 import { ensureArray, normalizeString } from './data';
 
 import {
@@ -28,6 +30,7 @@ export default class Repository {
 
   private apiClient: APIClient;
   private cache: Cache;
+  private config: Configuration;
   private logger: Logger;
 
   /**
@@ -36,14 +39,17 @@ export default class Repository {
   constructor({
     apiClient,
     cache,
+    config,
     logger
   }: {
     apiClient: APIClient;
     cache: Cache;
+    config: Configuration;
     logger: Logger;
   }) {
     this.apiClient = apiClient;
     this.cache = cache;
+    this.config = config;
     this.logger = logger;
   }
 
@@ -56,7 +62,7 @@ export default class Repository {
       this.logger.debug('Normalize book', `ID=${book.id}`);
 
       return this.normalizeBookInfo(book);
-    });
+    }).then(b => this.sanitizeBook(b));
   }
 
   /**
@@ -65,7 +71,11 @@ export default class Repository {
   async getLocalBooks(ids: BookID[]): Promise<Book[]> {
     const books = await this.cache.entries<Book>([NAMESPACES.books])
 
-    return sortBy(books.filter(b => ids.includes(b.id)), [
+    const validBooks = books
+      .filter(b => ids.includes(b.id))
+      .map(b => this.sanitizeBook(b));
+
+    return sortBy(validBooks, [
       b => b.title,
       b => b.id
     ]);
@@ -178,6 +188,47 @@ export default class Repository {
     );
 
     return ordered.shift();
+  }
+
+  /**
+   * Clean up a book's data based on the current configuration
+   */
+  private sanitizeBook(book: Book): Book {
+    const excludeShelves = new Set([
+      ...CORE_SHELVES,
+      ...this.config.ignoreShelves
+    ]);
+
+    const userShelves = book.shelves.filter(s => !excludeShelves.has(s.name));
+
+    const mergedShelves = this.config.mergeShelves.reduce(function(previous: Shelf[], shelf) {
+      const members = userShelves.filter(s => shelf.members.includes(s.name));
+      const totalCount = members.reduce((p, s) => p + s.count, 0);
+
+      if (totalCount) {
+        previous.push({
+          count: totalCount,
+          name: shelf.group
+        });
+      }
+
+      return previous;
+    }, []);
+
+    const mergedNames = this.config.mergeShelves.reduce(function(previous: string[], shelf) {
+      return previous.concat(...shelf.members, shelf.group);
+    }, []);
+
+    const mergedSet = new Set(mergedNames);
+
+    const shelves = userShelves
+      .filter(s => !mergedSet.has(s.name))
+      .concat(mergedShelves);
+
+    return {
+      ...book,
+      shelves: sortBy(shelves, [s => s.count * -1, s => s.name])
+    };
   }
 
 }
