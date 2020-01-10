@@ -8,7 +8,7 @@ import Repository from './repository';
 import { Book, ReadBook } from './types/data';
 import { CLIError } from './errors';
 import { formalizeAuthorName } from './content';
-import { groupBooksByAuthor, groupBooksByShelf } from './analysis';
+import { groupBooksByAuthor, groupBooksByPublisher, groupBooksByShelf } from './analysis';
 import { isNumeric, underline, unreachable } from './data';
 import { loadConfig } from './config';
 import { OutputDirectoryStructure, paths, prepareOutputDirectory } from './environment';
@@ -137,6 +137,7 @@ class CLI {
     const books = await this.repo.getLocalBooks(readBooks.map(b => b.id));
 
     const booksByAuthor = groupBooksByAuthor(books);
+    const booksByPublisher = groupBooksByPublisher(books);
     const booksByShelf = groupBooksByShelf(books, { minPercent: minShelfPercent });
 
     this.stdout.write(underline('Books by Author') + '\n\n');
@@ -149,6 +150,21 @@ class CLI {
     });
 
     this.stdout.write(bookSummary.join('\n\n') + '\n\n');
+    this.stdout.write(underline('Books by Publisher') + '\n\n');
+
+    const publisherSummary = booksByPublisher.map(function({ books: publisherBooks, publisherName }) {
+      return [
+        `* ${publisherName}`,
+        ...publisherBooks.map(b => `  - ${b.title}`)
+      ].join('\n');
+    });
+
+    this.stdout.write(publisherSummary.join('\n\n') + '\n\n');
+    this.stdout.write(underline('Publishers') + '\n\n');
+
+    const allPublishers = booksByPublisher.map(b => `* ${b.publisherName} (${b.books.length})`);
+
+    this.stdout.write(allPublishers.join('\n') + '\n\n');
     this.stdout.write(underline('Popular Shelves') + '\n\n');
 
     const shelfSummary = booksByShelf.map(function({ books: shelfBooks, popularity, shelfName, totalCount }) {
