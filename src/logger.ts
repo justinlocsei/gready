@@ -59,7 +59,7 @@ export default class Logger {
    * Log an info message
    */
   info(...message: string[]) {
-    this.log(this.stderr, 'info', message);
+    this.log(this.stdout, 'info', message);
   }
 
   /**
