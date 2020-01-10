@@ -9,6 +9,7 @@ const LEVELS = [
 ] as const;
 
 const LEVEL_NAMES = LEVELS.map(l => l.name);
+const TIME_DIGITS = 4;
 
 export const DEFAULT_LEVEL: LevelName = 'info';
 
@@ -23,7 +24,9 @@ export function getLevelNames(): string[] {
 
 export default class Logger {
 
+  private lastTime: number;
   private level: LevelName;
+  private showTime: boolean;
   private stderr: NodeJS.WritableStream;
   private stdout: NodeJS.WritableStream;
   private useColor: boolean;
@@ -36,13 +39,17 @@ export default class Logger {
     stderr: NodeJS.WritableStream,
     options: {
       logLevel: LevelName;
+      showTime: boolean;
       useColor: boolean;
     } = {
       logLevel: DEFAULT_LEVEL,
+      showTime: false,
       useColor: true
     }
   ) {
+    this.lastTime = 0;
     this.level = options.logLevel;
+    this.showTime = options.showTime;
     this.stdout = stdout;
     this.stderr = stderr;
     this.useColor = options.useColor;
@@ -95,6 +102,10 @@ export default class Logger {
       message = chalk[color](message);
     }
 
+    if (this.showTime) {
+      message = `${chalk.white(this.formatElapsedTime())} ${message}`;
+    }
+
     stream.write(message);
   }
 
@@ -103,6 +114,18 @@ export default class Logger {
    */
   private getLevelRank(name: LevelName): number {
     return LEVELS.filter(l => l.name === name)[0].rank;
+  }
+
+  /**
+   * Format the time elapsed since the last log statement
+   */
+  private formatElapsedTime(): string {
+    const current = Date.now();
+    const time = this.lastTime ? current - this.lastTime : 0;
+
+    this.lastTime = current;;
+
+    return time.toString().padStart(TIME_DIGITS, ' ') + 'ms';
   }
 
 }

@@ -23,6 +23,7 @@ interface CoreOptions {
   color: boolean;
   config?: string;
   'log-level': string;
+  'log-time': boolean;
   'min-shelf-percent': number;
   'output-dir': string;
 }
@@ -184,6 +185,11 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
         describe: 'The log level to use',
         type: 'string'
       })
+      .option('log-time', {
+        default: false,
+        describe: 'Show the elapsed time between log entries',
+        type: 'boolean'
+      })
       .option('min-shelf-percent', {
         default: 1,
         describe: 'The minimum percentage of a shelf’s count relative to the highest count required to include it in analyses',
@@ -274,6 +280,7 @@ async function startCLI(cliOptions: CLIOPtions): Promise<void> {
     cliOptions.stderr,
     {
       logLevel: options['log-level'] as LevelName,
+      showTime: options['log-time'],
       useColor: options.color
     }
   );
