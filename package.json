@@ -4,7 +4,8 @@
   "description": "A recommendation engine built on the Goodreads API",
   "scripts": {
     "build": "tsc --outDir dist",
-    "lint": "eslint src/ --ext .ts; true",
+    "lint": "npm run lint:code && npm run lint:types",
+    "lint:code": "eslint src/ --ext .ts; true",
     "lint:types": "tsc --noEmit; true"
   },
   "repository": {
