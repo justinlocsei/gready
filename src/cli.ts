@@ -1,5 +1,4 @@
 import yargs from 'yargs';
-import { sortBy } from 'lodash';
 
 import APIClient from './api-client';
 import Cache from './cache';
@@ -7,11 +6,10 @@ import Logger, { DEFAULT_LEVEL, getLevelNames, LevelName } from './logger';
 import Repository from './repository';
 import { Book, ReadBook } from './types/data';
 import { CLIError } from './errors';
-import { formalizeAuthorName } from './content';
-import { groupBooksByAuthor, groupBooksByPublisher, groupBooksByShelf } from './analysis';
-import { isNumeric, underline, unreachable } from './data';
+import { isNumeric, unreachable } from './data';
 import { loadConfig } from './config';
 import { paths, prepareOutputDirectory } from './environment';
+import { summarizeBooks } from './summary';
 
 interface CLIOPtions {
   args: string[];
@@ -132,57 +130,9 @@ class CLI {
     const readBooks = await this.repo.getReadBooks(userID);
     const books = await this.repo.getLocalBooks(readBooks.map(b => b.id));
 
-    const booksByAuthor = groupBooksByAuthor(books);
-    const booksByPublisher = groupBooksByPublisher(books);
-    const booksByShelf = groupBooksByShelf(books, { minPercent: minShelfPercent });
+    const summary = summarizeBooks(books, { minShelfPercent });
 
-    this.stdout.write(underline('Books by Author') + '\n\n');
-
-    const bookSummary = booksByAuthor.map(function({ author, books: authorBooks }) {
-      return [
-        `* ${formalizeAuthorName(author.name)} (ID=${author.id})`,
-        ...authorBooks.map(b => `  - ${b.title} (ID=${b.id})`)
-      ].join('\n');
-    });
-
-    this.stdout.write(bookSummary.join('\n\n') + '\n\n');
-    this.stdout.write(underline('Books by Publisher') + '\n\n');
-
-    const publisherSummary = booksByPublisher.map(function({ books: publisherBooks, publisherName }) {
-      return [
-        `* ${publisherName}`,
-        ...publisherBooks.map(b => `  - ${b.title}`)
-      ].join('\n');
-    });
-
-    this.stdout.write(publisherSummary.join('\n\n') + '\n\n');
-    this.stdout.write(underline('Publishers') + '\n\n');
-
-    const allPublishers = booksByPublisher.map(b => `* ${b.publisherName} (${b.books.length})`);
-
-    this.stdout.write(allPublishers.join('\n') + '\n\n');
-    this.stdout.write(underline('Popular Shelves') + '\n\n');
-
-    const shelfSummary = booksByShelf.map(function({ books: shelfBooks, popularity, shelfName, totalCount }) {
-      return [
-        `* ${shelfName} (${popularity}%)`,
-        ...shelfBooks.map(b => `  - ${b.book.title} (${b.affinity}%)`)
-      ].join('\n');
-    });
-
-    this.stdout.write(shelfSummary.join('\n\n') + '\n\n');
-    this.stdout.write(underline('Shelves') + '\n\n');
-
-    const allShelves = sortBy(booksByShelf, [
-      s => s.shelfName,
-      s => s.popularity * -1
-    ]);
-
-    const shelves = allShelves.map(function({ popularity, shelfName }) {
-      return `* ${shelfName} (${popularity}%)`;
-    });
-
-    this.stdout.write(shelves.join('\n') + '\n');
+    this.stdout.write(summary + '\n');
   }
 
 }
