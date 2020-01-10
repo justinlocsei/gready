@@ -71,7 +71,7 @@ export const T = {
   }),
   object: <T extends Record<string, JSONSchema>>(props?: T, optional: (keyof T)[] = []): JSONSchema => ({
     properties: props,
-    required: props && Object.keys(props).filter(k => optional.includes(k)),
+    required: props && Object.keys(props).filter(k => !optional.includes(k)),
     type: 'object'
   }),
   oneOrMore: (value: JSONSchema) => T.union([
