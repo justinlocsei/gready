@@ -13,6 +13,7 @@ export const CORE_SHELVES = [
 
 const DEFAULT_CONFIG: Configuration = {
   ignoreShelves: [],
+  mergePublishers: {},
   mergeShelves: {}
 };
 

@@ -196,16 +196,40 @@ export default class Repository {
    * Clean up a book's data based on the current configuration
    */
   private sanitizeBook(book: Book): Book {
-    const excludeShelves = new Set([
-      ...CORE_SHELVES,
-      ...this.config.ignoreShelves
-    ]);
+    const { publisher, shelves } = book;
+    const { ignoreShelves, mergePublishers, mergeShelves } = this.config;
 
-    const userShelves = book.shelves.filter(s => !excludeShelves.has(s.name));
-    const { mergeShelves } = this.config;
+    const excludeShelves = new Set([...CORE_SHELVES, ...ignoreShelves]);
+    const userShelves = shelves.filter(s => !excludeShelves.has(s.name));
+    const mergedShelves = this.mergeShelves(userShelves, mergeShelves);
 
-    const mergedShelves = Object.keys(mergeShelves).reduce(function(previous: Shelf[], group) {
-      const members = userShelves.filter(s => mergeShelves[group].includes(s.name));
+    return {
+      ...book,
+      publisher: publisher && this.mergePublishers(publisher, mergePublishers),
+      shelves: sortBy(mergedShelves, [s => s.count * -1, s => s.name])
+    };
+  }
+
+  /**
+   * Merge publishers specified in a lookup
+   */
+  private mergePublishers(publisher: string, merge: Record<string, string[]>): string {
+    const group = Object.keys(merge).find(function(name) {
+      return merge[name].includes(publisher);
+    });
+
+    return group || publisher;
+  }
+
+  /**
+   * Merge shelves specified in a lookup
+   */
+  private mergeShelves(shelves: Shelf[], merge: Record<string, string[]>): Shelf[] {
+    const merged = Object.keys(merge).reduce(function(previous: Shelf[], group) {
+      const members = shelves.filter(function(shelf) {
+        return shelf.name === group || merge[group].includes(shelf.name);
+      });
+
       const totalCount = members.reduce((p, s) => p + s.count, 0);
 
       if (totalCount) {
@@ -218,20 +242,15 @@ export default class Repository {
       return previous;
     }, []);
 
-    const mergedNames = Object.keys(mergeShelves).reduce(function(previous: string[], group) {
-      return previous.concat(...mergeShelves[group], group);
+    const names = Object.keys(merge).reduce(function(previous: string[], group) {
+      return previous.concat(...merge[group], group);
     }, []);
 
-    const mergedSet = new Set(mergedNames);
+    const nameSet = new Set(names);
 
-    const shelves = userShelves
-      .filter(s => !mergedSet.has(s.name))
-      .concat(mergedShelves);
-
-    return {
-      ...book,
-      shelves: sortBy(shelves, [s => s.count * -1, s => s.name])
-    };
+    return shelves
+      .filter(s => !nameSet.has(s.name))
+      .concat(merged);
   }
 
 }
