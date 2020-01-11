@@ -136,9 +136,7 @@ class CLI {
     sections?: SectionID[];
     shelves?: string[];
   }): Promise<void> {
-    const userID = await this.apiClient.getUserID();
-    const readBooks = await this.repo.getReadBooks(userID);
-    const books = await this.repo.getLocalBooks(readBooks.map(b => b.id));
+    const books = await this.getLocalBooks();
 
     const summary = summarizeBooks(books, {
       minShelfPercent,
@@ -147,6 +145,16 @@ class CLI {
     });
 
     this.stdout.write(summary + '\n');
+  }
+
+  /**
+   * Get all local books read by the current user
+   */
+  private async getLocalBooks(): Promise<Book[]> {
+    const userID = await this.apiClient.getUserID();
+    const readBooks = await this.repo.getReadBooks(userID);
+
+    return this.repo.getLocalBooks(readBooks.map(b => b.id));
   }
 
 }
