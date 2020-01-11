@@ -202,23 +202,24 @@ export default class Repository {
     ]);
 
     const userShelves = book.shelves.filter(s => !excludeShelves.has(s.name));
+    const { mergeShelves } = this.config;
 
-    const mergedShelves = this.config.mergeShelves.reduce(function(previous: Shelf[], shelf) {
-      const members = userShelves.filter(s => shelf.members.includes(s.name));
+    const mergedShelves = Object.keys(mergeShelves).reduce(function(previous: Shelf[], group) {
+      const members = userShelves.filter(s => mergeShelves[group].includes(s.name));
       const totalCount = members.reduce((p, s) => p + s.count, 0);
 
       if (totalCount) {
         previous.push({
           count: totalCount,
-          name: shelf.group
+          name: group
         });
       }
 
       return previous;
     }, []);
 
-    const mergedNames = this.config.mergeShelves.reduce(function(previous: string[], shelf) {
-      return previous.concat(...shelf.members, shelf.group);
+    const mergedNames = Object.keys(mergeShelves).reduce(function(previous: string[], group) {
+      return previous.concat(...mergeShelves[group], group);
     }, []);
 
     const mergedSet = new Set(mergedNames);

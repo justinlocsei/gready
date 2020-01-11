@@ -2,16 +2,10 @@ import { defineSchema, ExtractSchemaType, T } from '../validation';
 
 export const ConfigurationSchema = defineSchema<{
   ignoreShelves?: string[];
-  mergeShelves?: {
-    group: string;
-    members: string[];
-  }[];
+  mergeShelves?: Record<string, string[]>;
 }>('configuration', T.object({
   ignoreShelves: T.array(T.string()),
-  mergeShelves: T.array(T.object({
-    group: T.string(),
-    members: T.array(T.string())
-  }))
+  mergeShelves: T.object({}, [], T.array(T.string()))
 }, [
   'ignoreShelves',
   'mergeShelves'
