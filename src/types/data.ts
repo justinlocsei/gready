@@ -9,7 +9,7 @@ export interface Book {
   authors: Author[];
   averageRating?: number;
   id: BookID;
-  publisher?: string;
+  publisher: string;
   shelves: Shelf[];
   similarBooks: BookID[];
   title: string;

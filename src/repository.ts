@@ -157,7 +157,7 @@ export default class Repository {
       authors,
       averageRating: totalRatings > 0 ? ratingsSum / totalRatings : undefined,
       id,
-      publisher,
+      publisher: publisher || authors[0].name,
       shelves,
       similarBooks: similarBooks.map(b => b.id),
       title: normalizeString(book.title || work.original_title),
