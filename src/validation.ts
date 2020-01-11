@@ -6,7 +6,7 @@ export type JSONSchema =
   | { anyOf: JSONSchema[]; }
   | { type: 'array'; items: JSONSchema; }
   | { type: 'number'; }
-  | { type: 'object'; properties?: Record<string, JSONSchema>; required?: string[]; }
+  | { type: 'object'; additionalProperties?: JSONSchema; properties?: Record<string, JSONSchema>; required?: string[]; }
   | { type: 'string'; }
 
 interface Schema<T> {
@@ -69,7 +69,8 @@ export const T = {
   number: (): JSONSchema => ({
     type: 'number'
   }),
-  object: <T extends Record<string, JSONSchema>>(props?: T, optional: (keyof T)[] = []): JSONSchema => ({
+  object: <T extends Record<string, JSONSchema>>(props?: T, optional: (keyof T)[] = [], additionalProperties?: JSONSchema): JSONSchema => ({
+    additionalProperties,
     properties: props,
     required: props && Object.keys(props).filter(k => !optional.includes(k)),
     type: 'object'
