@@ -25,6 +25,25 @@ interface BooksByShelf {
 }
 
 /**
+ * Filter a set of books to those that are in a shelf with a given affinity
+ */
+export function booksInShelves(
+  books: Book[],
+  shelves: string[],
+  affinity: number
+): Book[] {
+  const shelfSet = new Set(shelves);
+
+  return books.filter(function(book) {
+    const checkShelves = annotateShelves(book.shelves);
+
+    return checkShelves.find(function(shelf) {
+      return shelf.affinity > affinity && shelfSet.has(shelf.shelf.name);
+    });
+  });
+}
+
+/**
  * Group a set of a books by author
  */
 export function groupBooksByAuthor(books: Book[]): BooksByAuthor[] {

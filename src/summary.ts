@@ -3,7 +3,7 @@ import { sortBy } from 'lodash';
 import { Book } from './types/data';
 import { ExtractArrayType } from './types/core';
 import { formalizeAuthorName } from './content';
-import { groupBooksByAuthor, groupBooksByPublisher, groupBooksByShelf } from './analysis';
+import { booksInShelves, groupBooksByAuthor, groupBooksByPublisher, groupBooksByShelf } from './analysis';
 import { underline } from './data';
 
 export const SECTION_IDS = [
@@ -24,15 +24,21 @@ interface Section {
 /**
  * Generate a printable summary of books
  */
-export function summarizeBooks(books: Book[], {
+export function summarizeBooks(allBooks: Book[], {
   minShelfPercent,
-  sections
+  sections,
+  shelves
 }: {
   minShelfPercent: number;
   sections?: SectionID[];
+  shelves?: string[];
 }): string {
   const parts: Section[] = [];
   const sectionIDs = new Set(sections || SECTION_IDS);
+
+  const books = shelves
+    ? booksInShelves(allBooks, shelves, minShelfPercent)
+    : allBooks;
 
   const showSections: Record<SectionID, boolean> = SECTION_IDS.reduce(function(previous: Record<string, boolean>, id) {
     previous[id] = sectionIDs.has(id);

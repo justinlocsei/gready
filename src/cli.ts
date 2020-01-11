@@ -34,6 +34,7 @@ interface ScrapeOptions extends CoreOptions {
 
 interface SummarizeOptions extends CoreOptions {
   section?: (string | number)[];
+  shelf?: (string | number)[];
 }
 
 type CommandOptions =
@@ -128,10 +129,12 @@ class CLI {
    */
   async summarize({
     minShelfPercent,
-    sections
+    sections,
+    shelves
   }: {
     minShelfPercent: number;
     sections?: SectionID[];
+    shelves?: string[];
   }): Promise<void> {
     const userID = await this.apiClient.getUserID();
     const readBooks = await this.repo.getReadBooks(userID);
@@ -139,7 +142,8 @@ class CLI {
 
     const summary = summarizeBooks(books, {
       minShelfPercent,
-      sections
+      sections,
+      shelves
     });
 
     this.stdout.write(summary + '\n');
@@ -232,6 +236,10 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
             .option('section', {
               choices: SECTION_IDS,
               describe: 'A specific section to show',
+              type: 'array'
+            })
+            .option('shelf', {
+              describe: 'A shelf that must be associated with any summarized book',
               type: 'array'
             });
         },
@@ -335,7 +343,8 @@ async function startCLI(cliOptions: CLIOPtions): Promise<void> {
     case 'summarize':
       return cli.summarize({
         minShelfPercent,
-        sections: parsed.options.section && parsed.options.section.map(s => s as SectionID)
+        sections: parsed.options.section && parsed.options.section.map(s => s as SectionID),
+        shelves: parsed.options.shelf && parsed.options.shelf.map(s => s.toString())
       });
 
     default:
