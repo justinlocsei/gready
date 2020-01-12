@@ -18,6 +18,9 @@
     "url": "https://github.com/justinlocsei/gready/issues"
   },
   "homepage": "https://github.com/justinlocsei/gready#readme",
+  "bin": {
+    "gready": "dist/index.js"
+  },
   "dependencies": {
     "ajv": "^6.10.2",
     "async": "^3.1.0",

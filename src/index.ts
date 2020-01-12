@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { OperationalError } from './errors';
 import { runCLI } from './cli';
 
