@@ -112,12 +112,12 @@ class CLI {
       const meta = [
         `Index=${index + 1}`,
         `Total=${totalBooks}`,
-        `ID=${readBook.id}`
+        `ID=${readBook.bookID}`
       ];
 
       this.logger.info('Load book', ...meta);
 
-      book = await this.repo.getBook(readBook.id);
+      book = await this.repo.getBook(readBook.bookID);
       index++;
 
       this.logger.info('Save book', ...meta, book.title);
@@ -138,7 +138,7 @@ class CLI {
   }): Promise<void> {
     const userID = await this.apiClient.getUserID();
     const readBooks = await this.repo.getReadBooks(userID);
-    const books = await this.repo.getLocalBooks(readBooks.map(b => b.id));
+    const books = await this.repo.getLocalBooks(readBooks.map(b => b.bookID));
 
     const summary = summarizeBooks(books, {
       minShelfPercent,

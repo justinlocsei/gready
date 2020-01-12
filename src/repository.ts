@@ -89,10 +89,10 @@ export default class Repository {
       const books = await this.apiClient.getReadBooks(userID);
 
       return sortBy(
-        books.map(this.normalizeReadBook),
+        books.map(b => this.normalizeReadBook(b, userID)),
         [
           b => b.readOn * -1,
-          b => b.id
+          b => b.bookID
         ]
       );
     });
@@ -101,16 +101,17 @@ export default class Repository {
   /**
    * Convert a review from the API to a book review
    */
-  private normalizeReadBook(book: API.ReadBook): ReadBook {
+  private normalizeReadBook(book: API.ReadBook, userID: UserID): ReadBook {
     const shelves = ensureArray(book.shelves.shelf).map(function(shelf): string {
       return shelf.$.name;
     });
 
     return {
-      id: book.book.id._,
+      bookID: book.book.id._,
       rating: parseInt(book.rating, 10),
       readOn: new Date(book.read_at || book.date_added).getTime(),
-      shelves
+      shelves,
+      userID
     };
   }
 
