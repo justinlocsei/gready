@@ -137,7 +137,7 @@ export default class Repository {
       };
     });
 
-    const reviews = await this.apiClient.extractReviewsFromWidget(book.reviews_widget);
+    const reviews = await this.apiClient.getBookReviews(book.id);
 
     const topReviews = reviews.map(function(review): Review {
       return {

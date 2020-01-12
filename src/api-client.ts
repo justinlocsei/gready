@@ -1,18 +1,15 @@
 import async from 'async';
-import cheerio from 'cheerio';
 import querystring from 'querystring';
 import readline from 'readline';
-import superagent from 'superagent';
 import xml2js from 'xml2js';
 import { chmod, readFile, unlink, writeFile } from 'graceful-fs';
 import { OAuth } from 'oauth';
 import { promisify } from 'util';
-import { URL } from 'url';
 
 import Cache from './cache';
 import Logger from './logger';
+import { findReviewIDsForBook } from './reviews';
 import { formatJSON } from './serialization';
-import { OperationalError } from './errors';
 import { readSecret } from './environment';
 
 import {
@@ -234,49 +231,30 @@ export default class APIClient {
   }
 
   /**
-   * Extract reviews of a book from the embed code for the reviews widget
+   * Extract reviews of a book with a given identifier
    */
-  async extractReviewsFromWidget(embedCode: string): Promise<Review[]> {
-    const widget = cheerio.load(embedCode);
-    const url = widget('iframe').attr('src');
+  async getBookReviews(id: BookID, {
+    limit,
+    rating
+  }: {
+    limit?: number;
+    rating?: number;
+  } = {}): Promise<Review[]> {
+    const reviewIDs = await findReviewIDsForBook(id, {
+      limit,
+      performRequest: async (requestFn, page) => {
+        return this.options.cache.fetch(
+          ['review-lists', id, rating || 'all', limit || 'all', page],
+          async () => {
+            this.options.logger.debug('Request reviews', `Book=${id}`, `Page=${page}`);
+            const response = await requestFn();
+            this.options.logger.debug('Parse reviews', `Book=${id}`, `Page=${page}`);
 
-    if (!url) {
-      throw new OperationalError(`No iframe URL found in reviews widget\n${embedCode}`);
-    }
-
-    const isbn = new URL(url).searchParams.get('isbn');
-
-    if (!isbn) {
-      return [];
-    }
-
-    const markup = await this.options.cache.fetch(['top-reviews', isbn], async () => {
-      this.options.logger.debug('Load reviews', `ID=${isbn}`);
-
-      const response = await superagent.get(url);
-
-      if (response.status !== 200) {
-        throw new OperationalError(`Request for reviews widget at ${url} failed with code ${response.status}`);
-      }
-
-      return response.text;
-    });
-
-    this.options.logger.debug('Parse reviews', `ID=${isbn}`);
-
-    const $ = cheerio.load(markup);
-    const reviewIDs: ReviewID[] = [];
-
-    $('[itemtype="http://schema.org/Review"]').each(function(i, review) {
-      const href = $(review)
-        .find('[itemprop="discussionUrl"]')
-        .attr('href');
-
-      const reviewID = href && new URL(href).pathname.split('/').pop();
-
-      if (reviewID) {
-        reviewIDs.push(reviewID);
-      }
+            return response;
+          }
+        );
+      },
+      rating
     });
 
     return Promise.all(reviewIDs.map(async (id): Promise<Review> => {
