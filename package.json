@@ -5,7 +5,7 @@
   "scripts": {
     "build": "tsc --outDir ./dist/",
     "lint": "npm run lint:code && npm run lint:types",
-    "lint:code": "eslint ./src/ --ext .ts; true",
+    "lint:code": "eslint ./bin/* ./src/ --ext .ts; true",
     "lint:types": "tsc --noEmit; true"
   },
   "repository": {

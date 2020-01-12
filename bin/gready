@@ -1,9 +1,20 @@
-#!/bin/bash
+#!/usr/bin/env node
 
-origin="${BASH_SOURCE[0]}"
-script_path="$(readlink "$origin" || echo "$origin")"
-root_dir="$(cd "$(dirname "$script_path")/.." && pwd)"
+const path = require('path');
+const { spawnSync } = require('child_process');
 
-cd "$root_dir" || exit 1
+const rootDir = path.resolve(__dirname, '..');
+const launcherPath = path.join(rootDir, 'src', 'index.ts');
+const tsNodePath = path.join(rootDir, 'node_modules', '.bin', 'ts-node');
 
-./node_modules/.bin/ts-node src/index.ts "$@"
+const result = spawnSync(tsNodePath, [launcherPath], {
+  stdio: 'inherit'
+});
+
+if (result.error) {
+  throw result.error;
+}
+
+if (result.status) {
+  process.exitCode = result.status;
+}
