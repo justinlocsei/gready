@@ -79,11 +79,12 @@ export const BookSchema = defineSchema<{
 
 export type Book = ExtractSchemaType<typeof BookSchema>['book'];
 
-export const ReadBookSchema = defineSchema<{
+const ReviewDataSchema = defineSchema<{
   book: {
     id: {
       _: BookID;
     };
+    publisher: string;
   };
   date_added: string;
   rating: string;
@@ -95,11 +96,15 @@ export const ReadBookSchema = defineSchema<{
       };
     }>;
   };
-}>('read book', T.object({
+  user: {
+    id: string;
+  };
+}>('review data', T.object({
   book: T.object({
     id: T.object({
       _: T.string()
-    })
+    }),
+    publisher: T.string()
   }),
   date_added: T.string(),
   rating: T.string(),
@@ -110,10 +115,19 @@ export const ReadBookSchema = defineSchema<{
         name: T.string()
       })
     }))
+  }),
+  user: T.object({
+    id: T.string()
   })
 }));
 
-export type ReadBook = ExtractSchemaType<typeof ReadBookSchema>;
+export type Review = ExtractSchemaType<typeof ReviewDataSchema>;
+
+export const ReviewSchema = defineSchema<{
+  review: Review;
+}>('review', T.object({
+  review: ReviewDataSchema.schema
+}));
 
 export const ReadBooksSchema = defineSchema<{
   reviews: {
@@ -122,7 +136,7 @@ export const ReadBooksSchema = defineSchema<{
       start: string;
       total: string;
     };
-    review: ReadBook[];
+    review: Review[];
   };
 }>('read books', T.object({
   reviews: T.object({
@@ -131,7 +145,7 @@ export const ReadBooksSchema = defineSchema<{
       start: T.string(),
       total: T.string()
     }),
-    review: T.array(ReadBookSchema.schema)
+    review: T.array(ReviewDataSchema.schema)
   })
 }));
 
@@ -142,36 +156,6 @@ const ResponseSchema = defineSchema<{
 }>('response', T.object({
   GoodreadsResponse: T.object()
 }));
-
-export const ReviewSchema = defineSchema<{
-  review: {
-    book: {
-      id: {
-        _: BookID;
-      };
-      publisher: string;
-    };
-    rating: string;
-    user: {
-      id: UserID;
-    };
-  };
-}>('review', T.object({
-  review: T.object({
-    book: T.object({
-      id: T.object({
-        _: T.string()
-      }),
-      publisher: T.string()
-    }),
-    rating: T.string(),
-    user: T.object({
-      id: T.string()
-    })
-  })
-}));
-
-export type Review = ExtractSchemaType<typeof ReviewSchema>['review'];
 
 export const UserDataSchema = defineSchema<{
   user: {

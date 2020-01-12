@@ -23,13 +23,10 @@ export interface Shelf {
   name: string;
 }
 
-export interface ReadBook extends Review {
+export interface Review {
   bookID: BookID;
+  rating: number;
   readOn: number;
   shelves: string[];
-}
-
-export interface Review {
-  rating: number;
   userID: UserID;
 }

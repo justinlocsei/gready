@@ -16,7 +16,6 @@ import {
   Book,
   BookSchema,
   extractResponseBody,
-  ReadBook,
   ReadBooks,
   ReadBooksSchema,
   ResponseBody,
@@ -165,12 +164,12 @@ export default class APIClient {
   /**
    * Get information on a user's read books
    */
-  getReadBooks(userID: UserID): Promise<ReadBook[]> {
+  getReadBooks(userID: UserID): Promise<Review[]> {
     return this.options.cache.fetch(['read-books', userID], async () => {
       let page = 1;
       let fetching = true;
 
-      const books: ReadBook[] = [];
+      const readBooks: Review[] = [];
 
       const { reviews: { $: { total } } } = await this.fetchReadBooksPage(
         ['Check read books', `UserID=${userID}`],
@@ -196,7 +195,7 @@ export default class APIClient {
         );
 
         reviews.review.forEach(function(review) {
-          books.push(review);
+          readBooks.push(review);
         });
 
         const { end } = reviews.$;
@@ -208,7 +207,7 @@ export default class APIClient {
         }
       }
 
-      return books;
+      return readBooks;
     });
   }
 

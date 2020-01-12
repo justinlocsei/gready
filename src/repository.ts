@@ -11,7 +11,6 @@ import { ensureArray, normalizeString } from './data';
 import {
   Author,
   Book,
-  ReadBook,
   Review,
   Shelf
 } from './types/data';
@@ -84,12 +83,12 @@ export default class Repository {
   /**
    * Get all books read by a user, with the most recently read books first
    */
-  getReadBooks(userID: UserID): Promise<ReadBook[]> {
+  getReadBooks(userID: UserID): Promise<Review[]> {
     return this.cache.fetch([NAMESPACES.readBooks, userID], async () => {
       const books = await this.apiClient.getReadBooks(userID);
 
       return sortBy(
-        books.map(b => this.normalizeReadBook(b, userID)),
+        books.map(b => this.normalizeReview(b)),
         [
           b => b.readOn * -1,
           b => b.bookID
@@ -101,7 +100,7 @@ export default class Repository {
   /**
    * Convert a review from the API to a book review
    */
-  private normalizeReadBook(book: API.ReadBook, userID: UserID): ReadBook {
+  private normalizeReview(book: API.Review): Review {
     const shelves = ensureArray(book.shelves.shelf).map(function(shelf): string {
       return shelf.$.name;
     });
@@ -111,7 +110,7 @@ export default class Repository {
       rating: parseInt(book.rating, 10),
       readOn: new Date(book.read_at || book.date_added).getTime(),
       shelves,
-      userID
+      userID: book.user.id
     };
   }
 
@@ -139,13 +138,7 @@ export default class Repository {
     });
 
     const reviews = await this.apiClient.getBookReviews(book.id);
-
-    const topReviews = reviews.map(function(review): Review {
-      return {
-        rating: parseInt(review.rating, 10),
-        userID: review.user.id
-      };
-    });
+    const topReviews = reviews.map(this.normalizeReview);
 
     const publisher = this.determinePublisher(
       book.publisher,
