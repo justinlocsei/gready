@@ -13,11 +13,9 @@ const WIDGET_URL = 'https://www.goodreads.com/api/reviews_widget_iframe';
  */
 export async function findReviewIDsForBook(id: BookID, {
   limit = 10,
-  performRequest,
   rating
 }: {
   limit?: number;
-  performRequest?: (requestFn: () => Promise<string>, page: number) => Promise<string>;
   rating?: number;
 } = {}): Promise<ReviewID[]> {
   let ids: ReviewID[] = [];
@@ -27,22 +25,13 @@ export async function findReviewIDsForBook(id: BookID, {
 
   while (!done) {
     const url = buildWidgetURL(id, limit, page, rating);
+    const response = await superagent.get(url);
 
-    const requestPage = async function() {
-      const response = await superagent.get(url);
+    if (response.status !== 200) {
+      throw new OperationalError(`Request for reviews widget at ${url} failed with code ${response.status}`);
+    }
 
-      if (response.status !== 200) {
-        throw new OperationalError(`Request for reviews widget at ${url} failed with code ${response.status}`);
-      }
-
-      return response.text;
-    };
-
-    const responseText = performRequest
-      ? await performRequest(requestPage, page)
-      : await requestPage();
-
-    const reviews = extractReviewIDs(responseText, rating);
+    const reviews = extractReviewIDs(response.text, rating);
 
     ids = ids.concat(reviews);
     page++;

@@ -240,22 +240,13 @@ export default class APIClient {
     limit?: number;
     rating?: number;
   } = {}): Promise<Review[]> {
-    const reviewIDs = await findReviewIDsForBook(id, {
-      limit,
-      performRequest: async (requestFn, page) => {
-        return this.options.cache.fetch(
-          ['review-lists', id, rating || 'all', limit || 'all', page],
-          async () => {
-            this.options.logger.debug('Request reviews', `Book=${id}`, `Page=${page}`);
-            const response = await requestFn();
-            this.options.logger.debug('Parse reviews', `Book=${id}`, `Page=${page}`);
-
-            return response;
-          }
-        );
-      },
-      rating
-    });
+    const reviewIDs = await this.options.cache.fetch(
+      ['review-ids', id, rating || 'all', limit || 'all'],
+      () => {
+        this.options.logger.debug('Request review IDs', `Book=${id}`);
+        return findReviewIDsForBook(id, { limit, rating });
+      }
+    );
 
     return Promise.all(reviewIDs.map(async (id): Promise<Review> => {
       return this.getReview(id);
