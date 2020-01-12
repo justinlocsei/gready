@@ -3,9 +3,9 @@
   "version": "0.0.1",
   "description": "A recommendation engine built on the Goodreads API",
   "scripts": {
-    "build": "tsc --outDir dist",
+    "build": "tsc --outDir ./dist/",
     "lint": "npm run lint:code && npm run lint:types",
-    "lint:code": "eslint src/ --ext .ts; true",
+    "lint:code": "eslint ./src/ --ext .ts; true",
     "lint:types": "tsc --noEmit; true"
   },
   "repository": {
