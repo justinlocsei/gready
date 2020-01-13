@@ -15,7 +15,7 @@ export interface Author {
 export interface Book {
   authors: Author[];
   averageRating?: number;
-  canonicalID: CanonicalBookID;
+  canonicalID?: CanonicalBookID;
   id: BookID;
   publisher: string;
   shelves: Shelf[];

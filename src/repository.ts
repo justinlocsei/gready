@@ -152,7 +152,7 @@ export default class Repository {
     return {
       authors,
       averageRating: totalRatings > 0 ? ratingsSum / totalRatings : undefined,
-      canonicalID: canonicalID || id,
+      canonicalID: canonicalID || undefined,
       id,
       publisher: publisher || authors[0].name,
       shelves,
