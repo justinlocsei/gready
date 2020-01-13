@@ -140,9 +140,7 @@ export default class Repository {
     });
 
     const canonicalID = extractCanonicalIDFromReviewsWidget(book.reviews_widget);
-
-    const reviews = await this.apiClient.getBookReviews(canonicalID);
-    const topReviews = reviews.map(this.normalizeReview);
+    const reviews = canonicalID ? await this.apiClient.getBookReviews(canonicalID) : [];
 
     const publisher = this.determinePublisher(
       book.publisher,
@@ -154,13 +152,13 @@ export default class Repository {
     return {
       authors,
       averageRating: totalRatings > 0 ? ratingsSum / totalRatings : undefined,
-      canonicalID,
+      canonicalID: canonicalID || id,
       id,
       publisher: publisher || authors[0].name,
       shelves,
       similarBooks: similarBooks.map(b => b.id),
       title: normalizeString(book.title || work.original_title),
-      topReviews,
+      topReviews: reviews.map(this.normalizeReview),
       totalRatings,
       workID: work.id._
     };

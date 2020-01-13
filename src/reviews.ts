@@ -11,7 +11,7 @@ const WIDGET_URL = 'https://www.goodreads.com/api/reviews_widget_iframe';
 /**
  * Extract a book's canonical ID from the markup for its reviews widget
  */
-export function extractCanonicalIDFromReviewsWidget(embedCode: string): CanonicalBookID {
+export function extractCanonicalIDFromReviewsWidget(embedCode: string): CanonicalBookID | null {
   const $ = cheerio.load(embedCode);
   const src = $('iframe').attr('src');
 
@@ -19,13 +19,7 @@ export function extractCanonicalIDFromReviewsWidget(embedCode: string): Canonica
     throw new OperationalError(`No iframe found in embed code for reviews widget\n${embedCode}`);
   }
 
-  const id = new URL(src).searchParams.get('isbn');
-
-  if (!id) {
-    throw new OperationalError(`No canonical book ID found in URL for reviews widget: ${src}`);
-  }
-
-  return id;
+  return new URL(src).searchParams.get('isbn');
 }
 
 /**
