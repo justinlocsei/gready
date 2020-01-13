@@ -6,7 +6,8 @@ import Logger, { DEFAULT_LEVEL, getLevelNames, LevelName } from './logger';
 import Repository from './repository';
 import { Book, Review } from './types/data';
 import { CLIError } from './errors';
-import { isNumeric, unreachable } from './data';
+import { findReaders } from './search';
+import { isNumeric, maybeMap, unreachable } from './data';
 import { loadConfig } from './config';
 import { paths, prepareOutputDirectory } from './environment';
 import { SectionID, SECTION_IDS, summarizeBooks } from './summary';
@@ -16,6 +17,8 @@ interface CLIOPtions {
   stderr: NodeJS.WriteStream;
   stdout: NodeJS.WriteStream;
 }
+
+type CLIString = number | string;
 
 interface CoreOptions {
   'cache-data': boolean;
@@ -33,8 +36,8 @@ interface ScrapeOptions extends CoreOptions {
 }
 
 interface SummarizeOptions extends CoreOptions {
-  section?: (string | number)[];
-  shelf?: (string | number)[];
+  section?: CLIString[];
+  shelf?: CLIString[];
 }
 
 type CommandOptions =
@@ -343,8 +346,8 @@ async function startCLI(cliOptions: CLIOPtions): Promise<void> {
     case 'summarize':
       return cli.summarize({
         minShelfPercent,
-        sections: parsed.options.section && parsed.options.section.map(s => s as SectionID),
-        shelves: parsed.options.shelf && parsed.options.shelf.map(s => s.toString())
+        sections: maybeMap(parsed.options.section, s => s as SectionID),
+        shelves: maybeMap(parsed.options.shelf, s => s.toString())
       });
 
     default:
