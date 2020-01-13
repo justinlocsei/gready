@@ -61,11 +61,15 @@ export function resolveRequire(
  */
 function resolvePaths() {
   const rootDir = path.normalize(path.join(__dirname, '..'));
+  const srcDir = path.join(rootDir, 'src');
 
   return {
     outputDir: path.join(rootDir, 'output'),
     sessionFile: path.join(rootDir, '.session.json'),
-    rootDir
+    srcDir,
+    typesDir: path.join(srcDir, 'types'),
+    rootDir,
+    validatorsDir: path.join(srcDir, 'validators')
   };
 }
 
