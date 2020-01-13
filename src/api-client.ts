@@ -13,15 +13,18 @@ import { formatJSON } from './serialization';
 import { readSecret } from './environment';
 
 import {
+  validateBookResponse,
+  validateReadBooksResponse,
+  validateResponse,
+  validateReviewResponse,
+  validateUserDataResponse
+} from './validators/api';
+
+import {
   Book,
-  BookSchema,
-  extractResponseBody,
-  ReadBooks,
-  ReadBooksSchema,
+  ReadBooksResponse,
   ResponseBody,
-  Review,
-  ReviewSchema,
-  UserDataSchema
+  Review
 } from './types/api';
 
 import {
@@ -157,7 +160,7 @@ export default class APIClient {
         }
       );
 
-      return BookSchema.conform(response).book;
+      return validateBookResponse(response).book;
     });
   }
 
@@ -195,7 +198,12 @@ export default class APIClient {
         );
 
         reviews.review.forEach(function(review) {
-          readBooks.push(review);
+          readBooks.push({
+            ...review,
+            user: {
+              id: userID
+            }
+          });
         });
 
         const { end } = reviews.$;
@@ -223,9 +231,10 @@ export default class APIClient {
         {
           id,
           format: 'xml'
-        });
+        }
+      );
 
-      return ReviewSchema.conform(response).review;
+      return validateReviewResponse(response).review;
     });
   }
 
@@ -262,7 +271,7 @@ export default class APIClient {
   /**
    * Fetch a page of reviews
    */
-  private async fetchReadBooksPage(message: string[], userID: UserID, page = 1): Promise<ReadBooks> {
+  private async fetchReadBooksPage(message: string[], userID: UserID, page = 1): Promise<ReadBooksResponse> {
     const response = await this.request(
       message,
       'GET',
@@ -276,7 +285,7 @@ export default class APIClient {
       }
     );
 
-    return ReadBooksSchema.conform(response);
+    return validateReadBooksResponse(response);
   }
 
   /**
@@ -284,7 +293,7 @@ export default class APIClient {
    */
   private async getAuthorizedUserID(): Promise<UserID> {
     const response = await this.request(['Get authorized user ID'], 'GET', 'api/auth_user');
-    const data = UserDataSchema.conform(response);
+    const data = validateUserDataResponse(response);
 
     return data.user.$.id;
   }
@@ -313,7 +322,7 @@ export default class APIClient {
       explicitArray: false
     });
 
-    return extractResponseBody(parsed);
+    return validateResponse(parsed).GoodreadsResponse;
   }
 
   /**

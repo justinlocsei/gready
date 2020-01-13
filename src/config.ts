@@ -1,8 +1,9 @@
 import { promisify } from 'util';
 import { readFile } from 'fs';
 
-import { Configuration, ConfigurationSchema } from './types/config';
+import { Configuration, UserConfiguration } from './types/config';
 import { OperationalError } from './errors';
+import { validateUserConfiguration } from './validators/config';
 
 const readFileAsync = promisify(readFile);
 
@@ -27,7 +28,7 @@ export async function loadConfig(configPath?: string): Promise<Configuration> {
 
   let configText: string;
   let configData: object;
-  let config: Partial<Configuration>;
+  let config: UserConfiguration;
 
   try {
     configText = await readFileAsync(configPath, 'utf8');
@@ -46,7 +47,7 @@ export async function loadConfig(configPath?: string): Promise<Configuration> {
   }
 
   try {
-    config = ConfigurationSchema.conform(configData);
+    config = validateUserConfiguration(configData);
   } catch (error) {
     throw new OperationalError(`Invalid configuration: ${configPath}\n--\n${error}`);
   }
