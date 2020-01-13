@@ -41,6 +41,22 @@ export function readSecret(varName: string): string {
 }
 
 /**
+ * Determine the path to require a source file from a relative directory
+ */
+export function resolveRequire(
+  rootDir: string,
+  filePath: string,
+  extension?: string
+): string {
+  const relative = path.relative(rootDir, filePath);
+  const requirePath = relative.match(/^\w/) ? `./${relative}` : relative;
+
+  return extension
+    ? requirePath.replace(new RegExp(`${extension}$`), '')
+    : requirePath;
+}
+
+/**
  * Provide information on used paths
  */
 function resolvePaths() {
