@@ -44,6 +44,15 @@ export function getBooksInShelves(
 }
 
 /**
+ * Get the names of popular shelves from a set of books
+ */
+export function getPopularShelfNames(books: Book[], affinity: number): string[] {
+  return groupBooksByShelf(books, { minPercent: affinity })
+    .map(g => g.shelfName)
+    .sort();
+}
+
+/**
  * Group a set of a books by author
  */
 export function groupBooksByAuthor(books: Book[]): BooksByAuthor[] {

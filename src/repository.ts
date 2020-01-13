@@ -24,7 +24,8 @@ import {
 
 const NAMESPACES = {
   books: 'books',
-  readBooks: 'read-books'
+  readBooks: 'read-books',
+  similarReviews: 'similar-reviews'
 };
 
 export default class Repository {
@@ -96,6 +97,20 @@ export default class Repository {
           b => b.bookID
         ]
       );
+    });
+  }
+
+  /**
+   * Get similar reviews of a book
+   */
+  async getSimilarReviews(readBook: ReadBook, limit: number): Promise<Review[]> {
+    return this.cache.fetch([NAMESPACES.similarReviews, readBook.id, limit], async () => {
+      const reviews = await this.apiClient.getBookReviews(readBook.bookID, {
+        limit,
+        rating: readBook.rating
+      });
+
+      return reviews.map(r => this.normalizeReview(r));
     });
   }
 
