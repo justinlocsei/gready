@@ -7,6 +7,7 @@ import Logger from './logger';
 import { Configuration } from './types/config';
 import { CORE_SHELVES } from './config';
 import { ensureArray, normalizeString } from './data';
+import { extractCanonicalIDFromReviewsWidget } from './reviews';
 
 import {
   Author,
@@ -138,7 +139,9 @@ export default class Repository {
       };
     });
 
-    const reviews = await this.apiClient.getBookReviews(book.id);
+    const canonicalID = extractCanonicalIDFromReviewsWidget(book.reviews_widget);
+
+    const reviews = await this.apiClient.getBookReviews(canonicalID);
     const topReviews = reviews.map(this.normalizeReview);
 
     const publisher = this.determinePublisher(
@@ -151,6 +154,7 @@ export default class Repository {
     return {
       authors,
       averageRating: totalRatings > 0 ? ratingsSum / totalRatings : undefined,
+      canonicalID,
       id,
       publisher: publisher || authors[0].name,
       shelves,
