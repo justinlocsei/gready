@@ -36,7 +36,7 @@ export interface BookResponse {
   book: Book;
 }
 
-export type ReadBook = Omit<Review, 'user'>
+export type ReadBook = Omit<Review, 'user'>;
 
 export interface ReadBooksResponse {
   reviews: {
