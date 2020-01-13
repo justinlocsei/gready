@@ -27,7 +27,7 @@ interface BooksByShelf {
 /**
  * Filter a set of books to those that are in a shelf with a given affinity
  */
-export function booksInShelves(
+export function getBooksInShelves(
   books: Book[],
   shelves: string[],
   affinity: number
