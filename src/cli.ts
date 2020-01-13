@@ -286,15 +286,11 @@ async function startCLI(cliOptions: CLIOPtions): Promise<void> {
   const outputDir = await prepareOutputDirectory(options['output-dir']);
   const config = await loadConfig(options['config']);
 
-  const logger = new Logger(
-    cliOptions.stdout,
-    cliOptions.stderr,
-    {
-      logLevel: options['log-level'] as LevelName,
-      showTime: options['log-time'],
-      useColor: options.color
-    }
-  );
+  const logger = new Logger(cliOptions.stderr, {
+    logLevel: options['log-level'] as LevelName,
+    showTime: options['log-time'],
+    useColor: options.color
+  });
 
   const apiCache = new Cache(outputDir.apiRequestsDir, { enabled: options['cache-responses'] });
   const dataCache = new Cache(outputDir.dataDir, { enabled: options['cache-data'] });

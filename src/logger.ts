@@ -27,16 +27,14 @@ export default class Logger {
   private lastTime: number;
   private level: LevelName;
   private showTime: boolean;
-  private stderr: NodeJS.WritableStream;
-  private stdout: NodeJS.WritableStream;
+  private stream: NodeJS.WritableStream;
   private useColor: boolean;
 
   /**
    * Create a new logger
    */
   constructor(
-    stdout: NodeJS.WritableStream,
-    stderr: NodeJS.WritableStream,
+    stream: NodeJS.WritableStream,
     options: {
       logLevel: LevelName;
       showTime: boolean;
@@ -50,8 +48,7 @@ export default class Logger {
     this.lastTime = 0;
     this.level = options.logLevel;
     this.showTime = options.showTime;
-    this.stdout = stdout;
-    this.stderr = stderr;
+    this.stream = stream;
     this.useColor = options.useColor;
   }
 
@@ -59,21 +56,20 @@ export default class Logger {
    * Log a debug message
    */
   debug(...message: string[]) {
-    this.log(this.stderr, 'debug', message, 'green');
+    this.log('debug', message, 'green');
   }
 
   /**
    * Log an info message
    */
   info(...message: string[]) {
-    this.log(this.stdout, 'info', message);
+    this.log('info', message);
   }
 
   /**
    * Log a message
    */
   private log(
-    stream: NodeJS.WritableStream,
     levelName: LevelName,
     parts: string[],
     color?: typeof ForegroundColor
@@ -106,7 +102,7 @@ export default class Logger {
       message = `${chalk.white(this.formatElapsedTime())} ${message}`;
     }
 
-    stream.write(message);
+    this.stream.write(message);
   }
 
   /**
