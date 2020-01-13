@@ -11,6 +11,7 @@ import { isNumeric, maybeMap, unreachable } from './data';
 import { loadConfig } from './config';
 import { paths, prepareOutputDirectory } from './environment';
 import { SectionID, SECTION_IDS, summarizeBooks } from './summary';
+import { summarizeSimilarReaders } from './search-results';
 
 interface CLIOPtions {
   args: string[];
@@ -31,6 +32,11 @@ interface CoreOptions {
   'output-dir': string;
 }
 
+interface FindReadersOptions extends CoreOptions {
+  'book-id'?: CLIString[];
+  reviews: number;
+}
+
 interface ScrapeOptions extends CoreOptions {
   'recent-books'?: number;
 }
@@ -41,6 +47,7 @@ interface SummarizeOptions extends CoreOptions {
 }
 
 type CommandOptions =
+  | { command: 'find-readers'; options: FindReadersOptions; }
   | { command: 'log-in'; options: CoreOptions; }
   | { command: 'log-out'; options: CoreOptions; }
   | { command: 'scrape'; options: ScrapeOptions; }
@@ -71,6 +78,43 @@ class CLI {
     this.logger = logger;
     this.repo = repo;
     this.stdout = stdout;
+  }
+
+  /**
+   * Find readers with similar tastes
+   */
+  async findReaders({
+    bookIDs,
+    maxReviews,
+    minShelfPercent
+  }: {
+    bookIDs?: string[];
+    maxReviews: number;
+    minShelfPercent: number;
+  }): Promise<void> {
+    const userID = await this.apiClient.getUserID();
+    let readBooks = await this.repo.getReadBooks(userID);
+
+    if (bookIDs && bookIDs.length) {
+      readBooks = bookIDs.map(function(bookID) {
+        const review = readBooks.find(r => r.bookID === bookID);
+
+        if (!review) {
+          throw new CLIError(`No book found with ID: ${bookID}`);
+        }
+
+        return review;
+      });
+    }
+
+    const readers = await findReaders({
+      maxReviews,
+      minShelfPercent,
+      readBooks,
+      repo: this.repo
+    });
+
+    this.stdout.write(summarizeSimilarReaders(readers) + '\n');
   }
 
   /**
@@ -208,6 +252,23 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
         type: 'string'
       })
       .command(
+        'find-readers',
+        'Find readers with similar tastes',
+        function(opts) {
+          return opts
+            .option('book-id', {
+              describe: 'The ID of a book that readers must have rated',
+              type: 'array'
+            })
+            .option('reviews', {
+              default: 10,
+              describe: 'The maximum number of reviews per book to query',
+              type: 'number'
+            });
+        },
+        options => resolve({ command: 'find-readers', options })
+      )
+      .command(
         'log-in',
         'Allow gready to access your Goodreads account',
         noOptions,
@@ -323,6 +384,18 @@ async function startCLI(cliOptions: CLIOPtions): Promise<void> {
   );
 
   switch (parsed.command) {
+    case 'find-readers':
+      return cli.findReaders({
+        bookIDs: maybeMap(parsed.options['book-id'], s => s.toString()),
+        maxReviews: validateOption(
+          parsed.options,
+          'reviews',
+          'must be a number',
+          isNumeric
+        ),
+        minShelfPercent
+      });
+
     case 'log-in':
       return cli.logIn();
 
