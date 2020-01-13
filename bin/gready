@@ -7,7 +7,10 @@ const rootDir = path.resolve(__dirname, '..');
 const launcherPath = path.join(rootDir, 'src', 'index.ts');
 const tsNodePath = path.join(rootDir, 'node_modules', '.bin', 'ts-node');
 
-const result = spawnSync(tsNodePath, [launcherPath], {
+const filePosition = process.argv.findIndex(a => a === __filename);
+const argsStart = filePosition >= 0 ? filePosition + 1 : 0;
+
+const result = spawnSync(tsNodePath, [launcherPath, ...process.argv.slice(argsStart)], {
   stdio: 'inherit'
 });
 
