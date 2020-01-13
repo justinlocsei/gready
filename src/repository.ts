@@ -12,6 +12,7 @@ import { extractCanonicalIDFromReviewsWidget } from './reviews';
 import {
   Author,
   Book,
+  ReadBook,
   Review,
   Shelf
 } from './types/data';
@@ -84,12 +85,12 @@ export default class Repository {
   /**
    * Get all books read by a user, with the most recently read books first
    */
-  getReadBooks(userID: UserID): Promise<Review[]> {
+  getReadBooks(userID: UserID): Promise<ReadBook[]> {
     return this.cache.fetch([NAMESPACES.readBooks, userID], async () => {
       const books = await this.apiClient.getReadBooks(userID);
 
       return sortBy(
-        books.map(b => this.normalizeReview(b)),
+        books.map(b => this.normalizeReadBook(b)),
         [
           b => b.posted * -1,
           b => b.bookID
@@ -99,20 +100,35 @@ export default class Repository {
   }
 
   /**
-   * Convert a review from the API to a book review
+   * Convert a read book from the API to a read book
    */
-  private normalizeReview(review: API.Review): Review {
-    const shelves = ensureArray(review.shelves.shelf).map(function(shelf): string {
+  private normalizeReadBook(readBook: API.ReadBook): ReadBook {
+    const shelves = ensureArray(readBook.shelves.shelf).map(function(shelf): string {
       return shelf.$.name;
     });
 
     return {
-      bookID: review.book.id._,
-      id: review.id,
-      posted: new Date(review.read_at || review.date_added).getTime(),
-      rating: parseInt(review.rating, 10),
-      shelves,
-      userID: review.user.id
+      bookID: readBook.book.id._,
+      id: readBook.id,
+      posted: new Date(readBook.read_at || readBook.date_added).getTime(),
+      rating: parseInt(readBook.rating, 10),
+      shelves
+    };
+  }
+
+  /**
+   * Convert a review from the API to a book review
+   */
+  private normalizeReview(review: API.Review): Review {
+    const { user } = review;
+
+    return {
+      ...this.normalizeReadBook(review),
+      user: {
+        id: user.id,
+        name: user.name,
+        profileURL: user.link
+      }
     };
   }
 
@@ -158,7 +174,7 @@ export default class Repository {
       shelves,
       similarBooks: similarBooks.map(b => b.id),
       title: normalizeString(book.title || work.original_title),
-      topReviews: reviews.map(this.normalizeReview),
+      topReviews: reviews.map(r => this.normalizeReview(r)),
       totalRatings,
       workID: work.id._
     };

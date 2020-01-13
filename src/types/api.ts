@@ -75,6 +75,8 @@ export interface Review {
   };
   user: {
     id: string;
+    link: string;
+    name: string;
   };
 }
 

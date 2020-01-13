@@ -4,7 +4,7 @@ import APIClient from './api-client';
 import Cache from './cache';
 import Logger, { DEFAULT_LEVEL, getLevelNames, LevelName } from './logger';
 import Repository from './repository';
-import { Book, Review } from './types/data';
+import { Book, ReadBook } from './types/data';
 import { CLIError } from './errors';
 import { findReaders } from './search';
 import { isNumeric, maybeMap, unreachable } from './data';
@@ -107,7 +107,7 @@ class CLI {
     const totalBooks = readBooks.length;
 
     let book: Book;
-    let readBook: Review;
+    let readBook: ReadBook;
 
     while (index < totalBooks) {
       readBook = readBooks[index];

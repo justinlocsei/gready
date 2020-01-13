@@ -31,11 +31,19 @@ export interface Shelf {
   name: string;
 }
 
+export type ReadBook = Omit<Review, 'user'>;
+
 export interface Review {
   bookID: BookID;
   id: ReviewID;
   posted: number;
   rating: number;
   shelves: string[];
-  userID: UserID;
+  user: User;
+}
+
+export interface User {
+  id: UserID;
+  name: string;
+  profileURL: string;
 }
