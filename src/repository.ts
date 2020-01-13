@@ -90,7 +90,7 @@ export default class Repository {
       return sortBy(
         books.map(b => this.normalizeReview(b)),
         [
-          b => b.readOn * -1,
+          b => b.posted * -1,
           b => b.bookID
         ]
       );
@@ -100,17 +100,18 @@ export default class Repository {
   /**
    * Convert a review from the API to a book review
    */
-  private normalizeReview(book: API.Review): Review {
-    const shelves = ensureArray(book.shelves.shelf).map(function(shelf): string {
+  private normalizeReview(review: API.Review): Review {
+    const shelves = ensureArray(review.shelves.shelf).map(function(shelf): string {
       return shelf.$.name;
     });
 
     return {
-      bookID: book.book.id._,
-      rating: parseInt(book.rating, 10),
-      readOn: new Date(book.read_at || book.date_added).getTime(),
+      bookID: review.book.id._,
+      id: review.id,
+      posted: new Date(review.read_at || review.date_added).getTime(),
+      rating: parseInt(review.rating, 10),
       shelves,
-      userID: book.user.id
+      userID: review.user.id
     };
   }
 
