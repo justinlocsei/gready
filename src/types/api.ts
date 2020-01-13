@@ -53,7 +53,7 @@ export interface Response {
   GoodreadsResponse: ResponseBody;
 }
 
-export type ResponseBody = Record<string, any>;
+export type ResponseBody = { [key: string]: any; };
 
 export interface Review {
   book: {
