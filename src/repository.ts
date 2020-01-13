@@ -126,7 +126,7 @@ export default class Repository {
       ...this.normalizeReadBook(review),
       user: {
         id: user.id,
-        name: user.name,
+        name: normalizeString(user.name),
         profileURL: user.link
       }
     };
