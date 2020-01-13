@@ -359,8 +359,9 @@ export default class APIClient {
     return new Promise(resolve => {
       this.requestQueue.push({
         execute,
-        handleResponse: function(text: string) {
+        handleResponse: (text: string) => {
           logger.debug(...requestMessage, 'Handle response');
+          logger.debug(...requestMessage, `RemainingRequests=${this.requestQueue.length()}`);
           resolve(text);
         }
       });
