@@ -3,10 +3,30 @@ import superagent from 'superagent';
 import querystring from 'querystring';
 import { URL } from 'url';
 
-import { BookID, ReviewID } from './types/goodreads';
+import { BookID, CanonicalBookID, ReviewID } from './types/goodreads';
 import { OperationalError } from './errors';
 
 const WIDGET_URL = 'https://www.goodreads.com/api/reviews_widget_iframe';
+
+/**
+ * Extract a book's canonical ID from the markup for its reviews widget
+ */
+export function extractCanonicalIDFromReviewsWidget(embedCode: string): CanonicalBookID {
+  const $ = cheerio.load(embedCode);
+  const src = $('iframe').attr('src');
+
+  if (!src) {
+    throw new OperationalError(`No iframe found in embed code for reviews widget\n${embedCode}`);
+  }
+
+  const id = new URL(src).searchParams.get('isbn');
+
+  if (!id) {
+    throw new OperationalError(`No canonical book ID found in URL for reviews widget: ${src}`);
+  }
+
+  return id;
+}
 
 /**
  * Find review IDs for a book
