@@ -1,4 +1,11 @@
-import { AuthorID, BookID, ReviewID, UserID, WorkID } from './goodreads';
+import {
+  AuthorID,
+  BookID,
+  CanonicalBookID,
+  ReviewID,
+  UserID,
+  WorkID
+} from './goodreads';
 
 export interface Author {
   id: AuthorID;
@@ -8,6 +15,7 @@ export interface Author {
 export interface Book {
   authors: Author[];
   averageRating?: number;
+  canonicalID: CanonicalBookID;
   id: BookID;
   publisher: string;
   shelves: Shelf[];
