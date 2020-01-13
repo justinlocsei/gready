@@ -13,6 +13,16 @@ export function isNumeric(value: unknown): boolean {
 }
 
 /**
+ * Apply a mapping function to an array if it is defined
+ */
+export function maybeMap<T, U>(
+  value: T[] | undefined,
+  transform: (v: T) => U
+): U[] | undefined {
+  return value && value.map(transform);
+}
+
+/**
  * Remove non-essential information from a string
  */
 export function normalizeString(value: string): string {
