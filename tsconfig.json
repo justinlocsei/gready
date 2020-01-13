@@ -1,12 +1,15 @@
 {
   "compilerOptions": {
+    "declaration": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "module": "commonjs",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
     "noImplicitReturns": true,
     "noUnusedLocals": true,
+    "sourceMap": true,
     "strict": true,
-    "target": "es5"
+    "target": "es2015"
   },
   "include": [
     "src/**/*"
