@@ -10,6 +10,16 @@ interface OutputDirectoryStructure {
 }
 
 /**
+ * Extract command-line arguments from a list
+ */
+export function extractArgs(args: string[]): string[] {
+  const binPosition = args.findIndex(a => a.match(/[\\\/]node$/));
+  const argsStart = binPosition >= 0 ? binPosition + 2 : 0;
+
+  return args.slice(argsStart);
+}
+
+/**
  * Create all required directories within an output directory
  */
 export async function prepareOutputDirectory(rootPath: string): Promise<OutputDirectoryStructure> {
