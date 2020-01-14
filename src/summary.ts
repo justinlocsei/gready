@@ -1,7 +1,7 @@
 import { sortBy } from 'lodash';
 
 import Bookshelf from './bookshelf';
-import { ExtractArrayType } from './types/core';
+import { ExtractArrayType } from './types/util';
 import { formalizeAuthorName } from './content';
 import { underline } from './util';
 

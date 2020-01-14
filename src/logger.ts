@@ -1,6 +1,6 @@
 import chalk, { ForegroundColor } from 'chalk';
 
-import { ExtractArrayType } from './types/core';
+import { ExtractArrayType } from './types/util';
 
 const LEVELS = [
   { rank: 0, name: 'none' },
