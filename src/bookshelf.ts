@@ -57,6 +57,19 @@ export default class Bookshelf {
   }
 
   /**
+   * Get all books that belong to one or more shelves in a list
+   */
+  getBooksInShelves(...shelfNames: string[]): Book[] {
+    const nameSet = new Set(shelfNames);
+
+    return this.books.filter(book => {
+      return this.annotateShelves(book.shelves).find(shelf => {
+        return shelf.percentile >= this.shelfPercentile && nameSet.has(shelf.shelf.name);
+      });
+    });
+  }
+
+  /**
    * Provide an annotated view of the shelves used by all books
    */
   getAllShelves(): AnnotatedShelf[] {
@@ -199,15 +212,7 @@ export default class Bookshelf {
    * shelves in a list
    */
   restrictShelves(...shelfNames: string[]): Bookshelf {
-    const nameSet = new Set(shelfNames);
-
-    const books = this.books.filter(book => {
-      return this.annotateShelves(book.shelves).find(shelf => {
-        return shelf.percentile >= this.shelfPercentile && nameSet.has(shelf.shelf.name);
-      });
-    });
-
-    return new Bookshelf(books, {
+    return new Bookshelf(this.getBooksInShelves(...shelfNames), {
       shelfPercentile: this.shelfPercentile
     });
   }
