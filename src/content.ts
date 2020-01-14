@@ -1,4 +1,4 @@
-import { normalizeString } from './data';
+import { normalizeString } from './util';
 
 /**
  * Display an author's name in a last/first format if possible

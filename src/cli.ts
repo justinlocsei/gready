@@ -8,7 +8,7 @@ import Repository from './repository';
 import { Book, ReadBook } from './types/data';
 import { CLIError } from './errors';
 import { findReaders } from './search';
-import { isNumeric, maybeMap, unreachable } from './data';
+import { isNumeric, maybeMap, unreachable } from './util';
 import { loadConfig } from './config';
 import { paths, prepareOutputDirectory } from './environment';
 import { SectionID, SECTION_IDS, summarizeBookshelf } from './summary';

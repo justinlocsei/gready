@@ -5,7 +5,7 @@ import APIClient from './api-client';
 import Cache from './cache';
 import Logger from './logger';
 import { Configuration } from './types/config';
-import { ensureArray, normalizeString } from './data';
+import { ensureArray, normalizeString } from './util';
 import { extractCanonicalIDFromReviewsWidget } from './reviews';
 import { SHELVES } from './goodreads';
 

@@ -3,7 +3,7 @@ import { sortBy } from 'lodash';
 import Bookshelf from './bookshelf';
 import { ExtractArrayType } from './types/core';
 import { formalizeAuthorName } from './content';
-import { underline } from './data';
+import { underline } from './util';
 
 export const SECTION_IDS = [
   'books-by-author',
