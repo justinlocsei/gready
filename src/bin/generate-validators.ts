@@ -103,16 +103,26 @@ function generateValidatorCode(
 
   let lines = [
     `import * as Types from '${typesPath}';`,
+    `import schema from '${schemaPath}';`,
     `import { validate } from '${validatorsPath}';`,
     '',
-    `const schema = require('${schemaPath}');`,
+    'type Schema = typeof schema;',
+    'type Definition = keyof Schema[\'definitions\'];',
+    '',
+    'function conformToSchema<T>(',
+    '  schema: Schema,',
+    '  definition: Definition,',
+    '  data: unknown',
+    '): T {',
+    '  return validate(schema, definition, data);',
+    '}'
   ];
 
   types.forEach(function(type) {
     lines = lines.concat([
       '',
       `export function validate${type}(data: unknown): Types.${type} {`,
-      `  return validate('${type}', schema, data);`,
+      `  return conformToSchema(schema, '${type}', data);`,
       '}'
     ]);
   });
