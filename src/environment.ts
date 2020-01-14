@@ -4,7 +4,7 @@ import { mkdirp } from 'fs-extra';
 
 import { OperationalError } from './errors';
 
-export interface OutputDirectoryStructure {
+interface OutputDirectoryStructure {
   apiRequestsDir: string;
   dataDir: string;
 }
