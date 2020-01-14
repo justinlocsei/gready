@@ -124,7 +124,7 @@ class CLI {
    */
   async logIn(): Promise<void> {
     const userID = await this.apiClient.logIn();
-    this.logger.info(`Logged in | UserID=${userID}`);
+    this.logger.info('Logged in', `UserID=${userID}`);
   }
 
   /**
