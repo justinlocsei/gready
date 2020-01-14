@@ -6,9 +6,9 @@ import {
   maybeMap,
   normalizeString,
   underline
-} from '../src/data';
+} from '../src/util';
 
-describe('data/ensureArray', function() {
+describe('util/ensureArray', function() {
 
   it('converts a scalar to an array', function() {
     assert.deepEqual(ensureArray(1), [1]);
@@ -20,7 +20,7 @@ describe('data/ensureArray', function() {
 
 });
 
-describe('data/isNumeric', function() {
+describe('util/isNumeric', function() {
 
   it('is true for a number', function() {
     assert.isTrue(isNumeric(1));
@@ -36,7 +36,7 @@ describe('data/isNumeric', function() {
 
 });
 
-describe('data/maybeMap', function() {
+describe('util/maybeMap', function() {
 
   it('applies a mapping function an array', function() {
     assert.deepEqual(maybeMap([1, 2], v => v + 1), [2, 3]);
@@ -48,7 +48,7 @@ describe('data/maybeMap', function() {
 
 });
 
-describe('data/normalizeString', function() {
+describe('util/normalizeString', function() {
 
   it('removes excess space from a string', function() {
     assert.equal(
@@ -59,7 +59,7 @@ describe('data/normalizeString', function() {
 
 });
 
-describe('data/underline', function() {
+describe('util/underline', function() {
 
   it('underlines a string', function() {
     assert.equal(
