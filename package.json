@@ -7,7 +7,8 @@
     "generate-validators": "ts-node ./src/generate-validators.ts",
     "lint": "npm run lint:code && npm run lint:types",
     "lint:code": "eslint ./bin/* ./src/ --ext .ts; true",
-    "lint:types": "tsc --noEmit; true"
+    "lint:types": "tsc --noEmit; true",
+    "test": "mocha -r ts-node/register tests/**/*.test.ts"
   },
   "repository": {
     "type": "git",
