@@ -7,11 +7,6 @@ import { validateUserConfiguration } from './validators/config';
 
 const readFileAsync = promisify(readFile);
 
-export const CORE_SHELVES = [
-  'currently-reading',
-  'to-read'
-];
-
 const DEFAULT_CONFIG: Configuration = {
   ignoreShelves: [],
   mergePublishers: {},

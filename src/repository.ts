@@ -5,9 +5,9 @@ import APIClient from './api-client';
 import Cache from './cache';
 import Logger from './logger';
 import { Configuration } from './types/config';
-import { CORE_SHELVES } from './config';
 import { ensureArray, normalizeString } from './data';
 import { extractCanonicalIDFromReviewsWidget } from './reviews';
+import { SHELVES } from './goodreads';
 
 import {
   Author,
@@ -260,7 +260,12 @@ export default class Repository {
     const { publisher, shelves } = book;
     const { ignoreShelves, mergePublishers, mergeShelves } = this.config;
 
-    const excludeShelves = new Set([...CORE_SHELVES, ...ignoreShelves]);
+    const excludeShelves = new Set([
+      SHELVES.currentlyReading,
+      SHELVES.toRead,
+      ...ignoreShelves
+    ]);
+
     const userShelves = shelves.filter(s => !excludeShelves.has(s.name));
     const mergedShelves = this.mergeShelves(userShelves, mergeShelves);
 

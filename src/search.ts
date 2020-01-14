@@ -1,15 +1,12 @@
-import querystring from 'querystring';
 import { flatten, sortBy, uniq } from 'lodash';
-import { URL } from 'url';
 
+import Bookshelf from './bookshelf';
 import Logger from './logger';
 import Repository from './repository';
 import { Book, ReadBook, Shelf, User } from './types/data';
 import { BookID, UserID } from './types/goodreads';
-import { getBooksInShelves, getPopularShelfNames } from './analysis';
+import { getUserBooksURL } from './goodreads';
 import { SimilarReader } from './types/search';
-
-const BOOKS_URL = 'https://www.goodreads.com/review/list';
 
 /**
  * Find readers who have left similar reviews of books
@@ -100,23 +97,8 @@ export async function findReaders({
       shelves: sortBy(shelves, [s => s.count * -1, s => s.name]),
       user: {
         ...usersByID[id],
-        booksURL: getUserBooksURL(id, userShelves[id])
+        booksURL: getUserBooksURL(id)
       }
     };
   });
-}
-
-/**
- * Get the URL for viewing a user's books
- */
-function getUserBooksURL(id: UserID, shelves: string[]): string {
-  const url = new URL(`${BOOKS_URL}/${id}`);
-
-  url.search = querystring.stringify({
-    order: 'd',
-    sort: 'avg_rating',
-    shelf: shelves.find(s => s === 'favorites') || 'read'
-  });
-
-  return url.toString();
 }

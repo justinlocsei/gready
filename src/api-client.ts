@@ -11,6 +11,7 @@ import Logger from './logger';
 import { findReviewIDsForBook } from './reviews';
 import { formatJSON } from './serialization';
 import { readSecret } from './environment';
+import { URLS } from './goodreads';
 
 import {
   validateBookResponse,
@@ -42,11 +43,6 @@ const readFileAsync = promisify(readFile);
 const unlinkAsync = promisify(unlink);
 const writeFileAsync = promisify(writeFile);
 
-const ACCESS_TOKEN_URL = 'http://www.goodreads.com/oauth/access_token';
-const API_BASE_URL = 'https://www.goodreads.com';
-const AUTHORIZE_URL = 'https://www.goodreads.com/oauth/authorize';
-const REQUEST_TOKEN_URL = 'http://www.goodreads.com/oauth/request_token';
-
 const READ_BOOKS_PAGE_SIZE = 25;
 const REQUEST_SPACING_MS = 1000;
 
@@ -71,8 +67,8 @@ interface Session {
  */
 function createOAuthClient(): OAuth {
   return new OAuth(
-    REQUEST_TOKEN_URL,
-    ACCESS_TOKEN_URL,
+    URLS.requestToken,
+    URLS.accessToken,
     readSecret('GREADY_GOODREADS_KEY'),
     readSecret('GREADY_GOODREADS_SECRET'),
     '1.0',
@@ -325,7 +321,7 @@ export default class APIClient {
     relativeURL: string,
     payload?: object
   ): Promise<ResponseBody> {
-    const url = `${API_BASE_URL}/${relativeURL}`;
+    const url = `${URLS.apiBase}/${relativeURL}`;
 
     const response = await this.executeRequest(message, () => {
       switch (method) {
@@ -508,7 +504,7 @@ export default class APIClient {
 
     return new Promise(function(resolve, reject) {
       prompt.question(
-        `Visit ${AUTHORIZE_URL}?${payload} to authenticate, then press enter`,
+        `Visit ${URLS.authorize}?${payload} to authenticate, then press enter`,
         function() {
           prompt.close();
           resolve();

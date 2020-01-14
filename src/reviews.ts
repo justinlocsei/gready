@@ -5,8 +5,7 @@ import { URL } from 'url';
 
 import { BookID, CanonicalBookID, ReviewID } from './types/goodreads';
 import { OperationalError } from './errors';
-
-const WIDGET_URL = 'https://www.goodreads.com/api/reviews_widget_iframe';
+import { URLS } from './goodreads';
 
 /**
  * Extract a book's canonical ID from the markup for its reviews widget
@@ -77,7 +76,7 @@ function buildWidgetURL(
     query.min_rating = rating.toString();
   }
 
-  const url = new URL(WIDGET_URL);
+  const url = new URL(URLS.reviewsWidget);
   url.search = querystring.stringify(query);
 
   return url.toString();
