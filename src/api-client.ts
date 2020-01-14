@@ -10,7 +10,6 @@ import Cache from './cache';
 import Logger from './logger';
 import { findReviewIDsForBook } from './reviews';
 import { formatJSON } from './serialization';
-import { readSecret } from './environment';
 import { URLS } from './goodreads';
 
 import {
@@ -48,7 +47,9 @@ const REQUEST_SPACING_MS = 1000;
 
 interface ClientOptions {
   cache: Cache;
+  key: string;
   logger: Logger;
+  secret: string;
   sessionFile: string;
 }
 
@@ -65,12 +66,12 @@ interface Session {
 /**
  * Create an OAuth client for the current environment
  */
-function createOAuthClient(): OAuth {
+function createOAuthClient(key: string, secret: string): OAuth {
   return new OAuth(
     URLS.requestToken,
     URLS.accessToken,
-    readSecret('GREADY_GOODREADS_KEY'),
-    readSecret('GREADY_GOODREADS_SECRET'),
+    key,
+    secret,
     '1.0',
     null,
     'HMAC-SHA1'
@@ -97,7 +98,7 @@ export default class APIClient {
   constructor(options: ClientOptions) {
     this.lastRequestID = 0;
     this.lastRequestTime = Date.now();
-    this.oauth = createOAuthClient();
+    this.oauth = createOAuthClient(options.key, options.secret);
     this.options = options;
 
     this.requestQueue = async.queue(async function(task, callback) {

@@ -7,6 +7,12 @@ import { validateUserConfiguration } from './validators/config';
 
 const readFileAsync = promisify(readFile);
 
+const ENV_VARS = {
+  configPath: 'GREADY_CONFIG',
+  goodreadsApiKey: 'GREADY_GOODREADS_API_KEY',
+  goodreadsSecret: 'GREADY_GOODREADS_SECRET'
+};
+
 const DEFAULT_CONFIG: Configuration = {
   ignoreShelves: [],
   mergePublishers: {},
@@ -51,4 +57,37 @@ export async function loadConfig(configPath?: string): Promise<Configuration> {
     ...DEFAULT_CONFIG,
     ...config
   };
+}
+
+/**
+ * Get the user's Goodreads API key
+ */
+export function getGoodreadsAPIKey(): string {
+  return requireEnvironmentVariable(
+    ENV_VARS.goodreadsApiKey,
+    'your Goodreads API key'
+  );
+}
+
+/**
+ * Get the user's Goodreads secret
+ */
+export function getGoodreadsSecret(): string {
+  return requireEnvironmentVariable(
+    ENV_VARS.goodreadsSecret,
+    'your Goodreads secret'
+  );
+}
+
+/**
+ * Get a required value from the environment
+ */
+function requireEnvironmentVariable(name: string, description: string): string {
+  const value = process.env[name];
+
+  if (!value) {
+    throw new OperationalError(`You must provide ${description} in the ${name} environment variable`);
+  }
+
+  return value;
 }

@@ -1,10 +1,7 @@
 import path from 'path';
-import process from 'process';
 import { chmod } from 'graceful-fs';
 import { mkdirp } from 'fs-extra';
 import { promisify } from 'util';
-
-import { OperationalError } from './errors';
 
 const chmodAsync = promisify(chmod);
 
@@ -47,19 +44,6 @@ export async function prepareDataDirectory(rootDir: string): Promise<DataDirecto
     },
     sessionFile: path.join(rootDir, 'session.json')
   };
-}
-
-/**
- * Read a secret from the environment
- */
-export function readSecret(varName: string): string {
-  const value = process.env[varName];
-
-  if (!value) {
-    throw new OperationalError(`Secret not found in environment: ${varName}`);
-  }
-
-  return value;
 }
 
 /**

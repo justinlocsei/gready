@@ -11,7 +11,7 @@ import { Book, ReadBook } from './types/core';
 import { CLIError } from './errors';
 import { findReaders } from './search';
 import { isNumeric, maybeMap, unreachable } from './util';
-import { loadConfig } from './config';
+import { getGoodreadsAPIKey, getGoodreadsSecret, loadConfig } from './config';
 import { prepareDataDirectory } from './environment';
 import { SectionID, SECTION_IDS, summarizeBookshelf } from './summary';
 import { summarizeSimilarReaders } from './search-results';
@@ -363,7 +363,9 @@ async function startCLI(cliOptions: CLIOPtions): Promise<void> {
 
   const apiClient = new APIClient({
     cache: apiCache,
+    key: getGoodreadsAPIKey(),
     logger,
+    secret: getGoodreadsSecret(),
     sessionFile
   });
 
