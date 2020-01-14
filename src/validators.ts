@@ -11,8 +11,8 @@ import { formatJSON } from './serialization';
  * @throws If the data does not conform to the schema
  */
 export function validate<T>(
-  typeName: string,
   jsonSchema: object,
+  typeName: string,
   data: unknown
 ): T {
   const schema = {

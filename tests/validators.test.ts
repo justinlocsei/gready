@@ -20,21 +20,21 @@ describe('validators/validate', function() {
 
   it('validates a type against a JSON schema', function() {
     assert.deepEqual(
-      validate('Testing', schema, { testing: 'test' }),
+      validate(schema, 'Testing', { testing: 'test' }),
       { testing: 'test' }
     );
   });
 
   it('throws an error if data does not conform to the schema', function() {
     assert.throws(
-      () => validate('Testing', schema, { testing: 1 }),
+      () => validate(schema, 'Testing', { testing: 1 }),
       /testing.*string/
     );
   });
 
   it('throws an error if the named type is not defined in the schema', function() {
     assert.throws(
-      () => validate('Missing', schema, { testing: 'test' }),
+      () => validate(schema, 'Missing', { testing: 'test' }),
       'Missing'
     );
   });
