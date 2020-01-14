@@ -84,10 +84,23 @@ export interface ReviewResponse {
   review: Review;
 }
 
+export interface User {
+  id: string;
+  user_shelves: {
+    user_shelf: {
+      name: string;
+    }[];
+  };
+}
+
 export interface UserDataResponse {
   user: {
     $: {
       id: string;
     };
   };
+}
+
+export interface UserResponse {
+  user: User;
 }

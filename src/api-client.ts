@@ -17,7 +17,8 @@ import {
   validateReadBooksResponse,
   validateResponse,
   validateReviewResponse,
-  validateUserDataResponse
+  validateUserDataResponse,
+  validateUserResponse
 } from './validators/api';
 
 import {
@@ -25,7 +26,8 @@ import {
   ReadBook,
   ReadBooksResponse,
   ResponseBody,
-  Review
+  Review,
+  User
 } from './types/api';
 
 import {
@@ -256,6 +258,25 @@ export default class APIClient {
     return Promise.all(reviewIDs.map(async (id): Promise<Review> => {
       return this.getReview(id);
     }));
+  }
+
+  /**
+   * Get information on a user with a given ID
+   */
+  getUser(id: UserID): Promise<User> {
+    return this.options.cache.fetch(['users', id], async () => {
+      const response = await this.request(
+        ['Fetch user', `ID=${id}`],
+        'GET',
+        'users/show',
+        {
+          id,
+          format: 'xml'
+        }
+      );
+
+      return validateUserResponse(response).user;
+    });
   }
 
   /**

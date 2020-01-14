@@ -14,7 +14,8 @@ import {
   Book,
   ReadBook,
   Review,
-  Shelf
+  Shelf,
+  UserMeta
 } from './types/data';
 
 import {
@@ -110,6 +111,34 @@ export default class Repository {
 
       return reviews.map(r => this.normalizeReview(r));
     });
+  }
+
+  /**
+   * Get the names of a user's shelves
+   */
+  async getUserShelves(id: UserID): Promise<string[]> {
+    const meta = await this.getUserMeta(id);
+    return meta.shelves;
+  }
+
+  /**
+   * Get user metadata
+   */
+  private getUserMeta(id: UserID): Promise<UserMeta> {
+    return this.cache.fetch(['user-meta', id], async () => {
+      const user = await this.apiClient.getUser(id);
+      return this.normalizeUserMeta(user);
+    });
+  }
+
+  /**
+   * Convert user information from the API to user metadata
+   */
+  private normalizeUserMeta(user: API.User): UserMeta {
+    return {
+      id: user.id,
+      shelves: user.user_shelves.user_shelf.map(s => s.name).sort()
+    };
   }
 
   /**
