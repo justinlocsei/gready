@@ -1,4 +1,4 @@
-import { Book, Shelf, User } from './data';
+import { Book, Shelf, User } from './core';
 
 export interface SimilarReader {
   books: Book[];

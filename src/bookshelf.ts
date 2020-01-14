@@ -1,6 +1,6 @@
 import { sortBy } from 'lodash';
 
-import { Author, Book, Shelf } from './types/data';
+import { Author, Book, Shelf } from './types/core';
 import { AuthorID } from './types/goodreads';
 import { formalizeAuthorName } from './content';
 

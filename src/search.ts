@@ -3,7 +3,7 @@ import { flatten, sortBy, uniq } from 'lodash';
 import Bookshelf from './bookshelf';
 import Logger from './logger';
 import Repository from './repository';
-import { Book, ReadBook, Shelf, User } from './types/data';
+import { Book, ReadBook, Shelf, User } from './types/core';
 import { BookID, UserID } from './types/goodreads';
 import { getUserBooksURL } from './goodreads';
 import { SimilarReader } from './types/search';

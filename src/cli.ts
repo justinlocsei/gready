@@ -5,7 +5,7 @@ import Bookshelf from './bookshelf';
 import Cache from './cache';
 import Logger, { DEFAULT_LEVEL, getLevelNames, LevelName } from './logger';
 import Repository from './repository';
-import { Book, ReadBook } from './types/data';
+import { Book, ReadBook } from './types/core';
 import { CLIError } from './errors';
 import { findReaders } from './search';
 import { isNumeric, maybeMap, unreachable } from './util';

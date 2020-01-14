@@ -16,7 +16,7 @@ import {
   Review,
   Shelf,
   UserMeta
-} from './types/data';
+} from './types/core';
 
 import {
   BookID,
