@@ -22,10 +22,8 @@ import {
   UserID
 } from './types/goodreads';
 
-const NAMESPACES = {
-  books: 'books',
-  readBooks: 'read-books',
-  similarReviews: 'similar-reviews'
+const SHARED_NAMESPACES = {
+  books: 'books'
 };
 
 export default class Repository {
@@ -59,7 +57,7 @@ export default class Repository {
    * Get information on a book
    */
   getBook(id: BookID): Promise<Book> {
-    return this.cache.fetch([NAMESPACES.books, id], async () => {
+    return this.cache.fetch([SHARED_NAMESPACES.books, id], async () => {
       const book = await this.apiClient.getBook(id);
       this.logger.debug('Normalize book', `ID=${book.id}`);
 
@@ -71,7 +69,7 @@ export default class Repository {
    * Get information on all books in a list that are locally available
    */
   async getLocalBooks(ids: BookID[]): Promise<Book[]> {
-    const books = await this.cache.entries<Book>([NAMESPACES.books])
+    const books = await this.cache.entries<Book>([SHARED_NAMESPACES.books])
 
     const validBooks = books
       .filter(b => ids.includes(b.id))
@@ -87,7 +85,7 @@ export default class Repository {
    * Get all books read by a user, with the most recently read books first
    */
   getReadBooks(userID: UserID): Promise<ReadBook[]> {
-    return this.cache.fetch([NAMESPACES.readBooks, userID], async () => {
+    return this.cache.fetch(['read-books', userID], async () => {
       const books = await this.apiClient.getReadBooks(userID);
 
       return sortBy(
@@ -104,7 +102,7 @@ export default class Repository {
    * Get similar reviews of a book
    */
   async getSimilarReviews(readBook: ReadBook, limit: number): Promise<Review[]> {
-    return this.cache.fetch([NAMESPACES.similarReviews, readBook.id, limit], async () => {
+    return this.cache.fetch(['similar-reviews', readBook.id, limit], async () => {
       const reviews = await this.apiClient.getBookReviews(readBook.bookID, {
         limit,
         rating: readBook.rating
