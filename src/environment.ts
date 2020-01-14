@@ -1,12 +1,19 @@
 import path from 'path';
 import process from 'process';
+import { chmod } from 'graceful-fs';
 import { mkdirp } from 'fs-extra';
+import { promisify } from 'util';
 
 import { OperationalError } from './errors';
 
-interface OutputDirectoryStructure {
-  apiRequestsDir: string;
-  dataDir: string;
+const chmodAsync = promisify(chmod);
+
+interface DataDirectoryStructure {
+  cacheDirs: {
+    apiRequests: string;
+    data: string;
+  };
+  sessionFile: string;
 }
 
 /**
@@ -20,20 +27,25 @@ export function extractArgs(args: string[]): string[] {
 }
 
 /**
- * Create all required directories within an output directory
+ * Create all required directories within a data directory
  */
-export async function prepareOutputDirectory(rootPath: string): Promise<OutputDirectoryStructure> {
-  await mkdirp(rootPath);
+export async function prepareDataDirectory(rootDir: string): Promise<DataDirectoryStructure> {
+  await mkdirp(rootDir);
+  await chmodAsync(rootDir, 0o700);
 
-  const apiRequestsDir = path.join(rootPath, 'api-requests');
-  const dataDir = path.join(rootPath, 'data');
+  const cacheDir = path.join(rootDir, 'cache');
+  const apiRequestsDir = path.join(cacheDir, 'api-requests');
+  const dataDir = path.join(cacheDir, 'data');
 
   await mkdirp(apiRequestsDir);
   await mkdirp(dataDir);
 
   return {
-    apiRequestsDir,
-    dataDir
+    cacheDirs: {
+      apiRequests: apiRequestsDir,
+      data: dataDir
+    },
+    sessionFile: path.join(rootDir, 'session.json')
   };
 }
 
@@ -74,8 +86,6 @@ function resolvePaths() {
   const srcDir = path.join(rootDir, 'src');
 
   return {
-    outputDir: path.join(rootDir, 'output'),
-    sessionFile: path.join(rootDir, '.session.json'),
     srcDir,
     typesDir: path.join(srcDir, 'types'),
     rootDir,

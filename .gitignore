@@ -1,7 +1,5 @@
 .DS_Store
-/.session.json
 /dist/
 /node_modules/
-/output/
 /src/validators/
 /tmp/

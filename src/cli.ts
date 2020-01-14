@@ -1,3 +1,5 @@
+import path from 'path';
+import os from 'os';
 import yargs from 'yargs';
 
 import APIClient from './api-client';
@@ -10,7 +12,7 @@ import { CLIError } from './errors';
 import { findReaders } from './search';
 import { isNumeric, maybeMap, unreachable } from './util';
 import { loadConfig } from './config';
-import { paths, prepareOutputDirectory } from './environment';
+import { prepareDataDirectory } from './environment';
 import { SectionID, SECTION_IDS, summarizeBookshelf } from './summary';
 import { summarizeSimilarReaders } from './search-results';
 
@@ -27,9 +29,9 @@ interface CoreOptions {
   'cache-responses': boolean;
   color: boolean;
   config?: string;
+  'data-dir': string;
   'log-level': string;
   'log-time': boolean;
-  'output-dir': string;
   'shelf-percentile': number;
 }
 
@@ -233,6 +235,11 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
         describe: 'A path to a JSON configuration file',
         type: 'string'
       })
+      .option('data-dir', {
+        default: path.join(os.homedir(), '.gready'),
+        describe: 'The directory in which to store all files created by gready',
+        type: 'string'
+      })
       .option('log-level', {
         choices: getLevelNames(),
         default: DEFAULT_LEVEL,
@@ -243,11 +250,6 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
         default: false,
         describe: 'Show the elapsed time between log entries',
         type: 'boolean'
-      })
-      .option('output-dir', {
-        default: paths.outputDir,
-        describe: 'The directory in which to store generated files',
-        type: 'string'
       })
       .option('shelf-percentile', {
         default: 1,
@@ -347,7 +349,7 @@ async function startCLI(cliOptions: CLIOPtions): Promise<void> {
   const parsed = await parseCLIArgs(cliOptions.args);
   const { options } = parsed;
 
-  const outputDir = await prepareOutputDirectory(options['output-dir']);
+  const { cacheDirs, sessionFile } = await prepareDataDirectory(options['data-dir']);
   const config = await loadConfig(options['config']);
 
   const logger = new Logger(cliOptions.stderr, {
@@ -356,13 +358,13 @@ async function startCLI(cliOptions: CLIOPtions): Promise<void> {
     useColor: options.color
   });
 
-  const apiCache = new Cache(outputDir.apiRequestsDir, { enabled: options['cache-responses'] });
-  const dataCache = new Cache(outputDir.dataDir, { enabled: options['cache-data'] });
+  const apiCache = new Cache(cacheDirs.apiRequests, { enabled: options['cache-responses'] });
+  const dataCache = new Cache(cacheDirs.data, { enabled: options['cache-data'] });
 
   const apiClient = new APIClient({
     cache: apiCache,
     logger,
-    sessionFile: paths.sessionFile
+    sessionFile
   });
 
   const repo = new Repository({
