@@ -40,13 +40,13 @@ interface FindReadersOptions extends CoreOptions {
   reviews: number;
 }
 
-interface SyncBooksOptions extends CoreOptions {
-  recent?: number;
-}
-
 interface SummarizeOptions extends CoreOptions {
   section?: CLIString[];
   shelf?: CLIString[];
+}
+
+interface SyncBooksOptions extends CoreOptions {
+  recent?: number;
 }
 
 type CommandOptions =
