@@ -51,7 +51,7 @@ export async function findReaders({
     });
   }
 
-  const sorted = sortBy(
+  const sortedUserIDs = sortBy(
     Object.keys(reviewers),
     [
       id => reviewers[id].length * -1,
@@ -59,24 +59,19 @@ export async function findReaders({
     ]
   );
 
-  const bookIDs = uniq(flatten(Object.values(reviewers)));
+  const bookIDs = uniq(flatten(Object.values(reviewers))).sort();
 
   for (const bookID of bookIDs) {
     logger.info('Fetch book', `ID=${bookID}`);
     booksByID[bookID] = await repo.getBook(bookID);
   }
 
-  const allBooks = Object.values(booksByID);
-  const shelfNames = getPopularShelfNames(allBooks, minShelfPercent);
+  const shelfNames = new Bookshelf(Object.values(booksByID), { shelfPercentile })
+    .getShelves()
+    .map(s => s.shelf.name)
+    .sort();
 
-  const userShelves: Record<UserID, string[]> = {};
-
-  for (const user of Object.values(usersByID)) {
-    logger.info('Get user shelves', `ID=${user.id}`);
-    userShelves[user.id] = await repo.getUserShelves(user.id);
-  }
-
-  return sorted.map(function(id): SimilarReader {
+  return sortedUserIDs.map(function(id): SimilarReader {
     const books = sortBy(
       reviewers[id].map(bid => booksByID[bid]),
       [
@@ -85,8 +80,10 @@ export async function findReaders({
       ]
     );
 
+    const userBooks = new Bookshelf(books, { shelfPercentile });
+
     const shelves = shelfNames.reduce(function(previous: Shelf[], shelfName) {
-      const shelved = getBooksInShelves(books, [shelfName], minShelfPercent);
+      const shelved = userBooks.getBooksInShelves(shelfName);
 
       if (shelved.length) {
         previous.push({
