@@ -1,5 +1,5 @@
-import path from 'path';
 import os from 'os';
+import path from 'path';
 import yargs from 'yargs';
 
 import APIClient from './api-client';
@@ -10,8 +10,8 @@ import Repository from './repository';
 import { Book, ReadBook } from './types/core';
 import { CLIError } from './errors';
 import { findReaders } from './search';
-import { isNumeric, maybeMap, unreachable } from './util';
 import { getDefaultConfigPath, getGoodreadsAPIKey, getGoodreadsSecret, loadConfig } from './config';
+import { isNumeric, maybeMap, unreachable } from './util';
 import { prepareDataDirectory } from './environment';
 import { SectionID, SECTION_IDS, summarizeBookshelf } from './summary';
 import { summarizeSimilarReaders } from './search-results';
