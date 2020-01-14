@@ -17,15 +17,15 @@ const BOOKS_URL = 'https://www.goodreads.com/review/list';
 export async function findReaders({
   logger,
   maxReviews,
-  minShelfPercent,
   readBooks,
-  repo
+  repo,
+  shelfPercentile
 }: {
   logger: Logger;
   maxReviews: number;
-  minShelfPercent: number;
   readBooks: ReadBook[];
   repo: Repository;
+  shelfPercentile: number;
 }): Promise<SimilarReader[]> {
   const booksByID: Record<BookID, Book> = {};
   const usersByID: Record<UserID, User> = {};

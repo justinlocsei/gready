@@ -1,6 +1,7 @@
 import yargs from 'yargs';
 
 import APIClient from './api-client';
+import Bookshelf from './bookshelf';
 import Cache from './cache';
 import Logger, { DEFAULT_LEVEL, getLevelNames, LevelName } from './logger';
 import Repository from './repository';
@@ -10,7 +11,7 @@ import { findReaders } from './search';
 import { isNumeric, maybeMap, unreachable } from './data';
 import { loadConfig } from './config';
 import { paths, prepareOutputDirectory } from './environment';
-import { SectionID, SECTION_IDS, summarizeBooks } from './summary';
+import { SectionID, SECTION_IDS, summarizeBookshelf } from './summary';
 import { summarizeSimilarReaders } from './search-results';
 
 interface CLIOPtions {
@@ -28,8 +29,8 @@ interface CoreOptions {
   config?: string;
   'log-level': string;
   'log-time': boolean;
-  'min-shelf-percent': number;
   'output-dir': string;
+  'shelf-percentile': number;
 }
 
 interface FindReadersOptions extends CoreOptions {
@@ -86,11 +87,11 @@ class CLI {
   async findReaders({
     bookIDs,
     maxReviews,
-    minShelfPercent
+    shelfPercentile
   }: {
     bookIDs?: string[];
     maxReviews: number;
-    minShelfPercent: number;
+    shelfPercentile: number;
   }): Promise<void> {
     const userID = await this.apiClient.getUserID();
     let readBooks = await this.repo.getReadBooks(userID);
@@ -110,7 +111,7 @@ class CLI {
     const readers = await findReaders({
       logger: this.logger,
       maxReviews,
-      minShelfPercent,
+      shelfPercentile,
       readBooks,
       repo: this.repo
     });
@@ -176,23 +177,24 @@ class CLI {
    * Summarize the local book data
    */
   async summarize({
-    minShelfPercent,
     sections,
+    shelfPercentile,
     shelves
   }: {
-    minShelfPercent: number;
     sections?: SectionID[];
+    shelfPercentile: number;
     shelves?: string[];
   }): Promise<void> {
     const userID = await this.apiClient.getUserID();
     const readBooks = await this.repo.getReadBooks(userID);
-    const books = await this.repo.getLocalBooks(readBooks.map(b => b.bookID));
 
-    const summary = summarizeBooks(books, {
-      minShelfPercent,
-      sections,
-      shelves
-    });
+    const books = await this.repo.getLocalBooks(readBooks.map(b => b.bookID));
+    const bookshelf = new Bookshelf(books, { shelfPercentile });
+
+    const summary = summarizeBookshelf(
+      shelves ? bookshelf.restrictShelves(...shelves) : bookshelf,
+      { sections }
+    );
 
     this.stdout.write(summary + '\n');
   }
@@ -242,15 +244,15 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
         describe: 'Show the elapsed time between log entries',
         type: 'boolean'
       })
-      .option('min-shelf-percent', {
-        default: 1,
-        describe: 'The minimum percentage of a shelf’s count relative to the highest count required to include it in analyses',
-        type: 'number'
-      })
       .option('output-dir', {
         default: paths.outputDir,
         describe: 'The directory in which to store generated files',
         type: 'string'
+      })
+      .option('shelf-percentile', {
+        default: 1,
+        describe: 'The minimum per-book and global percentile required for a shelf to be shown',
+        type: 'number'
       })
       .command(
         'find-readers',
@@ -377,9 +379,9 @@ async function startCLI(cliOptions: CLIOPtions): Promise<void> {
     stdout: cliOptions.stdout
   });
 
-  const minShelfPercent = validateOption(
+  const shelfPercentile = validateOption(
     parsed.options,
-    'min-shelf-percent',
+    'shelf-percentile',
     'must be a number',
     isNumeric
   );
@@ -394,7 +396,7 @@ async function startCLI(cliOptions: CLIOPtions): Promise<void> {
           'must be a number',
           isNumeric
         ),
-        minShelfPercent
+        shelfPercentile
       });
 
     case 'log-in':
@@ -415,8 +417,8 @@ async function startCLI(cliOptions: CLIOPtions): Promise<void> {
 
     case 'summarize':
       return cli.summarize({
-        minShelfPercent,
         sections: maybeMap(parsed.options.section, s => s as SectionID),
+        shelfPercentile,
         shelves: maybeMap(parsed.options.shelf, s => s.toString())
       });
 

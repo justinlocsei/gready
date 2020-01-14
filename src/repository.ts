@@ -67,7 +67,7 @@ export default class Repository {
   }
 
   /**
-   * Get information on all books in a list that are locally available
+   * Get all books in a list that are locally available
    */
   async getLocalBooks(ids: BookID[]): Promise<Book[]> {
     const books = await this.cache.entries<Book>([SHARED_NAMESPACES.books])

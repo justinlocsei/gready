@@ -1,9 +1,8 @@
 import { sortBy } from 'lodash';
 
-import { Book } from './types/data';
+import Bookshelf from './bookshelf';
 import { ExtractArrayType } from './types/core';
 import { formalizeAuthorName } from './content';
-import { getBooksInShelves, groupBooksByAuthor, groupBooksByPublisher, groupBooksByShelf } from './analysis';
 import { underline } from './data';
 
 export const SECTION_IDS = [
@@ -22,23 +21,15 @@ interface Section {
 }
 
 /**
- * Generate a printable summary of books
+ * Generate a printable summary of a bookshelf
  */
-export function summarizeBooks(allBooks: Book[], {
-  minShelfPercent,
-  sections,
-  shelves
+export function summarizeBookshelf(bookshelf: Bookshelf, {
+  sections
 }: {
-  minShelfPercent: number;
   sections?: SectionID[];
-  shelves?: string[];
 }): string {
   const parts: Section[] = [];
   const sectionIDs = new Set(sections || SECTION_IDS);
-
-  const books = shelves
-    ? getBooksInShelves(allBooks, shelves, minShelfPercent)
-    : allBooks;
 
   const showSections: Record<SectionID, boolean> = SECTION_IDS.reduce(function(previous: Record<string, boolean>, id) {
     previous[id] = sectionIDs.has(id);
@@ -47,35 +38,35 @@ export function summarizeBooks(allBooks: Book[], {
 
   if (showSections['books-by-author']) {
     parts.push({
-      body: summarizeBooksByAuthor(books),
+      body: summarizeBooksByAuthor(bookshelf),
       title: 'Books by Author'
     });
   }
 
   if (showSections['books-by-publisher']) {
     parts.push({
-      body: summarizeBooksByPublisher(books),
+      body: summarizeBooksByPublisher(bookshelf),
       title: 'Books by Publisher'
     });
   }
 
   if (showSections['publishers']) {
     parts.push({
-      body: summarizePublishers(books),
+      body: summarizePublishers(bookshelf),
       title: 'All Publishers'
     });
   }
 
   if (showSections['popular-shelves']) {
     parts.push({
-      body: summarizePopularShelves(books, minShelfPercent),
+      body: summarizePopularShelves(bookshelf),
       title: 'Popular Shelves'
     });
   }
 
   if (showSections['shelves']) {
     parts.push({
-      body: summarizeShelves(books, minShelfPercent),
+      body: summarizeShelves(bookshelf),
       title: 'All Shelves'
     });
   }
@@ -88,8 +79,9 @@ export function summarizeBooks(allBooks: Book[], {
 /**
  * Summarize books by author
  */
-function summarizeBooksByAuthor(books: Book[]): string {
-  return groupBooksByAuthor(books)
+function summarizeBooksByAuthor(bookshelf: Bookshelf): string {
+  return bookshelf
+    .groupByAuthor()
     .map(function({ author, books: bs }) {
       return [
         `* ${formalizeAuthorName(author.name)} (ID=${author.id})`,
@@ -102,8 +94,9 @@ function summarizeBooksByAuthor(books: Book[]): string {
 /**
  * Summarize books by publisher
  */
-function summarizeBooksByPublisher(books: Book[]): string {
-  return groupBooksByPublisher(books)
+function summarizeBooksByPublisher(bookshelf: Bookshelf): string {
+  return bookshelf
+    .groupByPublisher()
     .map(function({ books: bs, publisherName }) {
       return [
         `* ${publisherName}`,
@@ -116,12 +109,13 @@ function summarizeBooksByPublisher(books: Book[]): string {
 /**
  * Summarize the popular shelves for a set of books
  */
-function summarizePopularShelves(books: Book[], minPercent: number): string {
-  return groupBooksByShelf(books, { minPercent })
-    .map(function({ books: bs, popularity, shelfName, totalCount }) {
+function summarizePopularShelves(bookshelf: Bookshelf): string {
+  return bookshelf
+    .groupByShelf()
+    .map(function({ books: bs, percentile, shelfName, totalCount }) {
       return [
-        `* ${shelfName} (${popularity}%)`,
-        ...bs.map(b => `  - ${b.book.title} (${b.affinity}%)`)
+        `* ${shelfName} (${percentile}%)`,
+        ...bs.map(b => `  - ${b.book.title} (${b.percentile}%)`)
       ].join('\n');
     })
     .join('\n\n');
@@ -130,8 +124,9 @@ function summarizePopularShelves(books: Book[], minPercent: number): string {
 /**
  * Summarize the publishers for a set of books
  */
-function summarizePublishers(books: Book[]): string {
-  return groupBooksByPublisher(books)
+function summarizePublishers(bookshelf: Bookshelf): string {
+  return bookshelf
+    .groupByPublisher()
     .map(b => `* ${b.publisherName} (${b.books.length})`)
     .join('\n');
 }
@@ -139,18 +134,18 @@ function summarizePublishers(books: Book[]): string {
 /**
  * Summarize the shelves for a set of books
  */
-function summarizeShelves(books: Book[], minPercent: number): string {
+function summarizeShelves(bookshelf: Bookshelf): string {
   const shelves = sortBy(
-    groupBooksByShelf(books, { minPercent }),
+    bookshelf.groupByShelf(),
     [
       s => s.shelfName,
-      s => s.popularity * -1
+      s => s.percentile * -1
     ]
   );
 
   return shelves
-    .map(function({ popularity, shelfName }) {
-      return `* ${shelfName} (${popularity}%)`;
+    .map(function({ percentile, shelfName }) {
+      return `* ${shelfName} (${percentile}%)`;
     })
     .join('\n');
 }
