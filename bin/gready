@@ -1,23 +1,4 @@
 #!/usr/bin/env node
 
-const path = require('path');
-const { spawnSync } = require('child_process');
-
-const rootDir = path.resolve(__dirname, '..');
-const launcherPath = path.join(rootDir, 'src', 'index.ts');
-const tsNodePath = path.join(rootDir, 'node_modules', '.bin', 'ts-node');
-
-const filePosition = process.argv.findIndex(a => a === __filename);
-const argsStart = filePosition >= 0 ? filePosition + 1 : 0;
-
-const result = spawnSync(tsNodePath, [launcherPath, ...process.argv.slice(argsStart)], {
-  stdio: 'inherit'
-});
-
-if (result.error) {
-  throw result.error;
-}
-
-if (result.status) {
-  process.exitCode = result.status;
-}
+require('ts-node/register');
+require('../src/bin/gready');

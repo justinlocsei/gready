@@ -1,17 +1,15 @@
 #!/usr/bin/env node
 
-import { OperationalError } from './errors';
-import { runCLI } from './cli';
+import { extractArgs } from '../environment';
+import { OperationalError } from '../errors';
+import { runCLI } from '../cli';
 
 /**
  * Run the gready CLI
  */
 function runGready(): Promise<void> {
-  const filePosition = process.argv.findIndex(a => a.match(/\.[jt]s$/));
-  const argsStart = filePosition >= 0 ? filePosition + 1 : 0;
-
   return runCLI({
-    args: process.argv.slice(argsStart),
+    args: extractArgs(process.argv),
     stderr: process.stderr,
     stdout: process.stdout
   }).catch(function(error) {
@@ -25,6 +23,4 @@ function runGready(): Promise<void> {
   });
 }
 
-if (require.main === module) {
-  runGready();
-}
+runGready();

@@ -5,9 +5,9 @@ import path from 'path';
 import { mkdirp } from 'fs-extra';
 import { promisify } from 'util';
 
-import { OperationalError } from './errors';
-import { formatJSON } from './serialization';
-import { paths, resolveRequire } from './environment';
+import { formatJSON } from '../serialization';
+import { OperationalError } from '../errors';
+import { paths, resolveRequire } from '../environment';
 
 const writeFileAsync = promisify(fs.writeFile);
 
@@ -120,14 +120,12 @@ function generateValidatorCode(
   return lines.join('\n');
 }
 
-if (require.main === module) {
-  generateValidators().catch(function(error) {
-    process.exitCode = 1;
+generateValidators().catch(function(error) {
+  process.exitCode = 1;
 
-    if (error instanceof OperationalError) {
-      console.error(error.message);
-    } else {
-      console.error(error);
-    }
-  });
-}
+  if (error instanceof OperationalError) {
+    console.error(error.message);
+  } else {
+    console.error(error);
+  }
+});

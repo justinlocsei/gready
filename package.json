@@ -4,7 +4,7 @@
   "description": "A recommendation engine built on the Goodreads API",
   "scripts": {
     "build": "tsc --outDir ./dist/",
-    "generate-validators": "ts-node ./src/generate-validators.ts",
+    "generate-validators": "ts-node ./src/bin/generate-validators.ts",
     "lint": "npm run lint:code && npm run lint:types",
     "lint:code": "eslint ./bin/* ./src/ --ext .ts; true",
     "lint:types": "tsc --noEmit; true",
@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/justinlocsei/gready#readme",
   "bin": {
-    "gready": "dist/index.js"
+    "gready": "dist/bin/gready.js"
   },
   "dependencies": {
     "ajv": "^6.10.2",
