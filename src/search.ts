@@ -1,4 +1,6 @@
+import querystring from 'querystring';
 import { flatten, sortBy, uniq } from 'lodash';
+import { URL } from 'url';
 
 import Logger from './logger';
 import Repository from './repository';
@@ -6,6 +8,8 @@ import { Book, ReadBook, Shelf, User } from './types/data';
 import { BookID, UserID } from './types/goodreads';
 import { getBooksInShelves, getPopularShelfNames } from './analysis';
 import { SimilarReader } from './types/search';
+
+const BOOKS_URL = 'https://www.goodreads.com/review/list';
 
 /**
  * Find readers who have left similar reviews of books
@@ -47,8 +51,6 @@ export async function findReaders({
     });
   }
 
-  logger.info('Analyze reviews');
-
   const sorted = sortBy(
     Object.keys(reviewers),
     [
@@ -67,7 +69,14 @@ export async function findReaders({
   const allBooks = Object.values(booksByID);
   const shelfNames = getPopularShelfNames(allBooks, minShelfPercent);
 
-  return sorted.map(function(id) {
+  const userShelves: Record<UserID, string[]> = {};
+
+  for (const user of Object.values(usersByID)) {
+    logger.info('Get user shelves', `ID=${user.id}`);
+    userShelves[user.id] = await repo.getUserShelves(user.id);
+  }
+
+  return sorted.map(function(id): SimilarReader {
     const books = sortBy(
       reviewers[id].map(bid => booksByID[bid]),
       [
@@ -92,7 +101,25 @@ export async function findReaders({
     return {
       books,
       shelves: sortBy(shelves, [s => s.count * -1, s => s.name]),
-      user: usersByID[id]
+      user: {
+        ...usersByID[id],
+        booksURL: getUserBooksURL(id, userShelves[id])
+      }
     };
   });
+}
+
+/**
+ * Get the URL for viewing a user's books
+ */
+function getUserBooksURL(id: UserID, shelves: string[]): string {
+  const url = new URL(`${BOOKS_URL}/${id}`);
+
+  url.search = querystring.stringify({
+    order: 'd',
+    sort: 'avg_rating',
+    shelf: shelves.find(s => s === 'favorites') || 'read'
+  });
+
+  return url.toString();
 }
