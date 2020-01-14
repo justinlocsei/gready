@@ -268,7 +268,7 @@ export default class APIClient {
       const response = await this.request(
         ['Fetch user', `ID=${id}`],
         'GET',
-        'users/show',
+        'user/show',
         {
           id,
           format: 'xml'
