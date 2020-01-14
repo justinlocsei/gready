@@ -135,9 +135,15 @@ export default class Repository {
    * Convert user information from the API to user metadata
    */
   private normalizeUserMeta(user: API.User): UserMeta {
+    const shelves = user.user_shelves;
+
+    const shelfNames = shelves
+      ? ensureArray(shelves.user_shelf).map(s => s.name)
+      : [];
+
     return {
       id: user.id,
-      shelves: user.user_shelves.user_shelf.map(s => s.name).sort()
+      shelves: shelfNames.sort()
     };
   }
 

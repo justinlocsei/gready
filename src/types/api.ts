@@ -86,10 +86,10 @@ export interface ReviewResponse {
 
 export interface User {
   id: string;
-  user_shelves: {
-    user_shelf: {
+  user_shelves?: {
+    user_shelf: OneOrMore<{
       name: string;
-    }[];
+    }>;
   };
 }
 
