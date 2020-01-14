@@ -11,7 +11,7 @@ import { Book, ReadBook } from './types/core';
 import { CLIError } from './errors';
 import { findReaders } from './search';
 import { isNumeric, maybeMap, unreachable } from './util';
-import { getGoodreadsAPIKey, getGoodreadsSecret, loadConfig } from './config';
+import { getDefaultConfigPath, getGoodreadsAPIKey, getGoodreadsSecret, loadConfig } from './config';
 import { prepareDataDirectory } from './environment';
 import { SectionID, SECTION_IDS, summarizeBookshelf } from './summary';
 import { summarizeSimilarReaders } from './search-results';
@@ -232,6 +232,7 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
         type: 'boolean'
       })
       .option('config', {
+        default: getDefaultConfigPath(),
         describe: 'A path to a JSON configuration file',
         type: 'string'
       })

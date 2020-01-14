@@ -1,3 +1,4 @@
+import path from 'path';
 import { promisify } from 'util';
 import { readFile } from 'fs';
 
@@ -57,6 +58,14 @@ export async function loadConfig(configPath?: string): Promise<Configuration> {
     ...DEFAULT_CONFIG,
     ...config
   };
+}
+
+/**
+ * Get the default config path
+ */
+export function getDefaultConfigPath(): string | undefined {
+  const configPath = process.env[ENV_VARS.configPath];
+  return configPath && path.resolve(configPath);
 }
 
 /**
