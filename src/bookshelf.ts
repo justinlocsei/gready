@@ -62,15 +62,6 @@ export default class Bookshelf {
   }
 
   /**
-   * Get an annotated view of all shelves at or above the current percentile
-   */
-  getShelves(): AnnotatedShelf[] {
-    return this
-      .getAllShelves()
-      .filter(s => s.percentile >= this.shelfPercentile);
-  }
-
-  /**
    * Provide an annotated view of the shelves used by all books
    */
   getAllShelves(): AnnotatedShelf[] {
@@ -89,6 +80,15 @@ export default class Bookshelf {
       s => s.percentile,
       s => s.shelf.name
     ]);
+  }
+
+  /**
+   * Get an annotated view of all shelves at or above the current percentile
+   */
+  getShelves(): AnnotatedShelf[] {
+    return this
+      .getAllShelves()
+      .filter(s => s.percentile >= this.shelfPercentile);
   }
 
   /**
