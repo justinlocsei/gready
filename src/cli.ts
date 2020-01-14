@@ -40,8 +40,8 @@ interface FindReadersOptions extends CoreOptions {
   reviews: number;
 }
 
-interface ScrapeOptions extends CoreOptions {
-  'recent-books'?: number;
+interface SyncBooksOptions extends CoreOptions {
+  recent?: number;
 }
 
 interface SummarizeOptions extends CoreOptions {
@@ -53,8 +53,8 @@ type CommandOptions =
   | { command: 'find-readers'; options: FindReadersOptions; }
   | { command: 'log-in'; options: CoreOptions; }
   | { command: 'log-out'; options: CoreOptions; }
-  | { command: 'scrape'; options: ScrapeOptions; }
   | { command: 'summarize'; options: SummarizeOptions; }
+  | { command: 'sync-books'; options: SyncBooksOptions; }
 
 class CLI {
 
@@ -137,18 +137,14 @@ class CLI {
   }
 
   /**
-   * Scrape data from the Goodreads API
+   * Sync data on read books from Goodreads
    */
-  async scrape({
-    recentBooks
-  }: {
-    recentBooks?: number;
-  }): Promise<void> {
+  async syncBooks(recent?: number): Promise<void> {
     const userID = await this.apiClient.getUserID();
     let readBooks = await this.repo.getReadBooks(userID);
 
-    if (recentBooks !== undefined) {
-      readBooks = readBooks.slice(0, recentBooks);
+    if (recent !== undefined) {
+      readBooks = readBooks.slice(0, recent);
     }
 
     let index = 0;
@@ -287,20 +283,20 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
         options => resolve({ command: 'log-out', options })
       )
       .command(
-        'scrape',
-        'Scrape data from Goodreads',
+        'sync-books',
+        'Populate a local cache of data about your read books using the Goodreads API',
         function(opts) {
           return opts
-            .option('recent-books', {
-              describe: 'Fetch data for the N most recent books',
+            .option('recent', {
+              describe: 'The number of recently read books for which to fetch data',
               type: 'number'
             });
         },
-        options => resolve({ command: 'scrape', options })
+        options => resolve({ command: 'sync-books', options })
       )
       .command(
         'summarize',
-        'Summarize local data',
+        'Summarize your read books that are available in the local cache',
         function(opts) {
           return opts
             .option('section', {
@@ -410,15 +406,13 @@ async function startCLI(cliOptions: CLIOPtions): Promise<void> {
     case 'log-out':
       return cli.logOut();
 
-    case 'scrape':
-      return cli.scrape({
-        recentBooks: validateOption(
-          parsed.options,
-          'recent-books',
-          'must be a number',
-          v => v === undefined || isNumeric(v)
-        )
-      });
+    case 'sync-books':
+      return cli.syncBooks(validateOption(
+        parsed.options,
+        'recent',
+        'must be a number',
+        v => v === undefined || isNumeric(v)
+      ));
 
     case 'summarize':
       return cli.summarize({
