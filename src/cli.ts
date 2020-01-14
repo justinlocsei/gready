@@ -108,6 +108,7 @@ class CLI {
     }
 
     const readers = await findReaders({
+      logger: this.logger,
       maxReviews,
       minShelfPercent,
       readBooks,

@@ -1,5 +1,6 @@
 import { flatten, sortBy, uniq } from 'lodash';
 
+import Logger from './logger';
 import Repository from './repository';
 import { Book, ReadBook, Shelf, User } from './types/data';
 import { BookID, UserID } from './types/goodreads';
@@ -10,11 +11,13 @@ import { SimilarReader } from './types/search';
  * Find readers who have left similar reviews of books
  */
 export async function findReaders({
+  logger,
   maxReviews,
   minShelfPercent,
   readBooks,
   repo
 }: {
+  logger: Logger;
   maxReviews: number;
   minShelfPercent: number;
   readBooks: ReadBook[];
@@ -24,7 +27,14 @@ export async function findReaders({
   const usersByID: Record<UserID, User> = {};
   const reviewers: Record<UserID, BookID[]> = {};
 
-  await Promise.all(readBooks.filter(r => r.rating).map(async function(readBook) {
+  const checkBooks = readBooks.filter(r => r.rating);
+  const totalBooks = checkBooks.length;
+  let index = 0;
+
+  for (const readBook of checkBooks) {
+    index++;
+    logger.info('Find similar reviews', `Current=${index}`, `Total=${totalBooks}`, `BookID=${readBook.bookID}`);
+
     const similar = await repo.getSimilarReviews(readBook, maxReviews);
 
     similar.forEach(function({ user }) {
@@ -35,7 +45,9 @@ export async function findReaders({
 
       usersByID[userID] = usersByID[userID] || user;
     });
-  }));
+  }
+
+  logger.info('Analyze reviews');
 
   const sorted = sortBy(
     Object.keys(reviewers),
@@ -47,9 +59,10 @@ export async function findReaders({
 
   const bookIDs = uniq(flatten(Object.values(reviewers)));
 
-  await Promise.all(bookIDs.map(async function(bookID) {
+  for (const bookID of bookIDs) {
+    logger.info('Fetch book', `ID=${bookID}`);
     booksByID[bookID] = await repo.getBook(bookID);
-  }));
+  }
 
   const allBooks = Object.values(booksByID);
   const shelfNames = getPopularShelfNames(allBooks, minShelfPercent);
