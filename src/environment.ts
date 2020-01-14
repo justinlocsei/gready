@@ -86,6 +86,7 @@ function resolvePaths() {
   const srcDir = path.join(rootDir, 'src');
 
   return {
+    distDir: path.join(rootDir, 'dist'),
     srcDir,
     typesDir: path.join(srcDir, 'types'),
     rootDir,
