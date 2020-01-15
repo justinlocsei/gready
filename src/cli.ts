@@ -7,12 +7,12 @@ import Bookshelf from './bookshelf';
 import Cache from './cache';
 import Logger, { DEFAULT_LEVEL, getLevelNames, LevelName } from './logger';
 import Repository from './repository';
-import { Book, ReadBook } from './types/core';
 import { CLIError } from './errors';
 import { findReaders } from './search';
 import { getDefaultConfigPath, getGoodreadsAPIKey, getGoodreadsSecret, loadConfig } from './config';
 import { isNumeric, maybeMap, unreachable } from './util';
 import { prepareDataDirectory } from './environment';
+import { runSequence } from './flow';
 import { SectionID, SECTION_IDS, summarizeBookshelf } from './summary';
 import { summarizeSimilarReaders } from './search-results';
 
@@ -147,28 +147,12 @@ class CLI {
       readBooks = readBooks.slice(0, recent);
     }
 
-    let index = 0;
-    const totalBooks = readBooks.length;
-
-    let book: Book;
-    let readBook: ReadBook;
-
-    while (index < totalBooks) {
-      readBook = readBooks[index];
-
-      const meta = [
-        `Index=${index + 1}`,
-        `Total=${totalBooks}`,
-        `ID=${readBook.bookID}`
-      ];
-
-      this.logger.info('Load book', ...meta);
-
-      book = await this.repo.getBook(readBook.bookID);
-      index++;
-
-      this.logger.info('Save book', ...meta, book.title);
-    }
+    await runSequence(
+      ['Sync books'],
+      readBooks,
+      this.logger,
+      readBook => this.repo.getBook(readBook.bookID)
+    );
   }
 
   /**

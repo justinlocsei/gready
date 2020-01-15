@@ -5,11 +5,13 @@ import xml2js from 'xml2js';
 import { chmod, readFile, unlink, writeFile } from 'graceful-fs';
 import { OAuth } from 'oauth';
 import { promisify } from 'util';
+import { range } from 'lodash';
 
 import Cache from './cache';
 import Logger from './logger';
 import { findReviewIDsForBook } from './reviews';
 import { formatJSON } from './serialization';
+import { runSequence } from './flow';
 import { URLS } from './goodreads';
 
 import {
@@ -170,46 +172,35 @@ export default class APIClient {
    */
   getReadBooks(userID: UserID): Promise<ReadBook[]> {
     return this.options.cache.fetch(['read-books', userID], async () => {
-      let page = 1;
-      let fetching = true;
-
       const readBooks: ReadBook[] = [];
 
-      const { reviews: { $: { total } } } = await this.fetchReadBooksPage(
-        ['Check read books', `UserID=${userID}`],
-        userID
-      );
+      const check = await this.fetchReadBooksPage(['Check read books', `UserID=${userID}`], userID);
+      const totalBooks = parseInt(check.reviews.$.total, 10);
 
-      const totalBooks = parseInt(total, 10);
-
-      while (fetching) {
-        const rangeStart = (page - 1) * READ_BOOKS_PAGE_SIZE + 1;
-        const rangeEnd = Math.min(page * READ_BOOKS_PAGE_SIZE, totalBooks);
-
-        const { reviews } = await this.fetchReadBooksPage(
-          [
-            'Fetch read books',
-            `UserID=${userID}`,
-            `Total=${totalBooks}`,
-            `Start=${rangeStart}`,
-            `End=${rangeEnd}`
-          ],
-          userID,
-          page
-        );
-
-        reviews.review.forEach(function(review) {
-          readBooks.push(review);
-        });
-
-        const { end } = reviews.$;
-
-        if (total === '0' || end === total) {
-          fetching = false;
-        } else {
-          page++;
-        }
+      if (!totalBooks) {
+        return readBooks;
       }
+
+      await runSequence(
+        ['Fetch read books', `UserID=${userID}`],
+        range(1, Math.ceil(totalBooks / READ_BOOKS_PAGE_SIZE) + 1),
+        this.options.logger,
+        async (page) => {
+          const { reviews } = await this.fetchReadBooksPage(
+            [
+              'Fetch read-books page',
+              `From=${(page - 1) * READ_BOOKS_PAGE_SIZE + 1}`,
+              `To=${Math.min(totalBooks, page * READ_BOOKS_PAGE_SIZE)}`
+            ],
+            userID,
+            page
+          );
+
+          reviews.review.forEach(function(review) {
+            readBooks.push(review);
+          });
+        }
+      );
 
       return readBooks;
     });
@@ -350,7 +341,8 @@ export default class APIClient {
     const { logger } = this.options;
 
     const requestID = ++this.lastRequestID;
-    const requestMessage = [...message, `RequestID=${requestID}`];
+    const apiMessage = ['API', ...message];
+    const requestMessage = [...apiMessage, `RequestID=${requestID}`];
 
     const execute = async () => {
       logger.debug(...requestMessage, 'Process');
@@ -367,7 +359,7 @@ export default class APIClient {
 
       this.lastRequestTime = time;
 
-      logger.info(...message);
+      logger.info(...apiMessage);
 
       return requestFn();
     };

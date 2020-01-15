@@ -59,8 +59,9 @@ export default class Repository {
    */
   getBook(id: BookID): Promise<Book> {
     return this.cache.fetch([SHARED_NAMESPACES.books, id], async () => {
+      this.logger.info('Load book', `ID=${id}`);
+
       const book = await this.apiClient.getBook(id);
-      this.logger.debug('Normalize book', `ID=${book.id}`);
 
       return this.normalizeBookInfo(book);
     }).then(b => this.sanitizeBook(b));
@@ -87,6 +88,8 @@ export default class Repository {
    */
   getReadBooks(userID: UserID): Promise<ReadBook[]> {
     return this.cache.fetch(['read-books', userID], async () => {
+      this.logger.info('Load read books', `UserID=${userID}`);
+
       const books = await this.apiClient.getReadBooks(userID);
 
       return sortBy(
