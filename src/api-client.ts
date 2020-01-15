@@ -3,12 +3,15 @@ import querystring from 'querystring';
 import readline from 'readline';
 import xml2js from 'xml2js';
 import { chmod, readFile, unlink, writeFile } from 'graceful-fs';
+import { createHash } from 'crypto';
 import { OAuth } from 'oauth';
 import { promisify } from 'util';
 import { range } from 'lodash';
 
 import Cache from './cache';
 import Logger from './logger';
+import { AuthorID } from './types/goodreads';
+import { ensureArray } from './util';
 import { findReviewIDsForBook } from './reviews';
 import { formatJSON } from './serialization';
 import { runSequence } from './flow';
@@ -19,6 +22,7 @@ import {
   validateReadBooksResponse,
   validateResponse,
   validateReviewResponse,
+  validateSearchResults,
   validateUserDataResponse,
   validateUserResponse
 } from './validators/api';
@@ -145,6 +149,40 @@ export default class APIClient {
         }
       }
     );
+  }
+
+  /**
+   * Attempt to get the canonical ID of a book
+   */
+  async getCanonicalBookID({
+    authorIDs,
+    title
+  }: {
+    authorIDs: AuthorID[];
+    title: string;
+  }): Promise<BookID | undefined> {
+    const hashedTitle = createHash('sha256')
+      .update(title)
+      .digest('base64');
+
+    const results = await this.options.cache.fetch(['book-search', hashedTitle], async () => {
+      const response = await this.request(
+        ['Find book', title],
+        'GET',
+        'search/index.xml',
+        {
+          'search[field]': 'title',
+          q: title
+        }
+      );
+
+      return validateSearchResults(response);
+    });
+
+    const works = ensureArray(results.search.results.work);
+    const match = works.find(w => authorIDs.includes(w.best_book.author.id._));
+
+    return match && match.best_book.id._;
   }
 
   /**

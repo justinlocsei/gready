@@ -84,6 +84,25 @@ export interface ReviewResponse {
   review: Review;
 }
 
+export interface SearchResults {
+  search: {
+    results: {
+      work: OneOrMore<{
+        best_book: {
+          author: {
+            id: {
+              _: string;
+            };
+          };
+          id: {
+            _: string;
+          };
+        };
+      }>;
+    };
+  };
+}
+
 export interface User {
   id: string;
   user_shelves?: {
