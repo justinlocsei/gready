@@ -206,35 +206,37 @@ export default class Repository {
       };
     });
 
-    const canonicalID = await this.apiClient.getCanonicalBookID({
-      authorIDs: authors.map(a => a.id),
-      title
-    });
-
-    let publisher = book.publisher;
-
-    if (!publisher && canonicalID && id !== canonicalID) {
-      const canonicalBook = await this.getBook(canonicalID);
-      publisher = canonicalBook.publisher;
-    }
-
-    if (!publisher) {
-      publisher = authors[0].name;
-    }
-
     const similarBooks = (book.similar_books && book.similar_books.book) || [];
 
-    return {
+    const normalized: Book = {
       authors,
       averageRating: totalRatings > 0 ? ratingsSum / totalRatings : undefined,
-      id: canonicalID || id,
-      publisher,
+      canonicalID: id,
+      id: id,
+      publisher: book.publisher,
       shelves,
       similarBooks: similarBooks.map(b => b.id),
       title,
       totalRatings,
       workID: work.id._
     };
+
+    const canonicalID = await this.apiClient.getCanonicalBookID(normalized);
+
+    if (canonicalID) {
+      normalized.canonicalID = canonicalID;
+    }
+
+    if (!normalized.publisher && canonicalID && id !== canonicalID) {
+      const canonicalBook = await this.getBook(canonicalID);
+      normalized.publisher = canonicalBook.publisher;
+    }
+
+    if (!normalized.publisher) {
+      normalized.publisher = authors[0].name;
+    }
+
+    return normalized;
   }
 
   /**
