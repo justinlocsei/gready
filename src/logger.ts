@@ -14,6 +14,7 @@ const TIME_DIGITS = 4;
 export const DEFAULT_LEVEL: LevelName = 'info';
 
 export type LevelName = ExtractArrayType<typeof LEVEL_NAMES>;
+export type LoggingMethod = 'debug' | 'info';
 
 /**
  * Get the names of all levels
@@ -24,6 +25,7 @@ export function getLevelNames(): string[] {
 
 export default class Logger {
 
+  private indentation: number;
   private lastTime: number;
   private level: LevelName;
   private showTime: boolean;
@@ -45,6 +47,7 @@ export default class Logger {
       useColor: true
     }
   ) {
+    this.indentation = 0;
     this.lastTime = 0;
     this.level = options.logLevel;
     this.showTime = options.showTime;
@@ -56,20 +59,41 @@ export default class Logger {
    * Log a debug message
    */
   debug(...message: string[]) {
-    this.log('debug', message, 'green');
+    this.logMessage('debug', message, 'green');
+  }
+
+  /**
+   * Increase the logger's indentation
+   */
+  indent(spaces: number) {
+    this.indentation += spaces;
   }
 
   /**
    * Log an info message
    */
   info(...message: string[]) {
-    this.log('info', message);
+    this.logMessage('info', message);
+  }
+
+  /**
+   * Log a message using a named method
+   */
+  log(method: LoggingMethod, message: string[]) {
+    this[method](...message);
+  }
+
+  /**
+   * Decrease the logger's indentation
+   */
+  outdent(spaces: number) {
+    this.indentation -= spaces;
   }
 
   /**
    * Log a message
    */
-  private log(
+  private logMessage(
     levelName: LevelName,
     parts: string[],
     color?: typeof ForegroundColor
@@ -92,7 +116,7 @@ export default class Logger {
     const longestLabel = Math.max(...levelNames.map(n => n.length));
     const label = levelName.toUpperCase().padEnd(longestLabel);
 
-    let message = `[${label}] ${parts.join(' | ')}\n`;
+    let message = `[${label}] ${' '.repeat(this.indentation)}${parts.join(' | ')}\n`;
 
     if (this.useColor && color) {
       message = chalk[color](message);
