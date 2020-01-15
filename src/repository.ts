@@ -6,7 +6,6 @@ import Cache from './cache';
 import Logger from './logger';
 import { Configuration } from './types/config';
 import { ensureArray, normalizeString } from './util';
-import { extractCanonicalIDFromReviewsWidget } from './reviews';
 import { SHELVES } from './goodreads';
 
 import {
@@ -189,6 +188,7 @@ export default class Repository {
   private async normalizeBookInfo(book: API.Book): Promise<Book> {
     const { authors: rawAuthors, id, work } = book;
 
+    const title = normalizeString(book.title || work.original_title)
     const ratingsSum = parseInt(work.ratings_sum._, 10);
     const totalRatings = parseInt(work.ratings_count._, 10);
 
@@ -206,18 +206,32 @@ export default class Repository {
       };
     });
 
-    const canonicalID = extractCanonicalIDFromReviewsWidget(book.reviews_widget);
+    const canonicalID = await this.apiClient.getCanonicalBookID({
+      authorIDs: authors.map(a => a.id),
+      title
+    });
+
+    let publisher = book.publisher;
+
+    if (!publisher && canonicalID && id !== canonicalID) {
+      const canonicalBook = await this.getBook(canonicalID);
+      publisher = canonicalBook.publisher;
+    }
+
+    if (!publisher) {
+      publisher = authors[0].name;
+    }
+
     const similarBooks = (book.similar_books && book.similar_books.book) || [];
 
     return {
       authors,
       averageRating: totalRatings > 0 ? ratingsSum / totalRatings : undefined,
-      canonicalID: canonicalID || undefined,
-      id,
-      publisher: authors[0].name,
+      id: canonicalID || id,
+      publisher,
       shelves,
       similarBooks: similarBooks.map(b => b.id),
-      title: normalizeString(book.title || work.original_title),
+      title,
       totalRatings,
       workID: work.id._
     };
@@ -241,7 +255,7 @@ export default class Repository {
 
     return {
       ...book,
-      publisher: publisher && this.mergePublishers(publisher, mergePublishers),
+      publisher: this.mergePublishers(publisher, mergePublishers),
       shelves: sortBy(mergedShelves, [s => s.count * -1, s => s.name])
     };
   }
