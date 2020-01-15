@@ -207,13 +207,6 @@ export default class Repository {
     });
 
     const canonicalID = extractCanonicalIDFromReviewsWidget(book.reviews_widget);
-    const reviews = canonicalID ? await this.apiClient.getBookReviews(canonicalID) : [];
-
-    const publisher = this.determinePublisher(
-      book.publisher,
-      reviews.map(r => r.book.publisher)
-    );
-
     const similarBooks = (book.similar_books && book.similar_books.book) || [];
 
     return {
@@ -221,39 +214,13 @@ export default class Repository {
       averageRating: totalRatings > 0 ? ratingsSum / totalRatings : undefined,
       canonicalID: canonicalID || undefined,
       id,
-      publisher: publisher || authors[0].name,
+      publisher: authors[0].name,
       shelves,
       similarBooks: similarBooks.map(b => b.id),
       title: normalizeString(book.title || work.original_title),
-      topReviews: reviews.map(r => this.normalizeReview(r)),
       totalRatings,
       workID: work.id._
     };
-  }
-
-  /**
-   * Determine the publisher of a book by taking the most popular publisher from
-   * the book's official data and its reviews
-   */
-  private determinePublisher(official: string, fromReviews: string[]): string | undefined {
-    const ranked = fromReviews.reduce(function(previous, publisher) {
-      previous[publisher] = previous[publisher] || 0;
-      previous[publisher]++;
-
-      return previous;
-    }, { [official]: 1 });
-
-    const ordered = sortBy(
-      Object.keys(ranked).filter(Boolean),
-      [
-        k => ranked[k] * -1,
-        k => k
-      ]
-    );
-
-    const publisher = ordered.shift();
-
-    return publisher && normalizeString(publisher);
   }
 
   /**

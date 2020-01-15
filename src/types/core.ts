@@ -21,7 +21,6 @@ export interface Book {
   shelves: Shelf[];
   similarBooks: BookID[];
   title: string;
-  topReviews: Review[];
   totalRatings: number;
   workID: WorkID;
 }
