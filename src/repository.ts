@@ -236,6 +236,8 @@ export default class Repository {
       normalized.publisher = authors[0].name;
     }
 
+    normalized.publisher = normalizeString(normalized.publisher);
+
     return normalized;
   }
 
