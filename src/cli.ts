@@ -186,7 +186,7 @@ class CLI {
 /**
  * A function used for a command that lacks options
  */
-function noOptions<T>(opts: T) {
+function noOptions<T>(opts: T): T {
   return opts;
 }
 
