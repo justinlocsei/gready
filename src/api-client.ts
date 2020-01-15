@@ -34,7 +34,6 @@ import {
 
 import {
   BookID,
-  CanonicalBookID,
   ReviewID,
   UserID
 } from './types/goodreads';
@@ -228,7 +227,7 @@ export default class APIClient {
   /**
    * Extract reviews of a book with a given identifier
    */
-  async getBookReviews(id: CanonicalBookID, {
+  async getBookReviews(id: BookID, {
     limit,
     rating
   }: {

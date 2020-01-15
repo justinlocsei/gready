@@ -1,7 +1,6 @@
 import {
   AuthorID,
   BookID,
-  CanonicalBookID,
   ReviewID,
   UserID,
   WorkID
@@ -15,7 +14,6 @@ export interface Author {
 export interface Book {
   authors: Author[];
   averageRating?: number;
-  canonicalID?: CanonicalBookID;
   id: BookID;
   publisher: string;
   shelves: Shelf[];
