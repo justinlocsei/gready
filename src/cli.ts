@@ -8,6 +8,7 @@ import Cache from './cache';
 import Logger, { DEFAULT_LEVEL, getLevelNames, LevelName } from './logger';
 import Repository from './repository';
 import { CLIError } from './errors';
+import { ExtractArrayType } from './types/util';
 import { findReaders } from './search';
 import { getDefaultConfigPath, getGoodreadsAPIKey, getGoodreadsSecret, loadConfig } from './config';
 import { isNumeric, maybeMap, unreachable } from './util';
@@ -16,12 +17,15 @@ import { runSequence } from './flow';
 import { SectionID, SECTION_IDS, summarizeBookshelf } from './summary';
 import { summarizeSimilarReaders } from './search-results';
 
+const CACHE_NAMES = ['data', 'response'] as const;
+
 interface CLIOPtions {
   args: string[];
   stderr: NodeJS.WriteStream;
   stdout: NodeJS.WriteStream;
 }
 
+type CacheName = ExtractArrayType<typeof CACHE_NAMES>;
 type CLIString = number | string;
 
 interface CoreOptions {
@@ -33,6 +37,11 @@ interface CoreOptions {
   'log-level': string;
   'log-time': boolean;
   'shelf-percentile': number;
+}
+
+interface ClearCacheOptions extends CoreOptions {
+  cache?: CLIString;
+  namespace?: CLIString[];
 }
 
 interface FindReadersOptions extends CoreOptions {
@@ -50,6 +59,7 @@ interface SyncBooksOptions extends CoreOptions {
 }
 
 type CommandOptions =
+  | { command: 'clear-cache'; options: ClearCacheOptions; }
   | { command: 'find-readers'; options: FindReadersOptions; }
   | { command: 'log-in'; options: CoreOptions; }
   | { command: 'log-out'; options: CoreOptions; }
@@ -238,6 +248,23 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
         type: 'number'
       })
       .command(
+        'clear-cache',
+        'Clear the cache',
+        function(opts) {
+          return opts
+            .option('cache', {
+              choices: CACHE_NAMES,
+              describe: 'A specific cache to clear',
+              type: 'string'
+            })
+            .option('namespace', {
+              describe: 'A specific namespace to clear',
+              type: 'array'
+            });
+        },
+        options => resolve({ command: 'clear-cache', options })
+      )
+      .command(
         'find-readers',
         'Find readers with similar tastes',
         function(opts) {
@@ -324,6 +351,25 @@ function validateOption<T extends object, U extends keyof T>(
 }
 
 /**
+ * Clear a cache
+ */
+function clearCache(
+  cacheMap: Record<CacheName, Cache>,
+  cacheName: CacheName | undefined,
+  namespaces: CLIString[] | undefined
+): Promise<void> {
+  let caches = Object.values(cacheMap);
+
+  if (cacheName) {
+    caches = [cacheMap[cacheName]];
+  }
+
+  return Promise.all(caches.map(function(cache) {
+    return cache.clear(maybeMap(namespaces, n => n.toString()));
+  })).then(() => undefined);
+}
+
+/**
  * Start the CLI
  */
 async function startCLI(cliOptions: CLIOPtions): Promise<void> {
@@ -372,6 +418,16 @@ async function startCLI(cliOptions: CLIOPtions): Promise<void> {
   );
 
   switch (parsed.command) {
+    case 'clear-cache':
+      return clearCache(
+        {
+          data: dataCache,
+          response: apiCache
+        },
+        parsed.options['cache'] ? parsed.options['cache'] as CacheName : undefined,
+        parsed.options['namespace']
+      );
+
     case 'find-readers':
       return cli.findReaders({
         bookIDs: maybeMap(parsed.options['book-id'], s => s.toString()),
