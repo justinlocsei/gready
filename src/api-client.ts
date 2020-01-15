@@ -163,7 +163,7 @@ export default class APIClient {
   }): Promise<BookID | undefined> {
     const hashedTitle = createHash('sha256')
       .update(title)
-      .digest('base64');
+      .digest('hex');
 
     const results = await this.options.cache.fetch(['book-search', hashedTitle], async () => {
       const response = await this.request(
