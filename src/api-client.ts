@@ -3,14 +3,13 @@ import querystring from 'querystring';
 import readline from 'readline';
 import xml2js from 'xml2js';
 import { chmod, readFile, unlink, writeFile } from 'graceful-fs';
-import { createHash } from 'crypto';
 import { OAuth } from 'oauth';
 import { promisify } from 'util';
 import { range } from 'lodash';
 
+import * as Normalized from './types/core';
 import Cache from './cache';
 import Logger from './logger';
-import { AuthorID } from './types/goodreads';
 import { ensureArray } from './util';
 import { findReviewIDsForBook } from './reviews';
 import { formatJSON } from './serialization';
@@ -152,33 +151,24 @@ export default class APIClient {
   }
 
   /**
-   * Attempt to get the canonical ID of a book
+   * Attempt to get the canonical ID of an existing book
    */
-  async getCanonicalBookID({
-    authorIDs,
-    title
-  }: {
-    authorIDs: AuthorID[];
-    title: string;
-  }): Promise<BookID | undefined> {
-    const hashedTitle = createHash('sha256')
-      .update(title)
-      .digest('hex');
-
-    const results = await this.options.cache.fetch(['book-search', hashedTitle], async () => {
+  async getCanonicalBookID(book: Normalized.Book): Promise<BookID | undefined> {
+    const results = await this.options.cache.fetch(['book-search', book.id], async () => {
       const response = await this.request(
-        ['Find book', title],
+        ['Find book', book.title],
         'GET',
         'search/index.xml',
         {
           'search[field]': 'title',
-          q: title
+          q: book.title
         }
       );
 
       return validateSearchResults(response);
     });
 
+    const authorIDs = book.authors.map(a => a.id);
     const works = ensureArray(results.search.results.work);
     const match = works.find(w => authorIDs.includes(w.best_book.author.id._));
 
