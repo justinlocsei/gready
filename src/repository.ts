@@ -106,6 +106,8 @@ export default class Repository {
    */
   async getSimilarReviews(readBook: ReadBook, limit: number): Promise<Review[]> {
     return this.cache.fetch(['similar-reviews', readBook.id, limit], async () => {
+      this.logger.info('Load similar reviews', `BookID=${readBook.id}`, `Rating=${readBook.rating}`);
+
       const reviews = await this.apiClient.getBookReviews(readBook.bookID, {
         limit,
         rating: readBook.rating
