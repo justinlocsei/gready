@@ -8,7 +8,7 @@ export function ensureArray<T>(value: T | T[]): T[] {
 /**
  * Whether a value is numeric
  */
-export function isNumeric(value: unknown): boolean {
+export function isNumeric(value: unknown): value is number {
   return typeof value === 'number' && !isNaN(value);
 }
 
