@@ -1,5 +1,5 @@
 import { SimilarReader } from './types/search';
-import { underline } from './util';
+import { underline } from './content';
 
 /**
  * Produce a summary of similar readers

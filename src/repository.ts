@@ -5,7 +5,8 @@ import APIClient from './api-client';
 import Cache from './cache';
 import Logger from './logger';
 import { Configuration } from './types/config';
-import { ensureArray, normalizeString } from './util';
+import { ensureArray } from './util';
+import { normalizeString } from './content';
 import { SHELVES } from './goodreads';
 
 import {

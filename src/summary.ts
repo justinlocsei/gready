@@ -2,8 +2,7 @@ import { sortBy } from 'lodash';
 
 import Bookshelf from './bookshelf';
 import { ExtractArrayType } from './types/util';
-import { formalizeAuthorName } from './content';
-import { underline } from './util';
+import { formalizeAuthorName, underline } from './content';
 
 export const SECTION_IDS = [
   'books-by-author',

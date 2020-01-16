@@ -23,22 +23,6 @@ export function maybeMap<T, U>(
 }
 
 /**
- * Remove non-essential information from a string
- */
-export function normalizeString(value: string): string {
-  return value
-    .trim()
-    .replace(/\s{2,}/g, ' ');
-}
-
-/**
- * Underline a string
- */
-export function underline(value: string, character = '='): string {
-  return `${value}\n${character.repeat(value.length)}`;
-}
-
-/**
  * A function that should never be called
  */
 export function unreachable(reason: never): never {

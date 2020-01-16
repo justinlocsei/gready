@@ -3,9 +3,7 @@ import assert from './assert';
 import {
   ensureArray,
   isNumeric,
-  maybeMap,
-  normalizeString,
-  underline
+  maybeMap
 } from '../src/util';
 
 describe('util/ensureArray', function() {
@@ -44,35 +42,6 @@ describe('util/maybeMap', function() {
 
   it('does nothing for an undefined value', function() {
     assert.isUndefined(maybeMap(undefined, v => v));
-  });
-
-});
-
-describe('util/normalizeString', function() {
-
-  it('removes excess space from a string', function() {
-    assert.equal(
-      normalizeString('  test  value  '),
-      'test value'
-    );
-  });
-
-});
-
-describe('util/underline', function() {
-
-  it('underlines a string', function() {
-    assert.equal(
-      underline('abcd'),
-      'abcd\n===='
-    );
-  });
-
-  it('can use a custom underline character', function() {
-    assert.equal(
-      underline('abcd', '-'),
-      'abcd\n----'
-    );
   });
 
 });

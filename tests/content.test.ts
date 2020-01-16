@@ -1,6 +1,10 @@
 import assert from './assert';
 
-import { formalizeAuthorName } from '../src/content';
+import {
+  formalizeAuthorName ,
+  normalizeString,
+  underline
+} from '../src/content';
 
 describe('content/formalizeAuthorName', function() {
 
@@ -14,6 +18,35 @@ describe('content/formalizeAuthorName', function() {
     cases.forEach(function([ input, expected ]) {
       assert.equal(formalizeAuthorName(input), expected);
     });
+  });
+
+});
+
+describe('content/normalizeString', function() {
+
+  it('removes excess space from a string', function() {
+    assert.equal(
+      normalizeString('  test  value  '),
+      'test value'
+    );
+  });
+
+});
+
+describe('content/underline', function() {
+
+  it('underlines a string', function() {
+    assert.equal(
+      underline('abcd'),
+      'abcd\n===='
+    );
+  });
+
+  it('can use a custom underline character', function() {
+    assert.equal(
+      underline('abcd', '-'),
+      'abcd\n----'
+    );
   });
 
 });
