@@ -5,6 +5,7 @@ import Repository from './repository';
 import { Book, ReadBook, Shelf, User } from './types/core';
 import { BookID, UserID } from './types/goodreads';
 import { getUserBooksURL } from './goodreads';
+import { runSequence } from './flow';
 import { SimilarReader } from './types/search';
 
 /**
@@ -25,20 +26,23 @@ export async function findReaders({
   const usersByID: Record<UserID, User> = {};
   const reviewers: Record<UserID, BookID[]> = {};
 
-  const checkBooks = readBooks.filter(r => r.rating);
+  await runSequence(
+    ['Find similar readers'],
+    readBooks.filter(r => r.rating),
+    repo.logger,
+    async function(readBook) {
+      const similar = await repo.getSimilarReviews(readBook, maxReviews);
 
-  for (const readBook of checkBooks) {
-    const similar = await repo.getSimilarReviews(readBook, maxReviews);
+      similar.forEach(function({ user }) {
+        const userID = user.id;
 
-    similar.forEach(function({ user }) {
-      const userID = user.id;
+        reviewers[userID] = reviewers[userID] || [];
+        reviewers[userID].push(readBook.bookID);
 
-      reviewers[userID] = reviewers[userID] || [];
-      reviewers[userID].push(readBook.bookID);
-
-      usersByID[userID] = usersByID[userID] || user;
-    });
-  }
+        usersByID[userID] = usersByID[userID] || user;
+      });
+    }
+  );
 
   const sortedUserIDs = sortBy(
     Object.keys(reviewers),
