@@ -26,7 +26,8 @@ interface CLIOPtions {
 }
 
 type CacheName = ExtractArrayType<typeof CACHE_NAMES>;
-type CLIString = number | string;
+type CLINumber = number | string;
+type CLIArray = (number | string)[];
 
 interface CoreOptions {
   'cache-data': boolean;
@@ -36,26 +37,26 @@ interface CoreOptions {
   'data-dir': string;
   'log-level': string;
   'log-time': boolean;
-  'shelf-percentile': number;
+  'shelf-percentile': CLINumber;
 }
 
 interface ClearCacheOptions extends CoreOptions {
-  cache?: CLIString;
-  namespace?: CLIString[];
+  cache?: string;
+  namespace?: CLIArray;
 }
 
 interface FindReadersOptions extends CoreOptions {
-  'book-id'?: CLIString[];
-  reviews: number;
+  'book-id'?: CLIArray;
+  reviews: CLINumber;
 }
 
 interface SummarizeOptions extends CoreOptions {
-  section?: CLIString[];
-  shelf?: CLIString[];
+  section?: CLIArray;
+  shelf?: CLIArray;
 }
 
 interface SyncBooksOptions extends CoreOptions {
-  recent?: number;
+  recent?: CLINumber;
 }
 
 type CommandOptions =
@@ -332,20 +333,18 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
 }
 
 /**
- * Ensure that an option is valid
+ * Ensure that an option is numeric
  */
-function validateOption<T extends object, U extends keyof T>(
-  options: T,
-  optionName: U,
-  errorMessage: string,
-  validator: (value: unknown) => boolean
-) {
+function ensureNumeric<
+  T extends object,
+  U extends keyof T
+>(options: T, optionName: U): number {
   const value = options[optionName];
 
-  if (validator(value)) {
+  if (isNumeric(value)) {
     return value;
   } else {
-    throw new CLIError(`The --${optionName} option ${errorMessage}`);
+    throw new CLIError(`The --${optionName} option must be a number`);
   }
 }
 
@@ -355,7 +354,7 @@ function validateOption<T extends object, U extends keyof T>(
 function clearCache(
   cacheMap: Record<CacheName, Cache>,
   cacheName: CacheName | undefined,
-  namespaces: CLIString[] | undefined
+  namespaces: CLIArray | undefined
 ): Promise<void> {
   let caches = Object.values(cacheMap);
 
@@ -409,12 +408,7 @@ async function startCLI(cliOptions: CLIOPtions): Promise<void> {
     stdout: cliOptions.stdout
   });
 
-  const shelfPercentile = validateOption(
-    parsed.options,
-    'shelf-percentile',
-    'must be a number',
-    isNumeric
-  );
+  const shelfPercentile = ensureNumeric(parsed.options, 'shelf-percentile');
 
   switch (parsed.command) {
     case 'clear-cache':
@@ -430,12 +424,7 @@ async function startCLI(cliOptions: CLIOPtions): Promise<void> {
     case 'find-readers':
       return cli.findReaders({
         bookIDs: maybeMap(parsed.options['book-id'], s => s.toString()),
-        maxReviews: validateOption(
-          parsed.options,
-          'reviews',
-          'must be a number',
-          isNumeric
-        ),
+        maxReviews: ensureNumeric(parsed.options, 'reviews'),
         shelfPercentile
       });
 
@@ -446,12 +435,9 @@ async function startCLI(cliOptions: CLIOPtions): Promise<void> {
       return cli.logOut();
 
     case 'sync-books':
-      return cli.syncBooks(validateOption(
-        parsed.options,
-        'recent',
-        'must be a number',
-        v => v === undefined || isNumeric(v)
-      ));
+      return cli.syncBooks(
+        parsed.options['recent'] ? ensureNumeric(parsed.options, 'recent') : undefined
+      )
 
     case 'summarize':
       return cli.summarize({
