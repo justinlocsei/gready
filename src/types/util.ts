@@ -3,7 +3,7 @@ export type ExtractArrayType<T> =
   T extends readonly (infer U)[] ? U :
   T;
 
-export type Partitioned<T> = {
+export interface Partitioned<T> {
   data: T;
   percentile: number;
-};
+}
