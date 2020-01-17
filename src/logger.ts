@@ -115,17 +115,18 @@ export default class Logger {
     const longestLabel = Math.max(...levelNames.map(n => n.length));
     const label = levelName.toUpperCase().padEnd(longestLabel);
 
-    let message = `[${label}] ${' '.repeat(this.indentation)}${parts.join(' | ')}\n`;
+    let message = `[${label}] ${' '.repeat(this.indentation)}${parts.join(' | ')}`;
 
     if (this.useColor && color) {
       message = chalk[color](message);
     }
 
     if (this.showTime) {
-      message = `${chalk.white(this.formatElapsedTime())} ${message}`;
+      const time = this.formatElapsedTime();
+      message = `${this.useColor ? chalk.white(time) : time} ${message}`;
     }
 
-    this.stream.write(message);
+    this.stream.write(message + '\n');
   }
 
   /**
