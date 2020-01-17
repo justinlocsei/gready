@@ -1,4 +1,29 @@
 /**
+ * Extract all items at or above the given percentile
+ */
+export function extractPercentile<T>(
+  items: T[],
+  percentile: number,
+  getValue: (item: T) => number
+): T[] {
+  if (!items.length || !percentile) {
+    return items;
+  } else if (percentile >= 100) {
+    return [];
+  }
+
+  const values = items.map(getValue);
+  const sortedValues = [...values].sort();
+
+  const index = Math.ceil((percentile / 100) * (values.length - 1));
+  const value = sortedValues[index];
+
+  return items.filter(function(item, i) {
+    return values[i] >= value;
+  });
+}
+
+/**
  * Display an author's name in a last/first format if possible
  */
 export function formalizeAuthorName(name: string): string {
