@@ -7,7 +7,7 @@ import { underline } from './content';
 export function summarizeSimilarReaders(readers: SimilarReader[]): string {
   const groups = readers.map(function({ books, shelves, user }) {
     const lines = [
-      underline(`${user.name}`),
+      underline(user.name),
       '',
       `[Profile](${user.profileURL})`,
       `[Books](${user.booksURL})`,
