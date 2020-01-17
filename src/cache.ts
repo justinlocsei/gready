@@ -11,22 +11,26 @@ const writeFileAsync = promisify(writeFile);
 
 type KeyPath = (number | string)[];
 
-interface CacheOptions {
-  enabled: boolean;
+export interface Options {
+  enabled?: boolean;
 }
 
 export default class Cache {
 
   private directory: string;
   private createdDirectories: Set<string>;
-  private options: CacheOptions;
+  private options: Options;
 
   /**
    * Create a new interface to a filesystem cache
    */
-  constructor(directory: string, options: CacheOptions = { enabled: true }) {
+  constructor(directory: string, options: Options = {}) {
     this.directory = directory;
-    this.options = options;
+
+    this.options = {
+      enabled: true,
+      ...options
+    };
 
     this.createdDirectories = new Set();
   }
