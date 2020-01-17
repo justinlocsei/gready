@@ -1,58 +1,11 @@
 import assert from './assert';
 
 import {
-  extractPercentile,
   formalizeAuthorName,
   normalizeString,
+  partition,
   underline
 } from '../src/content';
-
-describe('content/extractPercentile', function() {
-
-  function checkExtraction(
-    input: number[],
-    percentile: number,
-    output: number[]
-  ): void {
-    const extracted = extractPercentile(
-      input.map(v => ({data: v})),
-      percentile,
-      v => v.data
-    );
-
-    assert.deepEqual(
-      extracted,
-      output.map(v => ({data: v}))
-    );
-  }
-
-  it('handles empty lists', function() {
-    checkExtraction([], 100, []);
-    checkExtraction([], 0, []);
-  });
-
-  it('handles lists with one item', function() {
-    checkExtraction([1], 100, []);
-    checkExtraction([1], 0, [1]);
-  });
-
-  it('handles lists with multiple items', function() {
-    const cases: ([number[], number, number[]])[] = [
-      [[1, 2], 100, []],
-      [[1, 2], 50, [2]],
-      [[1, 2], 0, [1, 2]],
-      [[1, 2, 3], 100, []],
-      [[1, 2, 3], 75, [3]],
-      [[1, 2, 3], 50, [2, 3]],
-      [[1, 2, 3], 0, [1, 2, 3]]
-    ];
-
-    cases.forEach(function([input, percentile, output]) {
-      checkExtraction(input, percentile, output);
-    });
-  });
-
-});
 
 describe('content/formalizeAuthorName', function() {
 
@@ -77,6 +30,46 @@ describe('content/normalizeString', function() {
       normalizeString('  test  value  '),
       'test value'
     );
+  });
+
+});
+
+describe('content/partition', function() {
+
+  function checkPartition(
+    values: number[],
+    percentiles: number[]
+  ): void {
+    const partitioned = partition(values, v => v);
+
+    assert.deepEqual(
+      partitioned,
+      percentiles.map((p, i) => ({data: values[i], percentile: p}))
+    );
+  }
+
+  it('handles empty lists', function() {
+    checkPartition([], []);
+  });
+
+  it('handles lists with one item', function() {
+    checkPartition([1], [100]);
+  });
+
+  it('handles lists with multiple items', function() {
+    const cases: ([number[], number[]])[] = [
+      [[1, 2], [50, 100]],
+      [[1, 2, 3], [33, 67, 100]],
+      [[1, 2, 3, 4], [25, 50, 75, 100]]
+    ];
+
+    cases.forEach(function([values, percentiles]) {
+      checkPartition(values, percentiles);
+    });
+  });
+
+  it('handles lists with duplicate values', function() {
+    checkPartition([1, 1, 2], [50, 50, 100]);
   });
 
 });

@@ -1,25 +1,31 @@
+import { uniq } from 'lodash';
+
+import { Partitioned } from './types/util';
+
 /**
- * Extract all items at or above the given percentile
+ * Apply a percentile to each item in a list based on its value, using a
+ * cumulative distribution function
  */
-export function extractPercentile<T>(
+export function partition<T>(
   items: T[],
-  percentile: number,
   getValue: (item: T) => number
-): T[] {
-  if (!items.length || !percentile) {
-    return items;
-  } else if (percentile >= 100) {
-    return [];
-  }
-
+): Partitioned<T>[] {
   const values = items.map(getValue);
-  const sortedValues = [...values].sort();
+  const sortedValues = uniq([...values]).sort();
+  const totalValues = sortedValues.length;
 
-  const index = Math.ceil((percentile / 100) * (values.length - 1));
-  const value = sortedValues[index];
+  const percentiles = sortedValues.reduce(function(previous: Record<number, number>, value) {
+    const below = sortedValues.filter(v => v <= value).length;
+    previous[value] = below && Math.round((below / totalValues) * 100);
 
-  return items.filter(function(item, i) {
-    return values[i] >= value;
+    return previous;
+  }, {});
+
+  return items.map(function(item, i): Partitioned<T> {
+    return {
+      data: item,
+      percentile: percentiles[values[i]]
+    };
   });
 }
 
