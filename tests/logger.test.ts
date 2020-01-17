@@ -1,11 +1,6 @@
-import fs from 'graceful-fs';
-import tmp from 'tmp';
-import { promisify } from 'util';
-
 import assert from './assert';
-import Logger, { getLevelNames, Options } from '../src/logger';
-
-const readFileAsync = promisify(fs.readFile);
+import { createTestLogger } from './helpers';
+import { getLevelNames } from '../src/logger';
 
 describe('logger/getLevelNames', function() {
 
@@ -20,36 +15,10 @@ describe('logger/getLevelNames', function() {
 
 describe('logger/Logger', function() {
 
-  function createLogger(options?: Options): [Logger, () => Promise<string[]>] {
-    const file = tmp.fileSync();
-    const stream = fs.createWriteStream(file.name);
-
-    function closeStream() {
-      return new Promise(function(resolve, reject) {
-        stream.on('error', reject);
-        stream.on('finish', resolve);
-
-        stream.end();
-      });
-    }
-
-    async function readLog() {
-      await closeStream();
-      const lines = await readFileAsync(file.name, 'utf8');
-
-      return lines.split('\n').slice(0, -1);
-    }
-
-    return [
-      new Logger(stream, { useColor: false, ...options }),
-      readLog
-    ];
-  }
-
   describe('.debug', function() {
 
     it('logs a debug message', async function() {
-      const [logger, readLog] = createLogger({ logLevel: 'debug' });
+      const [logger, readLog] = createTestLogger({ logLevel: 'debug' });
 
       logger.debug('alfa');
       logger.debug('bravo', 'charlie');
@@ -63,7 +32,7 @@ describe('logger/Logger', function() {
     });
 
     it('shows all log levels', async function() {
-      const [logger, readLog] = createLogger({ logLevel: 'debug' });
+      const [logger, readLog] = createTestLogger({ logLevel: 'debug' });
 
       logger.debug('alfa');
       logger.info('bravo');
@@ -75,15 +44,15 @@ describe('logger/Logger', function() {
     });
 
     it('is ignored when the logger is disabled', async function() {
-      const [logger, readLog] = createLogger({ logLevel: 'none' });
+      const [logger, readLog] = createTestLogger({ logLevel: 'none' });
 
       logger.debug('alfa');
       assert.deepEqual(await readLog(), []);
     });
 
     it('can produce colorized output', async function() {
-      const [color, readColorLogs] = createLogger({ logLevel: 'debug', useColor: true });
-      const [plain, readPlainLogs] = createLogger({ logLevel: 'debug', useColor: false });
+      const [color, readColorLogs] = createTestLogger({ logLevel: 'debug', useColor: true });
+      const [plain, readPlainLogs] = createTestLogger({ logLevel: 'debug', useColor: false });
 
       color.debug('alfa');
       plain.debug('alfa');
@@ -101,7 +70,7 @@ describe('logger/Logger', function() {
   describe('.info', function() {
 
     it('logs an info message', async function() {
-      const [logger, readLog] = createLogger({ logLevel: 'info' });
+      const [logger, readLog] = createTestLogger({ logLevel: 'info' });
 
       logger.info('alfa');
       logger.info('bravo', 'charlie');
@@ -115,7 +84,7 @@ describe('logger/Logger', function() {
     });
 
     it('hides debug messages', async function() {
-      const [logger, readLog] = createLogger({ logLevel: 'info' });
+      const [logger, readLog] = createTestLogger({ logLevel: 'info' });
 
       logger.debug('alfa');
       logger.info('bravo');
@@ -126,15 +95,15 @@ describe('logger/Logger', function() {
     });
 
     it('is ignored when the logger is disabled', async function() {
-      const [logger, readLog] = createLogger({ logLevel: 'none' });
+      const [logger, readLog] = createTestLogger({ logLevel: 'none' });
 
       logger.info('alfa');
       assert.deepEqual(await readLog(), []);
     });
 
     it('ignores color options', async function() {
-      const [color, readColorLogs] = createLogger({ logLevel: 'info', useColor: true });
-      const [plain, readPlainLogs] = createLogger({ logLevel: 'info', useColor: false });
+      const [color, readColorLogs] = createTestLogger({ logLevel: 'info', useColor: true });
+      const [plain, readPlainLogs] = createTestLogger({ logLevel: 'info', useColor: false });
 
       color.info('alfa');
       plain.info('alfa');
@@ -150,7 +119,7 @@ describe('logger/Logger', function() {
   describe('.indent', function() {
 
     it('updates the indentation level', async function() {
-      const [logger, readLog] = createLogger({ logLevel: 'info' });
+      const [logger, readLog] = createTestLogger({ logLevel: 'info' });
 
       logger.info('alfa');
       logger.indent(2);
@@ -170,15 +139,15 @@ describe('logger/Logger', function() {
   describe('.isEnabled', function() {
 
     it('is true when the log level is set to a non-null value', function() {
-      const [info] = createLogger({ logLevel: 'info' });
-      const [debug] = createLogger({ logLevel: 'debug' });
+      const [info] = createTestLogger({ logLevel: 'info' });
+      const [debug] = createTestLogger({ logLevel: 'debug' });
 
       assert.isTrue(info.isEnabled);
       assert.isTrue(debug.isEnabled);
     });
 
     it('is false when the log level is none', function() {
-      const [logger] = createLogger({ logLevel: 'none' });
+      const [logger] = createTestLogger({ logLevel: 'none' });
 
       assert.isFalse(logger.isEnabled);
     });
@@ -194,7 +163,7 @@ describe('logger/Logger', function() {
     }
 
     it('support a named log level', async function() {
-      const [logger, readLog] = createLogger({ logLevel: 'debug' });
+      const [logger, readLog] = createTestLogger({ logLevel: 'debug' });
 
       logger.log('debug', ['alfa']);
       logger.log('info', ['bravo', 'charlie']);
@@ -206,7 +175,7 @@ describe('logger/Logger', function() {
     });
 
     it('can show the elapsed time between statements', async function() {
-      const [logger, readLog] = createLogger({ logLevel: 'info', showTime: true });
+      const [logger, readLog] = createTestLogger({ logLevel: 'info', showTime: true });
 
       logger.log('info', ['alfa']);
       await sleep(10);
@@ -219,8 +188,8 @@ describe('logger/Logger', function() {
     });
 
     it('respects color options when showing the elapsed time', async function() {
-      const [color, readColorLog] = createLogger({ logLevel: 'info', showTime: true, useColor: true });
-      const [plain, readPlainLog] = createLogger({ logLevel: 'info', showTime: true, useColor: false });
+      const [color, readColorLog] = createTestLogger({ logLevel: 'info', showTime: true, useColor: true });
+      const [plain, readPlainLog] = createTestLogger({ logLevel: 'info', showTime: true, useColor: false });
 
       color.log('info', ['alfa']);
       plain.log('info', ['alfa']);
@@ -239,7 +208,7 @@ describe('logger/Logger', function() {
   describe('.outdent', function() {
 
     it('updates the indentation level', async function() {
-      const [logger, readLog] = createLogger({ logLevel: 'info' });
+      const [logger, readLog] = createTestLogger({ logLevel: 'info' });
 
       logger.info('alfa');
       logger.indent(2);
