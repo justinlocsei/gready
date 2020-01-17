@@ -112,9 +112,12 @@ function summarizePopularShelves(bookshelf: Bookshelf): string {
   return bookshelf
     .groupByShelf()
     .map(function({ books: bs, percentile, shelfName, totalCount }) {
+      const maxPercentile = Math.max(...bs.map(b => b.percentile));
+      const maxDigits = maxPercentile.toString().length + 1;
+
       return [
-        `* ${shelfName} (${percentile}%)`,
-        ...bs.map(b => `  - ${b.book.title} (${b.percentile}%)`)
+        `* ${shelfName} | p${percentile}`,
+        ...bs.map(b => `  - ${`p${b.percentile}`.padEnd(maxDigits)} | ${b.book.title}`)
       ].join('\n');
     })
     .join('\n\n');
@@ -137,14 +140,14 @@ function summarizeShelves(bookshelf: Bookshelf): string {
   const shelves = sortBy(
     bookshelf.groupByShelf(),
     [
-      s => s.shelfName,
-      s => s.percentile * -1
+      s => s.percentile * -1,
+      s => s.shelfName
     ]
   );
 
   return shelves
     .map(function({ percentile, shelfName }) {
-      return `* ${shelfName} (${percentile}%)`;
+      return `* p${percentile.toString().padEnd(3)} | ${shelfName}`;
     })
     .join('\n');
 }

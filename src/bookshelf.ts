@@ -175,16 +175,12 @@ export default class Bookshelf {
       return previous;
     }, {});
 
-    const groups = Object.values(byShelf);
-    const mostBooksInShelf = Math.max(...groups.map(g => g.books.length), 1);
+    const partitioned = partition(
+      Object.values(byShelf),
+      g => g.books.reduce((p, b) => p + b.percentile, 0)
+    );
 
-    const shelves = Object.values(byShelf).map(function(group) {
-      const totalBooks = group.books.length;
-      const totalPercentile = group.books.reduce((p, b) => p + b.percentile, 0);
-
-      const percentile = totalBooks / mostBooksInShelf;
-      const averagePercentile = totalBooks && totalPercentile / totalBooks;
-
+    const shelves = partitioned.map(function({ data: group, percentile }) {
       return {
         ...group,
         books: sortBy(group.books, [
@@ -192,7 +188,7 @@ export default class Bookshelf {
           b => b.book.title,
           b => b.book.id
         ]),
-        percentile: Math.round((percentile * averagePercentile / 100) * 100)
+        percentile
       };
     });
 
