@@ -2,12 +2,8 @@ import { sortBy } from 'lodash';
 
 import { Author, Book, Shelf } from './types/core';
 import { AuthorID } from './types/goodreads';
-import { formalizeAuthorName } from './content';
-
-interface AnnotatedShelf {
-  percentile: number;
-  shelf: Shelf;
-}
+import { formalizeAuthorName, partition } from './content';
+import { Partitioned } from './types/util';
 
 interface BooksByAuthor {
   author: Author;
@@ -28,6 +24,8 @@ interface BooksByShelf {
   shelfName: string;
   totalCount: number;
 }
+
+type PartitionedShelf = Partitioned<Shelf>;
 
 export default class Bookshelf {
 
@@ -63,8 +61,8 @@ export default class Bookshelf {
     const nameSet = new Set(shelfNames);
 
     return this.books.filter(book => {
-      return this.annotateShelves(book.shelves).find(shelf => {
-        return shelf.percentile >= this.shelfPercentile && nameSet.has(shelf.shelf.name);
+      return this.partitionShelves(book.shelves).find(({ data: shelf, percentile }) => {
+        return percentile >= this.shelfPercentile && nameSet.has(shelf.name);
       });
     });
   }
@@ -72,7 +70,7 @@ export default class Bookshelf {
   /**
    * Provide an annotated view of the shelves used by all books
    */
-  getAllShelves(): AnnotatedShelf[] {
+  getAllShelves(): PartitionedShelf[] {
     const countsByName = this.books.reduce(function(previous: Record<string, number>, book) {
       return previous;
     }, {});
@@ -84,16 +82,16 @@ export default class Bookshelf {
       };
     });
 
-    return sortBy(this.annotateShelves(shelves), [
+    return sortBy(this.partitionShelves(shelves), [
       s => s.percentile,
-      s => s.shelf.name
+      s => s.data.name
     ]);
   }
 
   /**
    * Get an annotated view of all shelves at or above the current percentile
    */
-  getShelves(): AnnotatedShelf[] {
+  getShelves(): PartitionedShelf[] {
     return this
       .getAllShelves()
       .filter(s => s.percentile >= this.shelfPercentile);
@@ -158,7 +156,7 @@ export default class Bookshelf {
    */
   groupByShelf(): BooksByShelf[] {
     const byShelf = this.books.reduce((previous: Record<string, BooksByShelf>, book) => {
-      this.annotateShelves(book.shelves).forEach(({ percentile, shelf }) => {
+      this.partitionShelves(book.shelves).forEach(({ data: shelf, percentile }) => {
         if (percentile < this.shelfPercentile) { return; }
 
         if (!previous[shelf.name]) {
@@ -218,17 +216,10 @@ export default class Bookshelf {
   }
 
   /**
-   * Annotate a set of shelves with their affinity
+   * Partition shelves into percentiles
    */
-  private annotateShelves(shelves: Shelf[]): AnnotatedShelf[] {
-    const maxCount = Math.max(...shelves.map(s => s.count), 1);
-
-    return shelves.map(function(shelf) {
-      return {
-        percentile: Math.round((shelf.count / maxCount) * 100),
-        shelf
-      };
-    });
+  private partitionShelves(shelves: Shelf[]): PartitionedShelf[] {
+    return partition(shelves, s => s.count);
   }
 
 }

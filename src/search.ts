@@ -60,7 +60,7 @@ export async function findReaders({
 
   const shelfNames = new Bookshelf(Object.values(booksByID), { shelfPercentile })
     .getShelves()
-    .map(s => s.shelf.name)
+    .map(s => s.data.name)
     .sort();
 
   return sortedUserIDs.map(function(id): SimilarReader {
