@@ -16,6 +16,12 @@ export const DEFAULT_LEVEL: LevelName = 'info';
 export type LevelName = ExtractArrayType<typeof LEVEL_NAMES>;
 export type LoggingMethod = 'debug' | 'info';
 
+export interface Options {
+  logLevel?: LevelName;
+  showTime?: boolean;
+  useColor?: boolean;
+}
+
 /**
  * Get the names of all levels
  */
@@ -37,24 +43,13 @@ export default class Logger {
   /**
    * Create a new logger
    */
-  constructor(
-    stream: NodeJS.WritableStream,
-    options: {
-      logLevel: LevelName;
-      showTime: boolean;
-      useColor: boolean;
-    } = {
-      logLevel: DEFAULT_LEVEL,
-      showTime: false,
-      useColor: true
-    }
-  ) {
+  constructor(stream: NodeJS.WritableStream, options: Options = {}) {
     this.indentation = 0;
     this.lastTime = 0;
-    this.level = options.logLevel;
-    this.showTime = options.showTime;
+    this.level = options.logLevel || DEFAULT_LEVEL;
+    this.showTime = options.showTime === undefined ? false : options.showTime;
     this.stream = stream;
-    this.useColor = options.useColor;
+    this.useColor = options.useColor === undefined ? true : options.useColor;
 
     this.isEnabled = this.level !== 'none';
   }
