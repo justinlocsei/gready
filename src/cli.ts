@@ -47,7 +47,7 @@ interface ClearCacheOptions extends CoreOptions {
 
 interface FindReadersOptions extends CoreOptions {
   'book-id'?: CLIArray;
-  percentile?: CLINumber;
+  'min-books'?: CLINumber;
   reviews: CLINumber;
 }
 
@@ -101,12 +101,12 @@ class CLI {
   async findReaders({
     bookIDs,
     maxReviews,
-    percentile,
+    minBooks = 0,
     shelfPercentile
   }: {
     bookIDs?: string[];
     maxReviews: number;
-    percentile?: number;
+    minBooks?: number;
     shelfPercentile: number;
   }): Promise<void> {
     const userID = await this.apiClient.getUserID();
@@ -131,7 +131,11 @@ class CLI {
       repo: this.repo
     });
 
-    const summary = summarizeSimilarReaders(readers, { percentile });
+    if (this.logger.isEnabled) {
+      this.stdout.write('\n');
+    }
+
+    const summary = summarizeSimilarReaders(readers.filter(r => r.books.length >= minBooks));
 
     this.stdout.write(summary + '\n');
   }
@@ -278,8 +282,8 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
               describe: 'The ID of a book that readers must have rated',
               type: 'array'
             })
-            .option('percentile', {
-              describe: 'The minimum percentile of shared books a user must have',
+            .option('min-books', {
+              describe: 'The minimum number of shared books required to show a reader',
               type: 'number'
             })
             .option('reviews', {
@@ -434,7 +438,7 @@ async function startCLI(cliOptions: CLIOPtions): Promise<void> {
       return cli.findReaders({
         bookIDs: maybeMap(parsed.options['book-id'], s => s.toString()),
         maxReviews: ensureNumeric(parsed.options, 'reviews'),
-        percentile: parsed.options['percentile'] ? ensureNumeric(parsed.options, 'percentile') : undefined,
+        minBooks: parsed.options['min-books'] ? ensureNumeric(parsed.options, 'min-books') : undefined,
         shelfPercentile
       });
 
