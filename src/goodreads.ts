@@ -1,7 +1,7 @@
 import querystring from 'querystring';
 import { URL } from 'url';
 
-import { UserID } from './types/goodreads';
+import { BookID, UserID } from './types/goodreads';
 
 export const SHELVES = {
   currentlyReading: 'currently-reading',
@@ -18,6 +18,7 @@ export const URLS = {
   authorize: `${HTTPS}/oauth/authorize`,
   requestToken: `${HTTP}/oauth/request_token`,
   reviewsWidget: `${HTTPS}/api/reviews_widget_iframe`,
+  viewBook: `${HTTPS}/book/show`,
   viewBooks: `${HTTPS}/review/list`
 };
 
@@ -34,4 +35,11 @@ export function getUserBooksURL(id: UserID): string {
   });
 
   return url.toString();
+}
+
+/**
+ * Get the URL for viewing a book
+ */
+export function getViewBookURL(id: BookID): string {
+  return `${URLS.viewBook}/${id}`;
 }
