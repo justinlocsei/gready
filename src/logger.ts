@@ -25,6 +25,8 @@ export function getLevelNames(): string[] {
 
 export default class Logger {
 
+  isEnabled: boolean;
+
   private indentation: number;
   private lastTime: number;
   private level: LevelName;
@@ -53,6 +55,8 @@ export default class Logger {
     this.showTime = options.showTime;
     this.stream = stream;
     this.useColor = options.useColor;
+
+    this.isEnabled = this.level !== 'none';
   }
 
   /**
