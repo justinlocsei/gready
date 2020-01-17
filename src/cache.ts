@@ -39,11 +39,15 @@ export default class Cache {
    * Clear the cache
    */
   async clear(namespaces?: string[]): Promise<void> {
-    const dirs = namespaces
-      ? namespaces.sort().map(n => path.join(this.directory, n))
-      : [this.directory];
+    const names = namespaces || await readdirAsync(this.directory);
+    const dirPaths = names.sort().map(n => path.join(this.directory, n));
 
-    await Promise.all(dirs.map(d => remove(d)));
+    const removals = dirPaths.map(dirPath => {
+      this.createdDirectories.delete(path.relative(this.directory, dirPath));
+      return remove(dirPath);
+    });
+
+    await Promise.all(removals);
   }
 
   /**
