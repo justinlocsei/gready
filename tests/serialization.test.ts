@@ -6,7 +6,7 @@ describe('serialization/formatJSON', function() {
 
   it('deterministically formats objects', function() {
     assert.equal(
-      formatJSON({b: '2', a: 1, c: [true]}),
+      formatJSON({ b: '2', a: 1, c: [true] }),
       [
         '{',
         '  "a": 1,',

@@ -44,7 +44,7 @@ describe('content/partition', function() {
 
     assert.deepEqual(
       partitioned,
-      percentiles.map((p, i) => ({data: values[i], percentile: p}))
+      percentiles.map((p, i) => ({ data: values[i], percentile: p }))
     );
   }
 
