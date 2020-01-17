@@ -1,4 +1,4 @@
-import { uniq } from 'lodash';
+import { sortBy, uniq } from 'lodash';
 
 import { Partitioned } from './types/util';
 
@@ -11,7 +11,7 @@ export function partition<T>(
   getValue: (item: T) => number
 ): Partitioned<T>[] {
   const values = items.map(getValue);
-  const sortedValues = uniq([...values]).sort();
+  const sortedValues = sortBy(uniq([...values]));
   const totalValues = sortedValues.length;
 
   const percentiles = sortedValues.reduce(function(previous: Record<number, number>, value) {
