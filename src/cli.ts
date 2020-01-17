@@ -9,13 +9,13 @@ import Logger, { DEFAULT_LEVEL, getLevelNames, LevelName } from './logger';
 import Repository from './repository';
 import { CLIError } from './errors';
 import { ExtractArrayType } from './types/util';
-import { findReaders } from './search';
+import { findBooks, findReaders } from './search';
 import { getDefaultConfigPath, getGoodreadsAPIKey, getGoodreadsSecret, loadConfig } from './config';
 import { isNumeric, maybeMap, unreachable } from './util';
 import { prepareDataDirectory } from './environment';
 import { runSequence } from './flow';
 import { SectionID, SECTION_IDS, summarizeBookshelf } from './summary';
-import { summarizeSimilarReaders } from './search-results';
+import { summarizeRecommendedBooks, summarizeSimilarReaders } from './search-results';
 
 const CACHE_NAMES = ['data', 'response'] as const;
 
@@ -45,6 +45,13 @@ interface ClearCacheOptions extends CoreOptions {
   namespace?: CLIArray;
 }
 
+interface FindBooksOptions extends CoreOptions {
+  'book-id'?: CLIArray;
+  'min-rating': CLINumber;
+  percentile: CLINumber;
+  'shelf'?: CLIArray;
+}
+
 interface FindReadersOptions extends CoreOptions {
   'book-id'?: CLIArray;
   'min-books'?: CLINumber;
@@ -62,6 +69,7 @@ interface SyncBooksOptions extends CoreOptions {
 
 type CommandOptions =
   | { command: 'clear-cache'; options: ClearCacheOptions; }
+  | { command: 'find-books'; options: FindBooksOptions; }
   | { command: 'find-readers'; options: FindReadersOptions; }
   | { command: 'log-in'; options: CoreOptions; }
   | { command: 'log-out'; options: CoreOptions; }
@@ -93,6 +101,42 @@ class CLI {
     this.logger = logger;
     this.repo = repo;
     this.stdout = stdout;
+  }
+
+  /**
+   * Find recommended books
+   */
+  async findBooks({
+    coreBookIDs,
+    minRating,
+    percentile,
+    shelfPercentile,
+    shelves
+  }: {
+    coreBookIDs?: string[];
+    minRating: number;
+    percentile: number;
+    shelfPercentile: number;
+    shelves?: string[];
+  }): Promise<void> {
+    const userID = await this.apiClient.getUserID();
+    const readBooks = await this.repo.getReadBooks(userID);
+
+    const recommended = await findBooks({
+      coreBookIDs,
+      minRating,
+      percentile,
+      readBooks,
+      repo: this.repo,
+      shelfPercentile,
+      shelves
+    });
+
+    if (this.logger.isEnabled) {
+      this.stdout.write('\n');
+    }
+
+    this.stdout.write(summarizeRecommendedBooks(recommended) + '\n');
   }
 
   /**
@@ -274,6 +318,32 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
         options => resolve({ command: 'clear-cache', options })
       )
       .command(
+        'find-books',
+        'Find recommended books',
+        function(opts) {
+          return opts
+            .option('book-id', {
+              describe: 'The ID of a book that must be related to the recommended books',
+              type: 'array'
+            })
+            .option('min-rating', {
+              default: 3,
+              describe: 'The minimum rating a read book must have in order to generate recommendations',
+              type: 'number'
+            })
+            .option('percentile', {
+              default: 1,
+              describe: 'The minimum percentile of recommendations to show',
+              type: 'number'
+            })
+            .option('shelf', {
+              describe: 'A shelf in which a book must appear in order to be used as a source of recommendations',
+              type: 'array'
+            })
+        },
+        options => resolve({ command: 'find-books', options })
+      )
+      .command(
         'find-readers',
         'Find readers with similar tastes',
         function(opts) {
@@ -433,6 +503,15 @@ async function startCLI(cliOptions: CLIOPtions): Promise<void> {
         parsed.options['cache'] ? parsed.options['cache'] as CacheName : undefined,
         parsed.options['namespace']
       );
+
+    case 'find-books':
+      return cli.findBooks({
+        coreBookIDs: maybeMap(parsed.options['book-id'], s => s.toString()),
+        minRating: ensureNumeric(parsed.options, 'min-rating'),
+        percentile: ensureNumeric(parsed.options, 'percentile'),
+        shelfPercentile,
+        shelves: maybeMap(parsed.options['shelf'], s => s.toString())
+      });
 
     case 'find-readers':
       return cli.findReaders({
