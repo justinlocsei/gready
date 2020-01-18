@@ -63,7 +63,7 @@ export default class Repository {
 
       const book = await this.apiClient.getBook(id);
 
-      return this.normalizeBookInfo(book);
+      return this.normalizeAPIBook(book);
     }).then(b => this.sanitizeBook(b));
   }
 
@@ -93,7 +93,7 @@ export default class Repository {
       const books = await this.apiClient.getReadBooks(userID);
 
       return sortBy(
-        books.map(b => this.normalizeReadBook(b)),
+        books.map(b => this.normalizeAPIReadBook(b)),
         [
           b => b.posted * -1,
           b => b.bookID
@@ -114,14 +114,14 @@ export default class Repository {
         rating: readBook.rating
       });
 
-      return reviews.map(r => this.normalizeReview(r));
+      return reviews.map(r => this.normalizeAPIReview(r));
     });
   }
 
   /**
-   * Convert a read book from the API to a read book
+   * Normalize a read book returned by the Goodreads API
    */
-  private normalizeReadBook(readBook: API.ReadBook): ReadBook {
+  private normalizeAPIReadBook(readBook: API.ReadBook): ReadBook {
     const shelves = ensureArray(readBook.shelves.shelf).map(function(shelf): string {
       return shelf.$.name;
     });
@@ -136,13 +136,13 @@ export default class Repository {
   }
 
   /**
-   * Convert a review from the API to a book review
+   * Normalize a review returned by the Goodreads API
    */
-  private normalizeReview(review: API.Review): Review {
+  private normalizeAPIReview(review: API.Review): Review {
     const { user } = review;
 
     return {
-      ...this.normalizeReadBook(review),
+      ...this.normalizeAPIReadBook(review),
       user: {
         id: user.id,
         name: normalizeString(user.name),
@@ -152,9 +152,9 @@ export default class Repository {
   }
 
   /**
-   * Convert book information from the API to a book
+   * Normalize a book returned by the Goodreads API
    */
-  private async normalizeBookInfo(book: API.Book): Promise<Book> {
+  private async normalizeAPIBook(book: API.Book): Promise<Book> {
     const { authors: rawAuthors, id, work } = book;
 
     const title = normalizeString(book.title || work.original_title)
