@@ -1,3 +1,6 @@
-import { assert } from 'chai';
+import chai from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 
-export default assert;
+chai.use(chaiAsPromised);
+
+export default chai.assert;
