@@ -8,10 +8,11 @@ import CLI from './cli';
 import Logger, { DEFAULT_LEVEL, getLevelNames, LevelName } from './logger';
 import Repository from './repository';
 import { CLIError } from './errors';
+import { Configuration } from './types/config';
 import { ExtractArrayType } from './types/util';
-import { getDefaultConfigPath, getGoodreadsAPIKey, loadConfig } from './config';
+import { getGoodreadsAPIKey, loadConfig } from './config';
 import { isNumeric, maybeMap, unreachable } from './util';
-import { prepareDataDirectory } from './environment';
+import { paths, prepareDataDirectory } from './environment';
 import { SectionID, SECTION_IDS } from './summary';
 
 const CACHE_NAMES = ['data', 'response'] as const;
@@ -94,7 +95,6 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
         type: 'boolean'
       })
       .option('config', {
-        default: getDefaultConfigPath(),
         describe: 'A path to a JSON configuration file',
         type: 'string'
       })
@@ -270,7 +270,14 @@ async function startCLI(cliOptions: CLIOptions): Promise<void> {
   const { options } = parsed;
 
   const { cacheDirs } = await prepareDataDirectory(options['data-dir']);
-  const config = await loadConfig(options['config']);
+
+  let config: Configuration;
+
+  if (options['config']) {
+    config = await loadConfig(options['config']);
+  } else {
+    config = await loadConfig(paths.defaultConfig, { allowMissing: true });
+  }
 
   const logger = new Logger(cliOptions.stderr, {
     logLevel: options['log-level'] as LevelName,

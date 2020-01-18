@@ -1,3 +1,4 @@
+import os from 'os';
 import path from 'path';
 import { chmod } from 'graceful-fs';
 import { mkdirp } from 'fs-extra';
@@ -68,6 +69,7 @@ function resolvePaths() {
   const srcDir = path.join(rootDir, 'src');
 
   return {
+    defaultConfig: path.join(os.homedir(), '.greadyrc'),
     distDir: path.join(rootDir, 'dist'),
     srcDir,
     typesDir: path.join(srcDir, 'types'),

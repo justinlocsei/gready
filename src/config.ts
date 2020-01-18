@@ -1,4 +1,4 @@
-import path from 'path';
+import fs from 'graceful-fs';
 import { promisify } from 'util';
 import { readFile } from 'fs';
 
@@ -7,11 +7,7 @@ import { OperationalError } from './errors';
 import { validateUserConfiguration } from './validators/config';
 
 const readFileAsync = promisify(readFile);
-
-const ENV_VARS = {
-  configPath: 'GREADY_CONFIG',
-  goodreadsApiKey: 'GREADY_GOODREADS_API_KEY'
-};
+const statAsync = promisify(fs.stat);
 
 const DEFAULT_CONFIG: Configuration = {
   ignoreShelves: [],
@@ -22,35 +18,53 @@ const DEFAULT_CONFIG: Configuration = {
 /**
  * Load a configuration
  */
-export async function loadConfig(configPath?: string): Promise<Configuration> {
-  if (!configPath) {
-    return DEFAULT_CONFIG;
+export async function loadConfig(
+  configPath: string,
+  options: { allowMissing?: boolean; } = {}
+): Promise<Configuration> {
+  if (options.allowMissing) {
+    try {
+      await statAsync(configPath);
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        return DEFAULT_CONFIG;
+      } else {
+        throw error;
+      }
+    }
   }
 
-  let configText: string;
-  let configData: object;
+  return loadConfigFile(configPath);
+}
+
+/**
+ * Attempt to load a config file at a given path
+ */
+async function loadConfigFile(filePath: string): Promise<Configuration> {
+  let text: string;
+  let data: object;
   let config: UserConfiguration;
 
   try {
-    configText = await readFileAsync(configPath, 'utf8');
+    text = await readFileAsync(filePath, 'utf8');
   } catch (error) {
     if (error.code === 'ENOENT') {
-      throw new OperationalError(`No config file found at path: ${configPath}`);
+      throw new OperationalError(`No config file found at path: ${filePath}`);
     } else {
       throw error;
     }
   }
 
   try {
-    configData = JSON.parse(configText);
+    data = JSON.parse(text);
   } catch (error) {
-    throw new OperationalError(`Invalid JSON found in configuration: ${configPath}\n--\n${error}`);
+    throw new OperationalError(`Invalid JSON found in configuration: ${filePath}\n--\n${error}`);
   }
 
   try {
-    config = validateUserConfiguration(configData);
+    config = validateUserConfiguration(data);
   } catch (error) {
-    throw new OperationalError(`Invalid configuration: ${configPath}\n--\n${error}`);
+    throw new OperationalError(`Invalid configuration: ${filePath}\n--\n${error}`);
   }
 
   return {
@@ -60,19 +74,11 @@ export async function loadConfig(configPath?: string): Promise<Configuration> {
 }
 
 /**
- * Get the default config path
- */
-export function getDefaultConfigPath(): string | undefined {
-  const configPath = process.env[ENV_VARS.configPath];
-  return configPath && path.resolve(configPath);
-}
-
-/**
  * Get the user's Goodreads API key
  */
 export function getGoodreadsAPIKey(): string {
   return requireEnvironmentVariable(
-    ENV_VARS.goodreadsApiKey,
+    'GREADY_GOODREADS_API_KEY',
     'your Goodreads API key'
   );
 }

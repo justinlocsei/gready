@@ -8,7 +8,6 @@ import { OperationalError } from '../src/errors';
 import { UserConfiguration } from '../src/types/config';
 
 import {
-  getDefaultConfigPath,
   getGoodreadsAPIKey,
   loadConfig
 } from '../src/config';
@@ -28,23 +27,6 @@ describe('config', function() {
     if (sandbox) {
       sandbox.restore();
     }
-  });
-
-  describe('getDefaultConfigPath', function() {
-
-    it('returns nothing when the environment variable is unset', function() {
-      sandbox.stub(process, 'env').value({});
-      assert.isUndefined(getDefaultConfigPath());
-    });
-
-    it('returns an expanded path when the environment variable is set', function() {
-      sandbox.stub(process, 'env').value({
-        GREADY_CONFIG: '/tmp/../var/config.json'
-      });
-
-      assert.equal(getDefaultConfigPath(), '/var/config.json');
-    });
-
   });
 
   describe('getGoodreadsAPIKey', function() {
@@ -82,14 +64,6 @@ describe('config', function() {
       return configPath;
     }
 
-    it('returns a valid config by default', async function() {
-      const config = await loadConfig();
-
-      assert.deepEqual(config.ignoreShelves, []);
-      assert.deepEqual(config.mergePublishers, {});
-      assert.deepEqual(config.mergeShelves, {});
-    });
-
     it('can load a config file from a path', async function() {
       const configPath = await createConfig({
         ignoreShelves: ['shelf'],
@@ -102,6 +76,14 @@ describe('config', function() {
       assert.deepEqual(config.ignoreShelves, ['shelf']);
       assert.deepEqual(config.mergePublishers, { 'alfa': ['bravo'] });
       assert.deepEqual(config.mergeShelves, { 'charlie': ['delta'] });
+    });
+
+    it('allows the config file to be missing', async function() {
+      const config = await loadConfig('/missing.json', { allowMissing: true });
+
+      assert.deepEqual(config.ignoreShelves, []);
+      assert.deepEqual(config.mergePublishers, {});
+      assert.deepEqual(config.mergeShelves, {});
     });
 
     it('supports partial configs', async function() {
