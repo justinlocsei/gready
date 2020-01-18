@@ -102,24 +102,3 @@ export interface SearchResults {
     };
   };
 }
-
-export interface User {
-  id: string;
-  user_shelves?: {
-    user_shelf: OneOrMore<{
-      name: string;
-    }>;
-  };
-}
-
-export interface UserDataResponse {
-  user: {
-    $: {
-      id: string;
-    };
-  };
-}
-
-export interface UserResponse {
-  user: User;
-}

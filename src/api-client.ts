@@ -16,8 +16,7 @@ import {
   validateReadBooksResponse,
   validateResponse,
   validateReviewResponse,
-  validateSearchResults,
-  validateUserResponse
+  validateSearchResults
 } from './validators/api';
 
 import {
@@ -25,8 +24,7 @@ import {
   ReadBook,
   ReadBooksResponse,
   ResponseBody,
-  Review,
-  User
+  Review
 } from './types/api';
 
 import {
@@ -201,24 +199,6 @@ export default class APIClient {
       this.options.logger,
       async id => this.getReview(id)
     );
-  }
-
-  /**
-   * Get information on a user with a given ID
-   */
-  getUser(id: UserID): Promise<User> {
-    return this.options.cache.fetch(['users', id], async () => {
-      const response = await this.request(
-        ['Fetch user', `ID=${id}`],
-        'user/show',
-        {
-          id,
-          format: 'xml'
-        }
-      );
-
-      return validateUserResponse(response).user;
-    });
   }
 
   /**
