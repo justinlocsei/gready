@@ -9,14 +9,10 @@ export const SHELVES = {
   toRead: 'to-read'
 };
 
-const HTTP = 'http://www.goodreads.com';
 const HTTPS = 'https://www.goodreads.com';
 
 export const URLS = {
-  accessToken: `${HTTP}/oauth/access_token`,
   apiBase: HTTPS,
-  authorize: `${HTTPS}/oauth/authorize`,
-  requestToken: `${HTTP}/oauth/request_token`,
   reviewsWidget: `${HTTPS}/api/reviews_widget_iframe`,
   viewBook: `${HTTPS}/book/show`,
   viewBooks: `${HTTPS}/review/list`

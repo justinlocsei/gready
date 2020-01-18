@@ -10,7 +10,6 @@ interface DataDirectoryStructure {
     apiRequests: string;
     data: string;
   };
-  sessionFile: string;
 }
 
 /**
@@ -41,8 +40,7 @@ export async function prepareDataDirectory(rootDir: string): Promise<DataDirecto
     cacheDirs: {
       apiRequests: apiRequestsDir,
       data: dataDir
-    },
-    sessionFile: path.join(rootDir, 'session.json')
+    }
   };
 }
 

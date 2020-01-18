@@ -10,7 +10,6 @@ import { UserConfiguration } from '../src/types/config';
 import {
   getDefaultConfigPath,
   getGoodreadsAPIKey,
-  getGoodreadsSecret,
   loadConfig
 } from '../src/config';
 
@@ -65,28 +64,6 @@ describe('config', function() {
         () => getGoodreadsAPIKey(),
         OperationalError,
         /Goodreads API key/
-      );
-    });
-
-  });
-
-  describe('getGoodreadsSecret', function() {
-
-    it('returns the secret when the environment variable is set', function() {
-      sandbox.stub(process, 'env').value({
-        GREADY_GOODREADS_SECRET: 'secret'
-      });
-
-      assert.equal(getGoodreadsSecret(), 'secret');
-    });
-
-    it('throws an error when the environment variable is unset', function() {
-      sandbox.stub(process, 'env').value({});
-
-      assert.throws(
-        () => getGoodreadsSecret(),
-        OperationalError,
-        /Goodreads secret/
       );
     });
 

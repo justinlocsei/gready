@@ -9,7 +9,7 @@ import Logger, { DEFAULT_LEVEL, getLevelNames, LevelName } from './logger';
 import Repository from './repository';
 import { CLIError } from './errors';
 import { ExtractArrayType } from './types/util';
-import { getDefaultConfigPath, getGoodreadsAPIKey, getGoodreadsSecret, loadConfig } from './config';
+import { getDefaultConfigPath, getGoodreadsAPIKey, loadConfig } from './config';
 import { isNumeric, maybeMap, unreachable } from './util';
 import { prepareDataDirectory } from './environment';
 import { SectionID, SECTION_IDS } from './summary';
@@ -35,6 +35,7 @@ interface CoreOptions {
   'log-level': string;
   'log-time': boolean;
   'shelf-percentile': CLINumber;
+  'user-id'?: string;
 }
 
 interface ClearCacheOptions extends CoreOptions {
@@ -68,17 +69,8 @@ type CommandOptions =
   | { command: 'clear-cache'; options: ClearCacheOptions; }
   | { command: 'find-books'; options: FindBooksOptions; }
   | { command: 'find-readers'; options: FindReadersOptions; }
-  | { command: 'log-in'; options: CoreOptions; }
-  | { command: 'log-out'; options: CoreOptions; }
   | { command: 'summarize'; options: SummarizeOptions; }
   | { command: 'sync-books'; options: SyncBooksOptions; }
-
-/**
- * A function used for a command that lacks options
- */
-function noOptions<T>(opts: T): T {
-  return opts;
-}
 
 /**
  * Parse command-line arguments
@@ -126,6 +118,10 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
         default: 1,
         describe: 'The minimum per-book and global percentile required for a shelf to be shown',
         type: 'number'
+      })
+      .option('user-id', {
+        describe: 'Your Goodreads user ID',
+        type: 'string'
       })
       .command(
         'clear-cache',
@@ -192,18 +188,6 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
         options => resolve({ command: 'find-readers', options })
       )
       .command(
-        'log-in',
-        'Allow gready to access your Goodreads account',
-        noOptions,
-        options => resolve({ command: 'log-in', options })
-      )
-      .command(
-        'log-out',
-        'Prevent gready from accessing your Goodreads account',
-        noOptions,
-        options => resolve({ command: 'log-out', options })
-      )
-      .command(
         'sync-books',
         'Populate a local cache of data about your read books using the Goodreads API',
         function(opts) {
@@ -233,6 +217,7 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
         options => resolve({ command: 'summarize', options })
       )
       .demandCommand(1, 'You must specify a subcommand')
+      .demandOption('user-id', 'You must provide your Goodreads user ID')
       .strict()
       .help('h')
       .alias('h', 'help')
@@ -284,7 +269,7 @@ async function startCLI(cliOptions: CLIOptions): Promise<void> {
   const parsed = await parseCLIArgs(cliOptions.args);
   const { options } = parsed;
 
-  const { cacheDirs, sessionFile } = await prepareDataDirectory(options['data-dir']);
+  const { cacheDirs } = await prepareDataDirectory(options['data-dir']);
   const config = await loadConfig(options['config']);
 
   const logger = new Logger(cliOptions.stderr, {
@@ -297,11 +282,9 @@ async function startCLI(cliOptions: CLIOptions): Promise<void> {
   const dataCache = new Cache(cacheDirs.data, { enabled: options['cache-data'] });
 
   const apiClient = new APIClient({
+    apiKey: getGoodreadsAPIKey(),
     cache: apiCache,
-    key: getGoodreadsAPIKey(),
-    logger,
-    secret: getGoodreadsSecret(),
-    sessionFile
+    logger
   });
 
   const repo = new Repository({
@@ -312,10 +295,10 @@ async function startCLI(cliOptions: CLIOptions): Promise<void> {
   });
 
   const cli = new CLI({
-    apiClient,
     logger,
     repo,
-    stdout: cliOptions.stdout
+    stdout: cliOptions.stdout,
+    userID: options['user-id'] as string
   });
 
   const shelfPercentile = ensureNumeric(parsed.options, 'shelf-percentile');
@@ -347,12 +330,6 @@ async function startCLI(cliOptions: CLIOptions): Promise<void> {
         minBooks: parsed.options['min-books'] ? ensureNumeric(parsed.options, 'min-books') : undefined,
         shelfPercentile
       });
-
-    case 'log-in':
-      return cli.logIn();
-
-    case 'log-out':
-      return cli.logOut();
 
     case 'sync-books':
       return cli.syncBooks(

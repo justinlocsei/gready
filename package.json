@@ -34,7 +34,6 @@
     "graceful-fs": "^4.2.3",
     "json-stable-stringify": "^1.0.1",
     "lodash": "^4.17.15",
-    "oauth": "^0.9.15",
     "superagent": "^5.2.1",
     "xml2js": "^0.4.23",
     "yargs": "^15.0.2"
@@ -49,7 +48,6 @@
     "@types/json-stable-stringify": "^1.0.32",
     "@types/lodash": "^4.14.149",
     "@types/mocha": "^5.2.7",
-    "@types/oauth": "^0.9.1",
     "@types/sinon": "^7.5.1",
     "@types/superagent": "^4.1.4",
     "@types/tmp": "^0.1.0",

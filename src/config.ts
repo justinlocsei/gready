@@ -10,8 +10,7 @@ const readFileAsync = promisify(readFile);
 
 const ENV_VARS = {
   configPath: 'GREADY_CONFIG',
-  goodreadsApiKey: 'GREADY_GOODREADS_API_KEY',
-  goodreadsSecret: 'GREADY_GOODREADS_SECRET'
+  goodreadsApiKey: 'GREADY_GOODREADS_API_KEY'
 };
 
 const DEFAULT_CONFIG: Configuration = {
@@ -75,16 +74,6 @@ export function getGoodreadsAPIKey(): string {
   return requireEnvironmentVariable(
     ENV_VARS.goodreadsApiKey,
     'your Goodreads API key'
-  );
-}
-
-/**
- * Get the user's Goodreads secret
- */
-export function getGoodreadsSecret(): string {
-  return requireEnvironmentVariable(
-    ENV_VARS.goodreadsSecret,
-    'your Goodreads secret'
   );
 }
 

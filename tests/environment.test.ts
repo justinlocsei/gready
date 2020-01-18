@@ -78,12 +78,6 @@ describe('environment/prepareDataDirectory', function() {
     assert.deepEqual(first, second);
   });
 
-  it('defines a path to a session file in the created directories', async function() {
-    const { sessionFile } = await prepareDataDirectory(tmpDirPath);
-
-    assert.notMatch(path.relative(tmpDirPath, sessionFile), /\.\./);
-  });
-
 });
 
 describe('environment/resolveRequire', function() {
