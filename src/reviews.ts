@@ -1,10 +1,9 @@
 import cheerio from 'cheerio';
-import superagent from 'superagent';
 import querystring from 'querystring';
 import { URL } from 'url';
 
 import { BookID, ReviewID } from './types/goodreads';
-import { OperationalError } from './errors';
+import { makeGetRequest } from './network';
 import { URLS } from './goodreads';
 
 /**
@@ -24,13 +23,9 @@ export async function findReviewIDsForBook(id: BookID, {
 
   while (!done) {
     const url = buildWidgetURL(id, limit, page, rating);
-    const response = await superagent.get(url);
+    const responseText = await makeGetRequest(url);
 
-    if (response.status !== 200) {
-      throw new OperationalError(`Request for reviews widget at ${url} failed with code ${response.status}`);
-    }
-
-    const reviews = extractReviewIDs(response.text, rating);
+    const reviews = extractReviewIDs(responseText, rating);
 
     ids = ids.concat(reviews);
     page++;
