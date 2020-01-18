@@ -3,10 +3,10 @@ import Bookshelf from './bookshelf';
 import Logger from './logger';
 import Repository from './repository';
 import { CLIError } from './errors';
-import { findBooks, findReaders } from './search';
+import { findRecommendedBooks, summarizeRecommendedBooks } from './search/books';
+import { findSimilarReaders, summarizeSimilarReaders } from './search/readers';
 import { runSequence } from './flow';
 import { SectionID, summarizeBookshelf } from './summary';
-import { summarizeRecommendedBooks, summarizeSimilarReaders } from './search-results';
 
 export default class CLI {
 
@@ -54,7 +54,7 @@ export default class CLI {
     const userID = await this.apiClient.getUserID();
     const readBooks = await this.repo.getReadBooks(userID);
 
-    const recommended = await findBooks({
+    const recommended = await findRecommendedBooks({
       coreBookIDs,
       minRating,
       percentile,
@@ -100,7 +100,7 @@ export default class CLI {
       });
     }
 
-    const readers = await findReaders({
+    const readers = await findSimilarReaders({
       maxReviews,
       shelfPercentile,
       readBooks,
