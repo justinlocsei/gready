@@ -2,7 +2,7 @@
 
 import { extractArgs } from '../environment';
 import { OperationalError } from '../errors';
-import { runCLI } from '../cli';
+import { runCLI } from '../index';
 
 /**
  * Run the gready CLI
