@@ -45,8 +45,3 @@ export interface User {
   name: string;
   profileURL: string;
 }
-
-export interface UserMeta {
-  id: UserID;
-  shelves: string[];
-}
