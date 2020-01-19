@@ -3,7 +3,7 @@ import tmp from 'tmp';
 import assert from './assert';
 import Cache, { Options } from '../src/cache';
 
-describe.only('cache', function() {
+describe('cache', function() {
 
   describe('Cache', function() {
 
