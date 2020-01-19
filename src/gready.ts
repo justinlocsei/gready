@@ -10,7 +10,7 @@ import Repository from './repository';
 import { CLIError } from './errors';
 import { Configuration } from './types/config';
 import { ExtractArrayType } from './types/util';
-import { getGoodreadsAPIKey, loadConfig } from './config';
+import { getGoodreadsAPIKey, getGoodreadsUserID, loadConfig } from './config';
 import { isNumeric, maybeMap, unreachable } from './util';
 import { paths, prepareDataDirectory } from './environment';
 import { SectionID, SECTION_IDS } from './summary';
@@ -36,7 +36,6 @@ interface CoreOptions {
   'log-level': string;
   'log-time': boolean;
   'shelf-percentile': CLINumber;
-  'user-id'?: string;
 }
 
 interface ClearCacheOptions extends CoreOptions {
@@ -118,10 +117,6 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
         default: 1,
         describe: 'The minimum per-book and global percentile required for a shelf to be shown',
         type: 'number'
-      })
-      .option('user-id', {
-        describe: 'Your Goodreads user ID',
-        type: 'string'
       })
       .command(
         'clear-cache',
@@ -217,7 +212,6 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
         options => resolve({ command: 'summarize', options })
       )
       .demandCommand(1, 'You must specify a subcommand')
-      .demandOption('user-id', 'You must provide your Goodreads user ID')
       .strict()
       .help('h')
       .alias('h', 'help')
@@ -305,7 +299,7 @@ async function startCLI(cliOptions: CLIOptions): Promise<void> {
     logger,
     repo,
     stdout: cliOptions.stdout,
-    userID: options['user-id'] as string
+    userID: getGoodreadsUserID()
   });
 
   const shelfPercentile = ensureNumeric(parsed.options, 'shelf-percentile');

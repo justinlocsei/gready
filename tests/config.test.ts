@@ -9,6 +9,7 @@ import { UserConfiguration } from '../src/types/config';
 
 import {
   getGoodreadsAPIKey,
+  getGoodreadsUserID,
   loadConfig
 } from '../src/config';
 
@@ -46,6 +47,28 @@ describe('config', function() {
         () => getGoodreadsAPIKey(),
         OperationalError,
         /Goodreads API key/
+      );
+    });
+
+  });
+
+  describe('getGoodreadsUserID', function() {
+
+    it('returns the user ID when the environment variable is set', function() {
+      sandbox.stub(process, 'env').value({
+        GREADY_GOODREADS_USER_ID: 'id'
+      });
+
+      assert.equal(getGoodreadsUserID(), 'id');
+    });
+
+    it('throws an error when the environment variable is unset', function() {
+      sandbox.stub(process, 'env').value({});
+
+      assert.throws(
+        () => getGoodreadsUserID(),
+        OperationalError,
+        /Goodreads user ID/
       );
     });
 

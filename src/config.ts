@@ -84,6 +84,16 @@ export function getGoodreadsAPIKey(): string {
 }
 
 /**
+ * Get the user's Goodreads user ID
+ */
+export function getGoodreadsUserID(): string {
+  return requireEnvironmentVariable(
+    'GREADY_GOODREADS_USER_ID',
+    'your Goodreads user ID'
+  );
+}
+
+/**
  * Get a required value from the environment
  */
 function requireEnvironmentVariable(name: string, description: string): string {
