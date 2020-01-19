@@ -10,97 +10,101 @@ import {
   resolveRequire
 } from '../src/environment';
 
-describe('environment/extractArgs', function() {
+describe('environment', function() {
 
-  it('extracts args from a call to run a script with the node interpreter', function() {
-    const cases = [
-      [['/bin/node', 'file.js'], []],
-      [['/bin/node', 'file.ts'], []],
-      [['/bin/node', 'file.ts', 'alfa'], ['alfa']],
-      [['/bin/node', 'file.ts', 'alfa', 'bravo'], ['alfa', 'bravo']],
-      [['/usr/bin/node', 'file.ts', 'alfa'], ['alfa']],
-      [['/bin/node', 'file.ts', 'node'], ['node']]
-    ];
+  describe('extractArgs', function() {
 
-    cases.forEach(function([input, expected]) {
-      assert.deepEqual(extractArgs(input), expected);
+    it('extracts args from a call to run a script with the node interpreter', function() {
+      const cases = [
+        [['/bin/node', 'file.js'], []],
+        [['/bin/node', 'file.ts'], []],
+        [['/bin/node', 'file.ts', 'alfa'], ['alfa']],
+        [['/bin/node', 'file.ts', 'alfa', 'bravo'], ['alfa', 'bravo']],
+        [['/usr/bin/node', 'file.ts', 'alfa'], ['alfa']],
+        [['/bin/node', 'file.ts', 'node'], ['node']]
+      ];
+
+      cases.forEach(function([input, expected]) {
+        assert.deepEqual(extractArgs(input), expected);
+      });
     });
-  });
 
-  it('handles args without an interpreter', function() {
-    assert.deepEqual(
-      ['file.js', 'alfa'],
-      ['file.js', 'alfa']
-    );
-  });
-
-});
-
-describe('environment/paths', function() {
-
-  it('maps labels to paths', function() {
-    const fsPaths = Object.values(paths);
-
-    assert.isNotEmpty(fsPaths);
-
-    fsPaths.forEach(function(fsPath) {
-      assert.isTrue(path.isAbsolute(fsPath));
+    it('handles args without an interpreter', function() {
+      assert.deepEqual(
+        ['file.js', 'alfa'],
+        ['file.js', 'alfa']
+      );
     });
+
   });
 
-});
+  describe('paths', function() {
 
-describe('environment/prepareDataDirectory', function() {
+    it('maps labels to paths', function() {
+      const fsPaths = Object.values(paths);
 
-  let tmpDir: tmp.DirResult;
-  let tmpDirPath: string;
+      assert.isNotEmpty(fsPaths);
 
-  beforeEach(function() {
-    tmpDir = tmp.dirSync();
-    tmpDirPath = path.join(tmpDir.name, 'data');
-  })
+      fsPaths.forEach(function(fsPath) {
+        assert.isTrue(path.isAbsolute(fsPath));
+      });
+    });
 
-  afterEach(function() {
-    tmpDir.removeCallback();
   });
 
-  it('creates cache directories', async function() {
-    const { cacheDirs } = await prepareDataDirectory(tmpDirPath);
+  describe('prepareDataDirectory', function() {
 
-    assert.isTrue(fs.statSync(cacheDirs.apiRequests).isDirectory());
-    assert.isTrue(fs.statSync(cacheDirs.data).isDirectory());
+    let tmpDir: tmp.DirResult;
+    let tmpDirPath: string;
+
+    beforeEach(function() {
+      tmpDir = tmp.dirSync();
+      tmpDirPath = path.join(tmpDir.name, 'data');
+    })
+
+    afterEach(function() {
+      tmpDir.removeCallback();
+    });
+
+    it('creates cache directories', async function() {
+      const { cacheDirs } = await prepareDataDirectory(tmpDirPath);
+
+      assert.isTrue(fs.statSync(cacheDirs.apiRequests).isDirectory());
+      assert.isTrue(fs.statSync(cacheDirs.data).isDirectory());
+    });
+
+    it('ignores an existing directory structure', async function() {
+      const first = await prepareDataDirectory(tmpDirPath);
+      const second = await prepareDataDirectory(tmpDirPath);
+
+      assert.deepEqual(first, second);
+    });
+
   });
 
-  it('ignores an existing directory structure', async function() {
-    const first = await prepareDataDirectory(tmpDirPath);
-    const second = await prepareDataDirectory(tmpDirPath);
+  describe('resolveRequire', function() {
 
-    assert.deepEqual(first, second);
-  });
+    it('resolves paths below the root', function() {
+      assert.equal(
+        resolveRequire('/root', '/root/file.ts'),
+        './file.ts'
+      );
+    });
 
-});
+    it('resolves paths above the root', function() {
+      assert.equal(
+        resolveRequire('/root/dir', '/root/file.ts'),
+        '../file.ts'
+      );
+    });
 
-describe('environment/resolveRequire', function() {
+    it('can remove the extension', function() {
+      assert.equal(
+        resolveRequire('/root', '/root/file.ts', '.ts'),
+        './file'
+      );
+    });
 
-  it('resolves paths below the root', function() {
-    assert.equal(
-      resolveRequire('/root', '/root/file.ts'),
-      './file.ts'
-    );
-  });
-
-  it('resolves paths above the root', function() {
-    assert.equal(
-      resolveRequire('/root/dir', '/root/file.ts'),
-      '../file.ts'
-    );
-  });
-
-  it('can remove the extension', function() {
-    assert.equal(
-      resolveRequire('/root', '/root/file.ts', '.ts'),
-      './file'
-    );
   });
 
 });
