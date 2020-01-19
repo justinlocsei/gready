@@ -1,3 +1,4 @@
+import glob from 'glob';
 import path from 'path';
 import { mkdirp, remove } from 'fs-extra';
 import { promisify } from 'util';
@@ -5,11 +6,17 @@ import { readdir, readFile, writeFile } from 'graceful-fs';
 
 import { formatJSON } from './serialization';
 
+const globAsync = promisify(glob);
 const readdirAsync = promisify(readdir);
 const readFileAsync = promisify(readFile);
 const writeFileAsync = promisify(writeFile);
 
 type KeyPath = (number | string)[];
+
+interface NamespaceStats {
+  items: number;
+  namespace: string;
+}
 
 export interface Options {
   enabled?: boolean;
@@ -96,6 +103,24 @@ export default class Cache {
         throw error;
       }
     }
+  }
+
+  /**
+   * Get stats on all namespaces in the cache
+   */
+  async stats(): Promise<NamespaceStats[]> {
+    const namespaces = await readdirAsync(this.directory);
+
+    const stats = namespaces.sort().map(async (namespace): Promise<NamespaceStats> => {
+      const entries = await globAsync(path.join(this.directory, namespace, '**', '*.json'));
+
+      return {
+        items: entries.length,
+        namespace
+      };
+    });
+
+    return Promise.all(stats);
   }
 
   /**

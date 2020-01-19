@@ -3,7 +3,7 @@ import tmp from 'tmp';
 import assert from './assert';
 import Cache, { Options } from '../src/cache';
 
-describe('cache', function() {
+describe.only('cache', function() {
 
   describe('Cache', function() {
 
@@ -131,6 +131,30 @@ describe('cache', function() {
       });
 
     });
+
+    describe('.stats', function() {
+
+      it('lists all namespaces', async function() {
+        const cache = createCache();
+
+        const first = await cache.stats();
+
+        await cache.fetch(['alfa', 'alfa'], () => Promise.resolve(''));
+        await cache.fetch(['bravo', 'alfa'], () => Promise.resolve(''));
+        await cache.fetch(['bravo', 'bravo'], () => Promise.resolve(''));
+
+        const second = await cache.stats();
+
+        assert.deepEqual(first, []);
+
+        assert.deepEqual(second, [
+          { items: 1, namespace: 'alfa' },
+          { items: 2, namespace: 'bravo' }
+        ]);
+      });
+
+    });
+
   });
 
 });
