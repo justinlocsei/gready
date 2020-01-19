@@ -24,6 +24,7 @@ interface CLIOptions {
 }
 
 type CacheName = ExtractArrayType<typeof CACHE_NAMES>;
+type CacheMap = Record<CacheName, Cache>;
 type CLINumber = number | string;
 type CLIArray = (number | string)[];
 
@@ -69,6 +70,7 @@ type CommandOptions =
   | { command: 'clear-cache'; options: ClearCacheOptions; }
   | { command: 'find-books'; options: FindBooksOptions; }
   | { command: 'find-readers'; options: FindReadersOptions; }
+  | { command: 'show-cache-stats'; options: CoreOptions; }
   | { command: 'summarize'; options: SummarizeOptions; }
   | { command: 'sync-books'; options: SyncBooksOptions; }
 
@@ -195,6 +197,12 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
         options => resolve({ command: 'sync-books', options })
       )
       .command(
+        'show-cache-stats',
+        'Show information on the available caches',
+        opts => opts,
+        options => resolve({ command: 'show-cache-stats', options })
+      )
+      .command(
         'summarize',
         'Summarize your read books that are available in the local cache',
         function(opts) {
@@ -241,7 +249,7 @@ function ensureNumeric<
  * Clear a cache
  */
 function clearCache(
-  cacheMap: Record<CacheName, Cache>,
+  cacheMap: CacheMap,
   cacheName: CacheName | undefined,
   namespaces: CLIArray | undefined
 ): Promise<void> {
@@ -254,6 +262,25 @@ function clearCache(
   return Promise.all(caches.map(function(cache) {
     return cache.clear(maybeMap(namespaces, n => n.toString()));
   })).then(() => undefined);
+}
+
+/**
+ * Show stats on a series of caches
+ */
+function showCacheStats(cacheMap: CacheMap): Promise<string> {
+  const names = Object.keys(cacheMap).sort();
+
+  return Promise.all(names.map(async function(name) {
+    const cache = cacheMap[name as CacheName];
+    const stats = await cache.stats();
+
+    const lines = [
+      name,
+      ...stats.map(s => `  ${s.namespace}: ${s.items}`)
+    ];
+
+    return lines.join('\n');
+  })).then(text => text.join('\n\n'));
 }
 
 /**
@@ -282,6 +309,11 @@ async function startCLI(cliOptions: CLIOptions): Promise<void> {
   const apiCache = new Cache(cacheDirs.apiRequests, { enabled: options['cache-responses'] });
   const dataCache = new Cache(cacheDirs.data, { enabled: options['cache-data'] });
 
+  const cacheMap: CacheMap = {
+    data: dataCache,
+    response: apiCache
+  };
+
   const apiClient = new APIClient({
     apiKey: getGoodreadsAPIKey(),
     cache: apiCache,
@@ -307,10 +339,7 @@ async function startCLI(cliOptions: CLIOptions): Promise<void> {
   switch (parsed.command) {
     case 'clear-cache':
       return clearCache(
-        {
-          data: dataCache,
-          response: apiCache
-        },
+        cacheMap,
         parsed.options['cache'] ? parsed.options['cache'] as CacheName : undefined,
         parsed.options['namespace']
       );
@@ -332,10 +361,10 @@ async function startCLI(cliOptions: CLIOptions): Promise<void> {
         shelfPercentile
       });
 
-    case 'sync-books':
-      return cli.syncBooks(
-        parsed.options['recent'] ? ensureNumeric(parsed.options, 'recent') : undefined
-      )
+    case 'show-cache-stats':
+      return showCacheStats(cacheMap).then(function(stats) {
+        cliOptions.stdout.write(stats + '\n');
+      });
 
     case 'summarize':
       return cli.summarize({
@@ -343,6 +372,11 @@ async function startCLI(cliOptions: CLIOptions): Promise<void> {
         shelfPercentile,
         shelves: maybeMap(parsed.options.shelf, s => s.toString())
       });
+
+    case 'sync-books':
+      return cli.syncBooks(
+        parsed.options['recent'] ? ensureNumeric(parsed.options, 'recent') : undefined
+      )
 
     default:
       unreachable(parsed);
