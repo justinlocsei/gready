@@ -58,9 +58,13 @@ export default class Bookshelf {
    * Get all books that belong to one or more shelves in a list
    */
   getBooksInShelves(...shelfNames: string[]): Book[] {
+    if (!shelfNames.length) {
+      return [];
+    }
+
     const nameSet = new Set(shelfNames);
 
-    return this.books.filter(book => {
+    return this.getBooks().filter(book => {
       return this.partitionShelves(book.shelves).find(({ data: shelf, percentile }) => {
         return percentile >= this.shelfPercentile && nameSet.has(shelf.name);
       });
@@ -68,10 +72,15 @@ export default class Bookshelf {
   }
 
   /**
-   * Provide an annotated view of the shelves used by all books
+   * Provide a partitioned view of the shelves used by all books
    */
   getAllShelves(): PartitionedShelf[] {
     const countsByName = this.books.reduce(function(previous: Record<string, number>, book) {
+      book.shelves.forEach(function({ count, name }) {
+        previous[name] = previous[name] || 0;
+        previous[name] += count;
+      });
+
       return previous;
     }, {});
 
@@ -82,14 +91,14 @@ export default class Bookshelf {
       };
     });
 
-    return sortBy(this.partitionShelves(shelves), [
-      s => s.percentile,
-      s => s.data.name
-    ]);
+    return sortBy(
+      this.partitionShelves(shelves),
+      [s => s.data.name]
+    );
   }
 
   /**
-   * Get an annotated view of all shelves at or above the current percentile
+   * Get a partitioned view of all shelves at or above the current percentile
    */
   getShelves(): PartitionedShelf[] {
     return this
@@ -105,12 +114,12 @@ export default class Bookshelf {
     const booksByAuthor: Record<AuthorID, Book[]> = {};
 
     this.books.forEach(function(book) {
-      const author = book.authors[0];
+      book.authors.forEach(function(author) {
+        authorsByID[author.id] = author;
 
-      authorsByID[author.id] = author;
-
-      booksByAuthor[author.id] = booksByAuthor[author.id] || [];
-      booksByAuthor[author.id].push(book);
+        booksByAuthor[author.id] = booksByAuthor[author.id] || [];
+        booksByAuthor[author.id].push(book);
+      });
     });
 
     const sortedAuthorIDs = sortBy(Object.keys(authorsByID), [
@@ -203,7 +212,7 @@ export default class Bookshelf {
 
   /**
    * Create a new bookshelf that only contains books that belong to one or more
-   * shelves in a list
+   * shelves in a list at or above the current percentile
    */
   restrictShelves(...shelfNames: string[]): Bookshelf {
     return new Bookshelf(this.getBooksInShelves(...shelfNames), {
