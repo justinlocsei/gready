@@ -1,18 +1,11 @@
 import assert from './assert';
 import Bookshelf from '../src/bookshelf';
 import { Book } from '../src/types/core';
-import { createBook } from './factories';
+import { createBookshelf } from './factories';
 
 describe('bookshelf', function() {
 
   describe('Bookshelf', function() {
-
-    function createBookshelf(books: Partial<Book>[] = [], shelfPercentile = 1): Bookshelf {
-      return new Bookshelf(
-        books.map(createBook),
-        { shelfPercentile }
-      );
-    }
 
     describe('.getBooks', function() {
 
