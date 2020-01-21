@@ -22,13 +22,11 @@ interface Section {
 /**
  * Generate a printable summary of a bookshelf
  */
-export function summarizeBookshelf(bookshelf: Bookshelf, {
-  sections
-}: {
+export function summarizeBookshelf(bookshelf: Bookshelf, options: {
   sections?: SectionID[];
-}): string[] {
+} = {}): string[] {
   const parts: Section[] = [];
-  const sectionIDs = new Set(sections || SECTION_IDS);
+  const sectionIDs = new Set(options.sections || SECTION_IDS);
 
   const showSections: Record<SectionID, boolean> = SECTION_IDS.reduce(function(previous: Record<string, boolean>, id) {
     previous[id] = sectionIDs.has(id);
