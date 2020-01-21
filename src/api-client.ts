@@ -71,6 +71,56 @@ export default class APIClient {
   }
 
   /**
+   * Get information on a book using its Goodreads ID
+   */
+  getBook(id: BookID): Promise<Book> {
+    return this.options.cache.fetch(['books', id], async () => {
+      const response = await this.request(
+        ['Fetch book', `ID=${id}`],
+        'book/show.xml',
+        {
+          id,
+          format: 'xml'
+        }
+      );
+
+      return validateBookResponse(response).book;
+    });
+  }
+
+  /**
+   * Extract reviews of a book with a given identifier
+   */
+  async getBookReviews(id: BookID, {
+    limit,
+    rating
+  }: {
+    limit?: number;
+    rating?: number;
+  } = {}): Promise<Review[]> {
+    const message = [
+      `Book=${id}`,
+      `Rating=${rating || 'any'}`,
+      `Limit=${limit || 'none'}`
+    ];
+
+    const reviews = await this.options.cache.fetch(
+      ['review-meta', id, rating || 'all', limit || 'all'],
+      () => {
+        this.options.logger.debug('Fetch review metadata', ...message);
+        return findPartialReviewsForBook(id, { limit, rating });
+      }
+    );
+
+    return runSequence(
+      ['Load reviews', ...message],
+      reviews,
+      this.options.logger,
+      async ({ id }) => this.getReview(id)
+    );
+  }
+
+  /**
    * Attempt to get the canonical ID of an existing book
    */
   async getCanonicalBookID(book: Normalized.Book): Promise<BookID | undefined> {
@@ -92,24 +142,6 @@ export default class APIClient {
     const match = works.find(w => authorID === w.best_book.author.id._);
 
     return match && match.best_book.id._;
-  }
-
-  /**
-   * Get information on a book using its Goodreads ID
-   */
-  getBook(id: BookID): Promise<Book> {
-    return this.options.cache.fetch(['books', id], async () => {
-      const response = await this.request(
-        ['Fetch book', `ID=${id}`],
-        'book/show.xml',
-        {
-          id,
-          format: 'xml'
-        }
-      );
-
-      return validateBookResponse(response).book;
-    });
   }
 
   /**
@@ -149,38 +181,6 @@ export default class APIClient {
 
       return readBooks;
     });
-  }
-
-  /**
-   * Extract reviews of a book with a given identifier
-   */
-  async getBookReviews(id: BookID, {
-    limit,
-    rating
-  }: {
-    limit?: number;
-    rating?: number;
-  } = {}): Promise<Review[]> {
-    const message = [
-      `Book=${id}`,
-      `Rating=${rating || 'any'}`,
-      `Limit=${limit || 'none'}`
-    ];
-
-    const reviews = await this.options.cache.fetch(
-      ['review-meta', id, rating || 'all', limit || 'all'],
-      () => {
-        this.options.logger.debug('Fetch review metadata', ...message);
-        return findPartialReviewsForBook(id, { limit, rating });
-      }
-    );
-
-    return runSequence(
-      ['Load reviews', ...message],
-      reviews,
-      this.options.logger,
-      async ({ id }) => this.getReview(id)
-    );
   }
 
   /**
