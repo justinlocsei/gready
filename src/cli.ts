@@ -149,12 +149,12 @@ export default class CLI {
     const books = await this.repo.getLocalBooks(readBooks.map(b => b.bookID));
     const bookshelf = new Bookshelf(books, { shelfPercentile });
 
-    const summary = summarizeBookshelf(
+    const summarySections = summarizeBookshelf(
       shelves ? bookshelf.restrictShelves(...shelves) : bookshelf,
       { sections }
     );
 
-    this.stdout.write(summary + '\n');
+    this.stdout.write(summarySections.join('\n\n') + '\n');
   }
 
 }

@@ -26,7 +26,7 @@ export function summarizeBookshelf(bookshelf: Bookshelf, {
   sections
 }: {
   sections?: SectionID[];
-}): string {
+}): string[] {
   const parts: Section[] = [];
   const sectionIDs = new Set(sections || SECTION_IDS);
 
@@ -70,9 +70,9 @@ export function summarizeBookshelf(bookshelf: Bookshelf, {
     });
   }
 
-  return parts
-    .map(({ body, title }) => `${underline(title)}\n\n${body}`)
-    .join('\n\n');
+  return parts.map(function({ body, title }) {
+    return `${underline(title)}\n\n${body}`;
+  });
 }
 
 /**
