@@ -1,6 +1,6 @@
 import tmp from 'tmp';
 
-import assert from './assert';
+import assert from './helpers/assert';
 import Cache, { Options } from '../src/cache';
 
 describe('cache', function() {

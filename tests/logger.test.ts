@@ -1,4 +1,4 @@
-import assert from './assert';
+import assert from './helpers/assert';
 import { createTestLogger } from './helpers';
 import { getLevelNames } from '../src/logger';
 

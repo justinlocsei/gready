@@ -1,4 +1,4 @@
-import assert from './assert';
+import assert from './helpers/assert';
 
 import { validate } from '../src/validators';
 

@@ -2,7 +2,7 @@ import fs from 'graceful-fs';
 import tmp from 'tmp';
 import { promisify } from 'util';
 
-import Logger, { Options as LoggerOptions } from '../src/logger';
+import Logger, { Options as LoggerOptions } from '../../src/logger';
 
 const readFileAsync = promisify(fs.readFile);
 

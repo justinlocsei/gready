@@ -3,7 +3,7 @@ import sinon from 'sinon';
 import tmp from 'tmp';
 import { promisify } from 'util';
 
-import assert from './assert';
+import assert from './helpers/assert';
 import { OperationalError } from '../src/errors';
 import { UserConfiguration } from '../src/types/config';
 

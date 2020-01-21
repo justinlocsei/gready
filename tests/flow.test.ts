@@ -1,6 +1,6 @@
 import { range } from 'lodash';
 
-import assert from './assert';
+import assert from './helpers/assert';
 import { createTestLogger } from './helpers';
 import { runSequence } from '../src/flow';
 

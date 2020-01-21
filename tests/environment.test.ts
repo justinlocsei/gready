@@ -1,4 +1,4 @@
-import assert from './assert';
+import assert from './helpers/assert';
 import fs from 'graceful-fs';
 import path from 'path';
 import tmp from 'tmp';

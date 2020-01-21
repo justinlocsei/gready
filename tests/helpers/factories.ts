@@ -1,5 +1,5 @@
-import Bookshelf from '../src/bookshelf';
-import { Book } from '../src/types/core';
+import Bookshelf from '../../src/bookshelf';
+import { Book } from '../../src/types/core';
 
 /**
  * Create a valid book

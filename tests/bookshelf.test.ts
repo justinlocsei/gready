@@ -1,7 +1,7 @@
-import assert from './assert';
+import assert from './helpers/assert';
 import Bookshelf from '../src/bookshelf';
 import { Book } from '../src/types/core';
-import { createBookshelf } from './factories';
+import { createBookshelf } from './helpers/factories';
 
 describe('bookshelf', function() {
 

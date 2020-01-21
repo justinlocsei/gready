@@ -1,6 +1,6 @@
 import nock from 'nock';
 
-import assert from './assert';
+import assert from './helpers/assert';
 import { makeGetRequest } from '../src/network';
 
 describe('network', function() {
