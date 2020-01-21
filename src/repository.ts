@@ -178,7 +178,7 @@ export default class Repository {
     const similarBooks = (book.similar_books && book.similar_books.book) || [];
 
     const normalized: Book = {
-      authors,
+      author: authors[0],
       averageRating: totalRatings > 0 ? ratingsSum / totalRatings : undefined,
       canonicalID: id,
       id: id,

@@ -214,24 +214,17 @@ describe('bookshelf', function() {
       it('groups books by author', function() {
         const bookshelf = createBookshelf([
           {
-            authors: [
-              { id: '1', name: 'Alfa Bravo' },
-              { id: '2', name: 'Alfa Alfa' }
-            ],
+            author: { id: '1', name: 'Alfa Bravo' },
             id: '2',
             title: 'alfa'
           },
           {
-            authors: [
-              { id: '1', name: 'Alfa Bravo' }
-            ],
+            author: { id: '1', name: 'Alfa Bravo' },
             id: '1',
             title: 'alfa'
           },
           {
-            authors: [
-              { id: '3', name: 'Bravo Alfa' }
-            ],
+            author: { id: '2', name: 'Bravo Alfa' },
             id: '3',
             title: 'bravo'
           }
@@ -245,8 +238,7 @@ describe('bookshelf', function() {
         });
 
         assert.deepEqual(grouped, [
-          { authorID: '2', bookIDs: ['2'] },
-          { authorID: '3', bookIDs: ['3'] },
+          { authorID: '2', bookIDs: ['3'] },
           { authorID: '1', bookIDs: ['1', '2'] }
         ]);
       });

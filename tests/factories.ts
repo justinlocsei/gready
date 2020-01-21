@@ -5,7 +5,7 @@ import { Book } from '../src/types/core';
  */
 export function createBook(data?: Partial<Book>): Book {
   return {
-    authors: [],
+    author: { id: '1', name: 'Author Name' },
     averageRating: 1,
     canonicalID: '1',
     id: '1',

@@ -149,7 +149,7 @@ export function summarizeRecommendedBooks(
     let lines = [
       underline(`${book.title} | p${percentile}`),
       '',
-      `Author: ${book.authors[0].name}`,
+      `Author: ${book.author.name}`,
       `Shelves: ${shelves.join(', ')}`,
     ];
 

@@ -12,7 +12,7 @@ export interface Author {
 }
 
 export interface Book {
-  authors: Author[];
+  author: Author;
   averageRating?: number;
   canonicalID: BookID;
   id: BookID;

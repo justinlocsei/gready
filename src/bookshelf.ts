@@ -114,12 +114,12 @@ export default class Bookshelf {
     const booksByAuthor: Record<AuthorID, Book[]> = {};
 
     this.books.forEach(function(book) {
-      book.authors.forEach(function(author) {
-        authorsByID[author.id] = author;
+      const { author } = book;
 
-        booksByAuthor[author.id] = booksByAuthor[author.id] || [];
-        booksByAuthor[author.id].push(book);
-      });
+      authorsByID[author.id] = author;
+
+      booksByAuthor[author.id] = booksByAuthor[author.id] || [];
+      booksByAuthor[author.id].push(book);
     });
 
     const sortedAuthorIDs = sortBy(Object.keys(authorsByID), [

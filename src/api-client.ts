@@ -87,9 +87,9 @@ export default class APIClient {
       return validateSearchResults(response);
     });
 
-    const authorIDs = book.authors.map(a => a.id);
+    const authorID = book.author.id;
     const works = ensureArray(results.search.results.work);
-    const match = works.find(w => authorIDs.includes(w.best_book.author.id._));
+    const match = works.find(w => authorID === w.best_book.author.id._);
 
     return match && match.best_book.id._;
   }
