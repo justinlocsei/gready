@@ -6,17 +6,22 @@ import { BookID, ReviewID } from './types/goodreads';
 import { makeGetRequest } from './network';
 import { URLS } from './goodreads';
 
+interface PartialReview {
+  id: ReviewID;
+  rating: number;
+}
+
 /**
- * Find review IDs for a book
+ * Find partial reviews for a book
  */
-export async function findReviewIDsForBook(id: BookID, {
+export async function findPartialReviewsForBook(id: BookID, {
   limit = 10,
   rating
 }: {
   limit?: number;
   rating?: number;
-} = {}): Promise<ReviewID[]> {
-  let ids: ReviewID[] = [];
+} = {}): Promise<PartialReview[]> {
+  let allReviews: PartialReview[] = [];
 
   let done = false;
   let page = 1;
@@ -25,15 +30,15 @@ export async function findReviewIDsForBook(id: BookID, {
     const url = buildWidgetURL(id, limit, page, rating);
     const responseText = await makeGetRequest(url);
 
-    const reviews = extractReviewIDs(responseText, rating);
+    const [exhausted, reviews] = extractReviews(responseText, rating);
 
-    ids = ids.concat(reviews);
+    allReviews = allReviews.concat(reviews);
     page++;
 
-    done = reviews.length < limit || ids.length >= limit;
+    done = exhausted || allReviews.length >= limit;
   }
 
-  return ids.slice(0, limit);
+  return allReviews.slice(0, limit);
 }
 
 /**
@@ -49,7 +54,7 @@ function buildWidgetURL(
     did: 'DEVELOPER_ID',
     format: 'html',
     isbn: bookID,
-    num_reviews: perPage.toString(),
+    num_reviews: rating ? '50' : perPage.toString(),
     page: page.toString()
   };
 
@@ -64,13 +69,15 @@ function buildWidgetURL(
 }
 
 /**
- * Extract review IDs from the markup of the reviews widget
+ * Extract reviews from the markup of the reviews widget
  */
-function extractReviewIDs(markup: string, withRating?: number): ReviewID[] {
+function extractReviews(markup: string, withRating?: number): [boolean, PartialReview[]] {
   const $ = cheerio.load(markup);
-  const ids: ReviewID[] = [];
+  const $reviews = $('[itemtype="http://schema.org/Review"]');
 
-  $('[itemtype="http://schema.org/Review"]').each(function(i, review) {
+  const reviews: PartialReview[] = [];
+
+  $reviews.each(function(i, review) {
     const $review = $(review);
 
     const href = $review.find('[itemprop="discussionUrl"]').attr('href');
@@ -80,9 +87,9 @@ function extractReviewIDs(markup: string, withRating?: number): ReviewID[] {
     const rating = (stars.match(/★/g) || []).length;
 
     if (id && (!withRating || withRating === rating)) {
-      ids.push(id);
+      reviews.push({ id, rating });
     }
   });
 
-  return ids;
+  return [$reviews.length === 0, reviews];
 }

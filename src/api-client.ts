@@ -6,7 +6,7 @@ import * as Normalized from './types/core';
 import Cache from './cache';
 import Logger from './logger';
 import { ensureArray } from './util';
-import { findReviewIDsForBook } from './reviews';
+import { findPartialReviewsForBook } from './reviews';
 import { makeGetRequest } from './network';
 import { runSequence } from './flow';
 import { URLS } from './goodreads';
@@ -185,19 +185,19 @@ export default class APIClient {
       `Limit=${limit || 'none'}`
     ];
 
-    const reviewIDs = await this.options.cache.fetch(
-      ['review-ids', id, rating || 'all', limit || 'all'],
+    const reviews = await this.options.cache.fetch(
+      ['review-meta', id, rating || 'all', limit || 'all'],
       () => {
-        this.options.logger.debug('Fetch review IDs', ...message);
-        return findReviewIDsForBook(id, { limit, rating });
+        this.options.logger.debug('Fetch review metadata', ...message);
+        return findPartialReviewsForBook(id, { limit, rating });
       }
     );
 
     return runSequence(
       ['Load reviews', ...message],
-      reviewIDs,
+      reviews,
       this.options.logger,
-      async id => this.getReview(id)
+      async ({ id }) => this.getReview(id)
     );
   }
 
