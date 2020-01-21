@@ -24,9 +24,5 @@ export async function makeGetRequest(
     throw new OperationalError(`GET request to ${endpoint} failed:\n${error}`);
   }
 
-  if (response.status !== 200) {
-    throw new OperationalError(`GET request to ${endpoint} failed with code ${response.status}`);
-  }
-
   return response.text || response.body.toString();
 }
