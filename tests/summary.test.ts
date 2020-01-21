@@ -13,8 +13,8 @@ describe('summary', function() {
           id: '1',
           publisher: 'Publisher Alfa',
           shelves: [
-            { count: 1, name: 'Shelf Alfa'},
-            { count: 2, name: 'Shelf Bravo'}
+            { count: 1, name: 'Shelf Alfa' },
+            { count: 2, name: 'Shelf Bravo' }
           ],
           title: 'Book Alfa'
         },
@@ -22,7 +22,7 @@ describe('summary', function() {
           author: { id: '2', name: 'Charlie Delta' },
           id: '2',
           publisher: 'Publisher Bravo',
-          shelves: [{ count: 1, name: 'Shelf Alfa'}],
+          shelves: [{ count: 1, name: 'Shelf Alfa' }],
           title: 'Book Bravo'
         }
       ], 0);
