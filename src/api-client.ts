@@ -152,24 +152,6 @@ export default class APIClient {
   }
 
   /**
-   * Get information on a review
-   */
-  getReview(id: ReviewID): Promise<Review> {
-    return this.options.cache.fetch(['reviews', id], async () => {
-      const response = await this.request(
-        ['Fetch review', `ID=${id}`],
-        'review/show.xml',
-        {
-          id,
-          format: 'xml'
-        }
-      );
-
-      return validateReviewResponse(response).review;
-    });
-  }
-
-  /**
    * Extract reviews of a book with a given identifier
    */
   async getBookReviews(id: BookID, {
@@ -199,6 +181,24 @@ export default class APIClient {
       this.options.logger,
       async ({ id }) => this.getReview(id)
     );
+  }
+
+  /**
+   * Get information on a review
+   */
+  private getReview(id: ReviewID): Promise<Review> {
+    return this.options.cache.fetch(['reviews', id], async () => {
+      const response = await this.request(
+        ['Fetch review', `ID=${id}`],
+        'review/show.xml',
+        {
+          id,
+          format: 'xml'
+        }
+      );
+
+      return validateReviewResponse(response).review;
+    });
   }
 
   /**
