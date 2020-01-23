@@ -6,6 +6,7 @@ describe('reviews', function() {
 
   describe('findPartialReviewsForBook', function() {
 
+    this.slow(9000);
     this.timeout(10000);
 
     it('returns an empty list for a book without reviews', async function() {
