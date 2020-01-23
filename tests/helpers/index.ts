@@ -7,6 +7,13 @@ import Logger, { Options as LoggerOptions } from '../../src/logger';
 const readFileAsync = promisify(fs.readFile);
 
 /**
+ * Whether test fixtures should be refreshed
+ */
+export function shouldRefreshFixtures(): boolean {
+  return process.env['GREADY_REFRESH_FIXTURES'] === '1';
+}
+
+/**
  * Create a logger for use in testing and a function to read its output
  */
 export function createTestLogger(options?: LoggerOptions): [Logger, () => Promise<string[]>] {
