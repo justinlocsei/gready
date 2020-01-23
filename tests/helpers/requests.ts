@@ -1,74 +1,44 @@
-import nock from 'nock';
-import path from 'path';
-import { chunk } from 'lodash';
+import FSPersister from '@pollyjs/persister-fs';
+import NodeHTTPAdapter from '@pollyjs/adapter-node-http';
+import { Polly } from '@pollyjs/core';
 
-const nockBack = nock.back;
+import { paths } from '../../src/environment';
 
-nockBack.fixtures = path.join(
-  path.normalize(path.join(__dirname, '..')),
-  'fixtures'
-);
+Polly.register(FSPersister);
+Polly.register(NodeHTTPAdapter);
 
-nockBack.setMode('record');
-
-const ALLOWED_HEADERS = [
-  'Content-Encoding',
-  'Content-Type',
-  'Status',
-  'Transfer-Encoding'
+const IGNORE_HEADERS = [
+  'set-cookie',
+  'x-amz-rid',
+  'x-request-id',
+  'x-runtime'
 ];
-
-/**
- * Filter response headers to only include headers specified in a whitelist
- */
-function filterResponseHeaders(headers: string[], whitelist: string[]): string[] {
-  const allowed = new Set(whitelist);
-
-  return chunk(headers, 2).reduce(function(previous, [header, value]) {
-    if (allowed.has(header)) {
-      previous.push(header);
-      previous.push(value);
-    }
-
-    return previous;
-  }, []);
-}
-
-/**
- * Normalize all recorded nock scopes
- */
-function normalizeScopes(scopes: nock.Definition[], keepHeaders: string[]): nock.Definition[] {
-  return scopes.map(function(scope): nock.Definition {
-    return {
-      ...scope,
-      rawHeaders: scope.rawHeaders && filterResponseHeaders(scope.rawHeaders, keepHeaders)
-    };
-  });
-}
 
 /**
  * Use a fixture for all network interactions triggered by a function
  */
-export function useNetworkFixture(
-  partialPath: string,
-  runAction: () => Promise<void>,
-  options: {
-    keepHeaders?: string[];
-  } = {}
+export async function useNetworkFixture(
+  guid: string,
+  runTest: () => Promise<void>
 ): Promise<void> {
-  const fixturePath = `${partialPath}.json`;
-
-  function afterRecord(scopes: nock.Definition[]) {
-    return normalizeScopes(scopes, [
-      ...ALLOWED_HEADERS,
-      ...(options.keepHeaders || [])]
-    );
-  }
-
-  return nockBack(fixturePath, { afterRecord }).then(async function({ context, nockDone }) {
-    await runAction();
-
-    context.assertScopesFinished();
-    nockDone();
+  const polly = new Polly(guid, {
+    adapters: ['node-http'],
+    mode: process.env['GREADY_REFRESH_FIXTURES'] === '1' ? 'record' : 'replay',
+    persister: 'fs',
+    persisterOptions: {
+      fs: {
+        recordingsDir: paths.testFixturesDir
+      }
+    }
   });
+
+  const { server } = polly;
+
+  server.any().on('beforeResponse', function(request, response) {
+    response.removeHeaders(IGNORE_HEADERS);
+  });
+
+  await runTest();
+
+  await polly.stop();
 }
