@@ -4,13 +4,18 @@ import { mkdirp, remove } from 'fs-extra';
 import { promisify } from 'util';
 import { readdir, readFile, writeFile } from 'graceful-fs';
 
+import { ExtractArrayType } from './types/util';
 import { formatJSON } from './serialization';
+import { unreachable } from './util';
 
 const globAsync = promisify(glob);
 const readdirAsync = promisify(readdir);
 const readFileAsync = promisify(readFile);
 const writeFileAsync = promisify(writeFile);
 
+export const ENCODINGS = ['base64', 'utf-8'] as const;
+
+type Encoding = ExtractArrayType<typeof ENCODINGS>;
 type KeyPath = (number | string)[];
 
 interface NamespaceStats {
@@ -19,27 +24,36 @@ interface NamespaceStats {
 }
 
 export interface Options {
-  enabled?: boolean;
+  enabled: boolean;
+  encoding: Encoding;
 }
+
+const EXTENSIONS: Record<Encoding, string> = {
+  base64: 'txt',
+  'utf-8': 'json'
+};
 
 export default class Cache {
 
   private directory: string;
+  private extension: string;
   private createdDirectories: Set<string>;
   private options: Options;
 
   /**
    * Create a new interface to a filesystem cache
    */
-  constructor(directory: string, options: Options = {}) {
+  constructor(directory: string, options: Partial<Options> = {}) {
     this.directory = directory;
 
     this.options = {
       enabled: true,
+      encoding: 'utf-8',
       ...options
     };
 
     this.createdDirectories = new Set();
+    this.extension = EXTENSIONS[this.options.encoding];
   }
 
   /**
@@ -70,8 +84,8 @@ export default class Cache {
       return [];
     }
 
-    const parseRequests = entries.sort().map(function(file) {
-      return readFileAsync(path.join(dirPath, file), 'utf8').then(t => JSON.parse(t) as T);
+    const parseRequests = entries.sort().map(async (file): Promise<T> => {
+      return this.deserializeValue(await readFileAsync(path.join(dirPath, file), 'utf8'));
     });
 
     return Promise.all(parseRequests);
@@ -94,8 +108,7 @@ export default class Cache {
     }
 
     try {
-      const cached = await readFileAsync(cacheFile, 'utf8');
-      return JSON.parse(cached);
+      return this.deserializeValue(await readFileAsync(cacheFile, 'utf8'));
     } catch(error) {
       if (error.code === 'ENOENT') {
         return this.storeValue(cacheFile, computeValue);
@@ -112,7 +125,7 @@ export default class Cache {
     const namespaces = await readdirAsync(this.directory);
 
     const stats = namespaces.sort().map(async (namespace): Promise<NamespaceStats> => {
-      const entries = await globAsync(path.join(this.directory, namespace, '**', '*.json'));
+      const entries = await globAsync(path.join(this.directory, namespace, '**', `*.${this.extension}`));
 
       return {
         items: entries.length,
@@ -152,7 +165,7 @@ export default class Cache {
     return [
       relativeDir,
       absoluteDir,
-      path.join(absoluteDir, `${keyName}.json`)
+      path.join(absoluteDir, `${keyName}.${this.extension}`)
     ];
   }
 
@@ -164,9 +177,54 @@ export default class Cache {
     computeValue: () => Promise<T>
   ): Promise<T> {
     const value = await computeValue();
-    await writeFileAsync(filePath, formatJSON(value));
+
+    await writeFileAsync(filePath, this.serializeValue(value));
 
     return value;
+  }
+
+  /**
+   * Serialize a cached value
+   */
+  private serializeValue(value: unknown): string {
+    const { encoding } = this.options;
+
+    const asJSON = formatJSON(value);
+
+    switch (encoding) {
+      case 'base64':
+        return Buffer.from(asJSON).toString('base64');
+
+      case 'utf-8':
+        return asJSON;
+
+      default:
+        unreachable(encoding);
+    }
+  }
+
+  /**
+   * Deserialize a cached value
+   */
+  private deserializeValue<T>(serialized: string): T {
+    const { encoding } = this.options;
+
+    let data: string;
+
+    switch (encoding) {
+      case 'base64':
+        data = Buffer.from(serialized, 'base64').toString();
+        break;
+
+      case 'utf-8':
+        data = serialized;
+        break;
+
+      default:
+        unreachable(encoding);
+    }
+
+    return JSON.parse(data);
   }
 
 }

@@ -1,156 +1,164 @@
 import tmp from 'tmp';
 
 import assert from './helpers/assert';
-import Cache, { Options } from '../src/cache';
+import Cache, { ENCODINGS, Options } from '../src/cache';
 
 describe('cache', function() {
 
   describe('Cache', function() {
 
-    let cacheDir: tmp.DirResult;
+    ENCODINGS.forEach(function(encoding) {
 
-    beforeEach(function() {
-      cacheDir = tmp.dirSync();
-    });
+      context(`with ${encoding} encoding`, function() {
 
-    afterEach(function() {
-      if (cacheDir) {
-        cacheDir.removeCallback();
-      }
-    });
+        let cacheDir: tmp.DirResult;
 
-    function createCache(options?: Options): Cache {
-      return new Cache(cacheDir.name, options);
-    }
+        beforeEach(function() {
+          cacheDir = tmp.dirSync();
+        });
 
-    describe('.clear', function() {
+        afterEach(function() {
+          if (cacheDir) {
+            cacheDir.removeCallback();
+          }
+        });
 
-      it('can clear the cache', async function() {
-        const cache = createCache();
+        function createCache(options: Partial<Options> = {}): Cache {
+          return new Cache(cacheDir.name, { ...options, encoding });
+        }
 
-        await cache.fetch(['alfa'], () => Promise.resolve('charlie'));
-        await cache.clear();
+        describe('.clear', function() {
 
-        const value = await cache.fetch(['alfa'], () => Promise.resolve('delta'))
-        assert.equal(value, 'delta');
-      });
+          it('can clear the cache', async function() {
+            const cache = createCache();
 
-      it('can clear a set of namespaces', async function() {
-        const cache = createCache();
+            await cache.fetch(['alfa'], () => Promise.resolve('charlie'));
+            await cache.clear();
 
-        const alfaOne = await cache.fetch(['alfa', 'bravo'], () => Promise.resolve('before'));
-        const charlieOne = await cache.fetch(['charlie', 'delta'], () => Promise.resolve('before'));
+            const value = await cache.fetch(['alfa'], () => Promise.resolve('delta'))
+            assert.equal(value, 'delta');
+          });
 
-        await cache.clear(['charlie']);
+          it('can clear a set of namespaces', async function() {
+            const cache = createCache();
 
-        const alfaTwo = await cache.fetch(['alfa', 'bravo'], () => Promise.resolve('after'));
-        const charlieTwo = await cache.fetch(['charlie', 'delta'], () => Promise.resolve('after'));
+            const alfaOne = await cache.fetch(['alfa', 'bravo'], () => Promise.resolve('before'));
+            const charlieOne = await cache.fetch(['charlie', 'delta'], () => Promise.resolve('before'));
 
-        assert.equal(alfaOne, 'before');
-        assert.equal(charlieOne, 'before');
-        assert.equal(alfaTwo, 'before');
-        assert.equal(charlieTwo, 'after');
-      });
+            await cache.clear(['charlie']);
 
-    });
+            const alfaTwo = await cache.fetch(['alfa', 'bravo'], () => Promise.resolve('after'));
+            const charlieTwo = await cache.fetch(['charlie', 'delta'], () => Promise.resolve('after'));
 
-    describe('.entries', function() {
+            assert.equal(alfaOne, 'before');
+            assert.equal(charlieOne, 'before');
+            assert.equal(alfaTwo, 'before');
+            assert.equal(charlieTwo, 'after');
+          });
 
-      it('lists all entries in a given namespace', async function() {
-        const cache = createCache();
+        });
 
-        const first = await cache.entries(['alfa']);
+        describe('.entries', function() {
 
-        await cache.fetch(['alfa', 'bravo'], () => Promise.resolve('bravo'));
-        await cache.fetch(['alfa', 'charlie'], () => Promise.resolve('charlie'));
+          it('lists all entries in a given namespace', async function() {
+            const cache = createCache();
 
-        const second = await cache.entries(['alfa']);
+            const first = await cache.entries(['alfa']);
 
-        assert.deepEqual(first, []);
-        assert.deepEqual(second, ['bravo', 'charlie']);
-      });
+            await cache.fetch(['alfa', 'bravo'], () => Promise.resolve('bravo'));
+            await cache.fetch(['alfa', 'charlie'], () => Promise.resolve('charlie'));
 
-    });
+            const second = await cache.entries(['alfa']);
 
-    describe('.fetch', function() {
+            assert.deepEqual(first, []);
+            assert.deepEqual(second, ['bravo', 'charlie']);
+          });
 
-      it('calculates a value', async function() {
-        const cache = createCache();
+        });
 
-        const result = await cache.fetch(
-          ['alfa'],
-          () => Promise.resolve('bravo')
-        );
+        describe('.fetch', function() {
 
-        assert.equal(result, 'bravo');
-      });
+          it('calculates a value', async function() {
+            const cache = createCache();
 
-      it('supports namespaces', async function() {
-        const cache = createCache();
+            const result = await cache.fetch(
+              ['alfa'],
+              () => Promise.resolve('bravo')
+            );
 
-        const result = await cache.fetch(
-          ['alfa', 'bravo'],
-          () => Promise.resolve('charlie')
-        );
+            assert.equal(result, 'bravo');
+          });
 
-        assert.equal(result, 'charlie');
-      });
+          it('supports namespaces', async function() {
+            const cache = createCache();
 
-      it('uses a cached value', async function() {
-        const cache = createCache();
+            const result = await cache.fetch(
+              ['alfa', 'bravo'],
+              () => Promise.resolve('charlie')
+            );
 
-        const first = await cache.fetch(
-          ['alfa'],
-          () => Promise.resolve('bravo')
-        );
+            assert.equal(result, 'charlie');
+          });
 
-        const second = await cache.fetch(
-          ['alfa'],
-          () => Promise.resolve('charlie')
-        );
+          it('uses a cached value', async function() {
+            const cache = createCache();
 
-        assert.equal(first, 'bravo');
-        assert.equal(second, 'bravo');
-      });
+            const first = await cache.fetch(
+              ['alfa'],
+              () => Promise.resolve('bravo')
+            );
 
-      it('can bypass the cache', async function() {
-        const cache = createCache({ enabled: false });
+            const second = await cache.fetch(
+              ['alfa'],
+              () => Promise.resolve('charlie')
+            );
 
-        const first = await cache.fetch(
-          ['alfa'],
-          () => Promise.resolve('bravo')
-        );
+            assert.equal(first, 'bravo');
+            assert.equal(second, 'bravo');
+          });
 
-        const second = await cache.fetch(
-          ['alfa'],
-          () => Promise.resolve('charlie')
-        );
+          it('can bypass the cache', async function() {
+            const cache = createCache({ enabled: false });
 
-        assert.equal(first, 'bravo');
-        assert.equal(second, 'charlie');
-      });
+            const first = await cache.fetch(
+              ['alfa'],
+              () => Promise.resolve('bravo')
+            );
 
-    });
+            const second = await cache.fetch(
+              ['alfa'],
+              () => Promise.resolve('charlie')
+            );
 
-    describe('.stats', function() {
+            assert.equal(first, 'bravo');
+            assert.equal(second, 'charlie');
+          });
 
-      it('lists all namespaces', async function() {
-        const cache = createCache();
+        });
 
-        const first = await cache.stats();
+        describe('.stats', function() {
 
-        await cache.fetch(['alfa', 'alfa'], () => Promise.resolve(''));
-        await cache.fetch(['bravo', 'alfa'], () => Promise.resolve(''));
-        await cache.fetch(['bravo', 'bravo'], () => Promise.resolve(''));
+          it('lists all namespaces', async function() {
+            const cache = createCache();
 
-        const second = await cache.stats();
+            const first = await cache.stats();
 
-        assert.deepEqual(first, []);
+            await cache.fetch(['alfa', 'alfa'], () => Promise.resolve(''));
+            await cache.fetch(['bravo', 'alfa'], () => Promise.resolve(''));
+            await cache.fetch(['bravo', 'bravo'], () => Promise.resolve(''));
 
-        assert.deepEqual(second, [
-          { items: 1, namespace: 'alfa' },
-          { items: 2, namespace: 'bravo' }
-        ]);
+            const second = await cache.stats();
+
+            assert.deepEqual(first, []);
+
+            assert.deepEqual(second, [
+              { items: 1, namespace: 'alfa' },
+              { items: 2, namespace: 'bravo' }
+            ]);
+          });
+
+        });
+
       });
 
     });
