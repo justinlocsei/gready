@@ -7,7 +7,7 @@ import { shouldRefreshFixtures } from './index';
 
 const nockBack = nock.back;
 
-nockBack.fixtures = paths.testFixturesDir;
+nockBack.fixtures = paths.networkFixturesDir;
 nockBack.setMode(shouldRefreshFixtures() ? 'record' : 'lockdown');
 
 nock.restore();
