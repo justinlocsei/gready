@@ -10,16 +10,11 @@
     "resolveJsonModule": true,
     "sourceMap": false,
     "strict": true,
-    "target": "es2015",
-    "typeRoots": [
-      "./typings",
-      "./node_modules/@types"
-    ]
+    "target": "es2015"
   },
   "include": [
     "src/**/*",
-    "tests/**/*",
-    "typings/**/*"
+    "tests/**/*"
   ],
   "exclude": [
     "dist",
