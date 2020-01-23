@@ -1,47 +1,62 @@
-import FSPersister from '@pollyjs/persister-fs';
 import http from 'http';
-import NodeHTTPAdapter from '@pollyjs/adapter-node-http';
-import { Polly } from '@pollyjs/core';
+import nock from 'nock';
+import { chunk } from 'lodash';
 
 import { paths } from '../../src/environment';
+import { shouldRefreshFixtures } from './index';
 
-Polly.register(FSPersister);
-Polly.register(NodeHTTPAdapter);
+const nockBack = nock.back;
 
-const IGNORE_HEADERS = [
-  'set-cookie',
-  'x-amz-rid',
-  'x-request-id',
-  'x-runtime'
-];
+nockBack.fixtures = paths.testFixturesDir;
+nockBack.setMode(shouldRefreshFixtures() ? 'record' : 'lockdown');
+
+nock.restore();
+
+/**
+ * Remove unwanted headers from a flattened list of name/value data
+ */
+function filterHeaders(headers: string[], remove: string[]): string[] {
+  const forbidden = new Set(remove.map(h => h.toLowerCase()));
+
+  return chunk(headers, 2).reduce(function(previous, [header, value]) {
+    if (!forbidden.has(header.toLowerCase())) {
+      previous.push(header);
+      previous.push(value);
+    }
+
+    return previous;
+  }, []);
+}
 
 /**
  * Use a fixture for all network interactions triggered by a function
  */
 export async function useNetworkFixture(
   guid: string,
-  runTest: () => Promise<void>
+  runTest: () => Promise<void>,
+  options: {
+    removeHeaders?: string[];
+  } = {}
 ): Promise<void> {
-  const polly = new Polly(guid, {
-    adapters: ['node-http'],
-    mode: process.env['GREADY_REFRESH_FIXTURES'] === '1' ? 'record' : 'replay',
-    persister: 'fs',
-    persisterOptions: {
-      fs: {
-        recordingsDir: paths.testFixturesDir
-      }
+  nock.activate();
+
+  const { context, nockDone } = await nockBack(`${guid}.json`, {
+    afterRecord: function(defs) {
+      return defs.map(function(def): nock.Definition {
+        return {
+          ...def,
+          rawHeaders: def.rawHeaders && filterHeaders(def.rawHeaders, options.removeHeaders || [])
+        };
+      });
     }
-  });
-
-  const { server } = polly;
-
-  server.any().on('beforeResponse', function(request, response) {
-    response.removeHeaders(IGNORE_HEADERS);
   });
 
   await runTest();
 
-  await polly.stop();
+  context.assertScopesFinished();
+  nockDone();
+
+  nock.restore();
 }
 
 /**
