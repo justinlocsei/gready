@@ -17,6 +17,7 @@ export interface Book {
   canonicalID: BookID;
   id: BookID;
   publisher: string;
+  reviewsID: BookID;
   shelves: Shelf[];
   similarBooks: BookID[];
   title: string;

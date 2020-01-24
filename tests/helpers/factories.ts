@@ -11,6 +11,7 @@ export function createBook(data?: Partial<Book>): Book {
     canonicalID: '1',
     id: '1',
     publisher: 'Publisher',
+    reviewsID: '1',
     shelves: [],
     similarBooks: [],
     title: 'Title',

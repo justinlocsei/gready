@@ -6,6 +6,7 @@ import Cache from './cache';
 import Logger from './logger';
 import { Configuration } from './types/config';
 import { ensureArray } from './util';
+import { extractReviewsIDFromWidget } from './reviews';
 import { normalizeString } from './content';
 import { SHELVES } from './goodreads';
 
@@ -183,6 +184,7 @@ export default class Repository {
       canonicalID: id,
       id: id,
       publisher: book.publisher,
+      reviewsID: extractReviewsIDFromWidget(book.reviews_widget) || id,
       shelves,
       similarBooks: similarBooks.map(b => b.id),
       title,
