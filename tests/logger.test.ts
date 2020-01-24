@@ -1,5 +1,6 @@
 import assert from './helpers/assert';
 import { createTestLogger } from './helpers';
+import { freezeTime } from './helpers/mocking';
 import { getLevelNames } from '../src/logger';
 
 describe('logger', function() {
@@ -158,12 +159,6 @@ describe('logger', function() {
 
     describe('.log', function() {
 
-      function sleep(timeout: number): Promise<void> {
-        return new Promise(function(resolve) {
-          setTimeout(resolve, timeout);
-        });
-      }
-
       it('support a named log level', async function() {
         const [logger, readLog] = createTestLogger({ logLevel: 'debug' });
 
@@ -179,14 +174,33 @@ describe('logger', function() {
       it('can show the elapsed time between statements', async function() {
         const [logger, readLog] = createTestLogger({ logLevel: 'info', showTime: true });
 
-        logger.log('info', ['alfa']);
-        await sleep(10);
-        logger.log('info', ['bravo']);
+        const startTime = Date.now();
 
-        const [first, last] = await readLog();
+        freezeTime(startTime, () => logger.log('info', ['alfa']));
+        freezeTime(startTime + 10, () => logger.log('info', ['bravo']));
+        freezeTime(startTime + 110, () => logger.log('info', ['charlie']));
+        freezeTime(startTime + 1110, () => logger.log('info', ['delta']));
 
-        assert.match(first, /^\s+0ms \[INFO\] alfa/);
-        assert.match(last, /\d{2,}ms \[INFO\] bravo/);
+        assert.deepEqual(await readLog(), [
+          '   0ms [INFO] alfa',
+          '  10ms [INFO] bravo',
+          ' 100ms [INFO] charlie',
+          '1000ms [INFO] delta'
+        ]);
+      });
+
+      it('uses a fixed width for the elapsed time', async function() {
+        const [logger, readLog] = createTestLogger({ logLevel: 'info', showTime: true });
+
+        const startTime = Date.now();
+
+        freezeTime(startTime, () => logger.log('info', ['alfa']));
+        freezeTime(startTime + 10, () => logger.log('info', ['bravo']));
+
+        assert.deepEqual(await readLog(), [
+          '   0ms [INFO] alfa',
+          '  10ms [INFO] bravo'
+        ]);
       });
 
       it('respects color options when showing the elapsed time', async function() {
