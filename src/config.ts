@@ -15,6 +15,11 @@ const DEFAULT_CONFIG: Configuration = {
   mergeShelves: {}
 };
 
+const ENV_VARS = {
+  goodreadsAPIKey: 'GREADY_GOODREADS_API_KEY',
+  goodreadsUserID: 'GREADY_GOODREADS_USER_ID'
+};
+
 /**
  * Load a configuration
  */
@@ -78,7 +83,7 @@ async function loadConfigFile(filePath: string): Promise<Configuration> {
  */
 export function getGoodreadsAPIKey(): string {
   return requireEnvironmentVariable(
-    'GREADY_GOODREADS_API_KEY',
+    ENV_VARS.goodreadsAPIKey,
     'your Goodreads API key'
   );
 }
@@ -88,9 +93,16 @@ export function getGoodreadsAPIKey(): string {
  */
 export function getGoodreadsUserID(): string {
   return requireEnvironmentVariable(
-    'GREADY_GOODREADS_USER_ID',
+    ENV_VARS.goodreadsUserID,
     'your Goodreads user ID'
   );
+}
+
+/**
+ * Whether a Goodreads API key has been set
+ */
+export function hasGoodreadsAPIKey(): boolean {
+  return !!process.env[ENV_VARS.goodreadsAPIKey];
 }
 
 /**

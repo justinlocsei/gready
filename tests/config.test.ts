@@ -10,6 +10,7 @@ import { UserConfiguration } from '../src/types/config';
 import {
   getGoodreadsAPIKey,
   getGoodreadsUserID,
+  hasGoodreadsAPIKey,
   loadConfig
 } from '../src/config';
 
@@ -70,6 +71,24 @@ describe('config', function() {
         OperationalError,
         /Goodreads user ID/
       );
+    });
+
+  });
+
+  describe('hasGoodreadsAPIKey', function() {
+
+    it('returns true when the environment variable is set', function() {
+      sandbox.stub(process, 'env').value({
+        GREADY_GOODREADS_API_KEY: 'key'
+      });
+
+      assert.isTrue(hasGoodreadsAPIKey());
+    });
+
+    it('returns false when the environment variable is unset', function() {
+      sandbox.stub(process, 'env').value({});
+
+      assert.isFalse(hasGoodreadsAPIKey());
     });
 
   });
