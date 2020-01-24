@@ -163,7 +163,7 @@ export function summarizeRecommendedBooks(
       `[View on Goodreads](${getViewBookURL(book.id)})`
     ];
 
-    return lines.join('\n')
+    return lines.join('\n');
   });
 
   return groups.join('\n\n\n');

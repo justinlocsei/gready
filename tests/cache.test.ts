@@ -35,7 +35,7 @@ describe('cache', function() {
             await cache.fetch(['alfa'], () => Promise.resolve('charlie'));
             await cache.clear();
 
-            const value = await cache.fetch(['alfa'], () => Promise.resolve('delta'))
+            const value = await cache.fetch(['alfa'], () => Promise.resolve('delta'));
             assert.equal(value, 'delta');
           });
 

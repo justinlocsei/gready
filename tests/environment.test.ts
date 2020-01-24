@@ -60,7 +60,7 @@ describe('environment', function() {
     beforeEach(function() {
       tmpDir = tmp.dirSync();
       tmpDirPath = path.join(tmpDir.name, 'data');
-    })
+    });
 
     afterEach(function() {
       tmpDir.removeCallback();

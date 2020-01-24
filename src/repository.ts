@@ -72,7 +72,7 @@ export default class Repository {
    * Get all books in a list that are locally available
    */
   async getLocalBooks(ids: BookID[]): Promise<Book[]> {
-    const books = await this.cache.entries<Book>([SHARED_NAMESPACES.books])
+    const books = await this.cache.entries<Book>([SHARED_NAMESPACES.books]);
 
     const validBooks = books
       .filter(b => ids.includes(b.id))
@@ -162,7 +162,7 @@ export default class Repository {
   private async normalizeAPIBook(book: API.Book): Promise<Book> {
     const { authors: rawAuthors, id, work } = book;
 
-    const title = normalizeString(book.title || work.original_title)
+    const title = normalizeString(book.title || work.original_title);
     const ratingsSum = parseInt(work.ratings_sum._, 10);
     const totalRatings = parseInt(work.ratings_count._, 10);
 

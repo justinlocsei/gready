@@ -92,7 +92,7 @@ describe('config', function() {
         ignoreShelves: ['shelf'],
         mergePublishers: { 'alfa': ['bravo'] },
         mergeShelves: { 'charlie': ['delta'] }
-      })
+      });
 
       const config = await loadConfig(configPath);
 
@@ -112,7 +112,7 @@ describe('config', function() {
     it('supports partial configs', async function() {
       const configPath = await createConfig({
         ignoreShelves: ['shelf']
-      })
+      });
 
       const config = await loadConfig(configPath);
 

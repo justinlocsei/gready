@@ -225,9 +225,9 @@ export default class APIClient {
             shelf: 'read',
             v: 2
           }
-        )
+        );
       }
-    )
+    );
 
     return validateReadBooksResponse(response);
   }
@@ -280,7 +280,7 @@ export default class APIClient {
       const elapsed = time - this.lastRequestTime;
 
       if (elapsed < REQUEST_SPACING_MS) {
-        const delay = REQUEST_SPACING_MS - elapsed
+        const delay = REQUEST_SPACING_MS - elapsed;
         logger.debug(...requestMessage, `Wait ${delay}ms`);
 
         await this.sleep(delay);

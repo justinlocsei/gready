@@ -159,7 +159,7 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
             .option('shelf', {
               describe: 'A shelf in which a book must appear in order to be used as a source of recommendations',
               type: 'array'
-            })
+            });
         },
         options => resolve({ command: 'find-books', options })
       )
@@ -376,7 +376,7 @@ async function startCLI(cliOptions: CLIOptions): Promise<void> {
     case 'sync-books':
       return cli.syncBooks(
         parsed.options['recent'] ? ensureNumeric(parsed.options, 'recent') : undefined
-      )
+      );
 
     default:
       unreachable(parsed);

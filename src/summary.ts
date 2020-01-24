@@ -85,7 +85,7 @@ function summarizeBooksByAuthor(bookshelf: Bookshelf): string {
         ...bs.map(b => `  - ${b.title} (ID=${b.id})`)
       ].join('\n');
     })
-    .join('\n\n')
+    .join('\n\n');
 }
 
 /**
