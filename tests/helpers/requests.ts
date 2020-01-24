@@ -1,16 +1,63 @@
 import http from 'http';
-import nock from 'nock';
+import nock, { BackMode } from 'nock';
 import { chunk } from 'lodash';
 
-import { allowNetworkTests } from './index';
+import { canUpdateFixtures } from './index';
 import { paths } from '../../src/environment';
 
-const nockBack = nock.back;
-
-nockBack.fixtures = paths.networkFixturesDir;
-nockBack.setMode(allowNetworkTests() ? 'record' : 'lockdown');
+nock.back.fixtures = paths.networkFixturesDir;
 
 nock.restore();
+
+/**
+ * Configure a test's network access
+ */
+export function configureNetworkAccess(suite: Mocha.Suite, {
+  allowRequests = canUpdateFixtures(),
+  timeout,
+  useFixtures = true
+}: {
+  allowRequests?: boolean;
+  timeout: number;
+  useFixtures?: boolean;
+}): void {
+  let previousMode: BackMode | undefined;
+  let targetMode: BackMode;
+
+  if (allowRequests) {
+    targetMode = useFixtures ? 'record' : 'wild';
+  } else {
+    targetMode = 'lockdown';
+  }
+
+  suite.slow(Math.round(timeout * 0.95));
+  suite.timeout(timeout);
+
+  suite.beforeEach(function() {
+    previousMode = nock.back.currentMode;
+    nock.back.setMode(targetMode);
+
+    if (!nock.isActive()) {
+      nock.activate();
+    }
+
+    if (!allowRequests) {
+      nock.disableNetConnect();
+    }
+  });
+
+  suite.afterEach(function() {
+    if (previousMode) {
+      nock.back.setMode(previousMode);
+    }
+
+    if (!allowRequests) {
+      nock.enableNetConnect();
+    }
+
+    nock.restore();
+  });
+}
 
 /**
  * Remove unwanted headers from a flattened list of name/value data
@@ -42,7 +89,7 @@ export async function useNetworkFixture(
     nock.activate();
   }
 
-  const { context, nockDone } = await nockBack(`${guid}.json`, {
+  const { context, nockDone } = await nock.back(`${guid}.json`, {
     afterRecord: function(defs) {
       return defs.map(function(def): nock.Definition {
         return {

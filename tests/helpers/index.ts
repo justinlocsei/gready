@@ -7,10 +7,10 @@ import Logger, { Options as LoggerOptions } from '../../src/logger';
 const readFileAsync = promisify(fs.readFile);
 
 /**
- * Whether tests that involve network access should run
+ * Whether test fixtures can be updated
  */
-export function allowNetworkTests(): boolean {
-  return process.env['GREADY_RUN_NETWORK_TESTS'] === '1';
+export function canUpdateFixtures(): boolean {
+  return process.env['GREADY_ALLOW_TEST_FIXTURE_UPDATES'] === '1';
 }
 
 /**

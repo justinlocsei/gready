@@ -2,9 +2,9 @@ import fs from 'graceful-fs';
 import path from 'path';
 
 import assert from './helpers/assert';
+import { configureNetworkAccess, useNetworkFixture } from './helpers/requests';
 import { extractReviewsIDFromWidget, findPartialReviewsForBook } from '../src/reviews';
 import { paths } from '../src/environment';
-import { useNetworkFixture } from './helpers/requests';
 
 describe('reviews', function() {
 
@@ -35,8 +35,7 @@ describe('reviews', function() {
 
   describe('findPartialReviewsForBook', function() {
 
-    this.slow(9000);
-    this.timeout(10000);
+    configureNetworkAccess(this, { timeout: 10000 });
 
     function withFixture(name: string, runTest: () => Promise<void>) {
       return useNetworkFixture(name, runTest, {
