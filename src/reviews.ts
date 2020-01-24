@@ -12,6 +12,23 @@ interface PartialReview {
 }
 
 /**
+ * Extract the ID used to show a book's reviews from its widget's embed code
+ */
+export function extractReviewsIDFromWidget(embedCode: string): BookID | null {
+  const $ = cheerio.load(embedCode);
+
+  const $iframe = $('iframe[src]');
+  if ($iframe.length !== 1) { return null; }
+
+  const src = $iframe.attr('src');
+  if (!src) { return null; }
+
+  const url = new URL(src);
+
+  return url.searchParams.get('isbn');
+}
+
+/**
  * Find partial reviews for a book
  */
 export async function findPartialReviewsForBook(id: BookID, {

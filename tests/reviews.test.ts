@@ -1,8 +1,37 @@
+import fs from 'graceful-fs';
+import path from 'path';
+
 import assert from './helpers/assert';
-import { findPartialReviewsForBook } from '../src/reviews';
+import { extractReviewsIDFromWidget, findPartialReviewsForBook } from '../src/reviews';
+import { paths } from '../src/environment';
 import { useNetworkFixture } from './helpers/requests';
 
 describe('reviews', function() {
+
+  describe('extractReviewsIDFromWidget', function() {
+
+    it('extracts the ID from valid embed code', function() {
+      const widget = fs.readFileSync(path.join(paths.testFixturesDir, 'reviews-widget.html'), 'utf8');
+
+      assert.equal(
+        extractReviewsIDFromWidget(widget),
+        '0142437174'
+      );
+    });
+
+    it('returns null if the embed code lacks an iframe', function() {
+      assert.isNull(extractReviewsIDFromWidget(''));
+    });
+
+    it('returns null if the embed code lacks a src for its iframe', function() {
+      assert.isNull(extractReviewsIDFromWidget('<iframe src=""></iframe>'));
+    });
+
+    it('returns null if the embed code lacks an ID in its iframe’s src', function() {
+      assert.isNull(extractReviewsIDFromWidget('<iframe src="https://www.goodreads.com/api/reviews_widget_iframe?format=html"></iframe>'));
+    });
+
+  });
 
   describe('findPartialReviewsForBook', function() {
 
