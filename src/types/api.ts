@@ -61,6 +61,9 @@ export interface Review {
       _: string;
     };
     publisher: string;
+    work: {
+      id: string;
+    };
   };
   date_added: string;
   id: string;
