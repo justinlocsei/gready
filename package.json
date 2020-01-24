@@ -10,7 +10,8 @@
     "lint": "npm run lint:code && npm run lint:types",
     "lint:code": "eslint ./bin/* ./src/ ./tests/ --ext .ts; true",
     "lint:types": "tsc --noEmit; true",
-    "test": "mocha -r ts-node/register ./tests/**/*.test.ts"
+    "test": "mocha -r ts-node/register ./tests/**/*.test.ts",
+    "test:clear-fixtures": "ts-node ./src/bin/clear-test-fixtures.ts"
   },
   "repository": {
     "type": "git",
