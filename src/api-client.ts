@@ -241,7 +241,11 @@ export default class APIClient {
       explicitArray: false
     });
 
-    return validateResponse(parsed).GoodreadsResponse;
+    const validated = validateResponse(parsed).GoodreadsResponse;
+
+    delete validated.Request;
+
+    return validated;
   }
 
   /**
