@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { extractArgs } from '../environment';
-import { OperationalError } from '../errors';
+import { runAsScript } from '../scripts';
 import { runCLI } from '../gready';
 
 /**
@@ -12,15 +12,7 @@ function runGready(): Promise<void> {
     args: extractArgs(process.argv),
     stderr: process.stderr,
     stdout: process.stdout
-  }).catch(function(error) {
-    process.exitCode = 1;
-
-    if (error instanceof OperationalError) {
-      console.error(error.message);
-    } else {
-      console.error(error);
-    }
   });
 }
 
-runGready();
+runAsScript(runGready);

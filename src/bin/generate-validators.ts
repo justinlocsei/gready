@@ -8,6 +8,7 @@ import { promisify } from 'util';
 import { formatJSON } from '../serialization';
 import { OperationalError } from '../errors';
 import { paths, resolveRequire } from '../environment';
+import { runAsScript } from '../scripts';
 
 const writeFileAsync = promisify(fs.writeFile);
 
@@ -130,12 +131,4 @@ function generateValidatorCode(
   return lines.join('\n');
 }
 
-generateValidators().catch(function(error) {
-  process.exitCode = 1;
-
-  if (error instanceof OperationalError) {
-    console.error(error.message);
-  } else {
-    console.error(error);
-  }
-});
+runAsScript(generateValidators);
