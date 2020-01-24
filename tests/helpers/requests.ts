@@ -38,7 +38,9 @@ export async function useNetworkFixture(
     removeHeaders?: string[];
   } = {}
 ): Promise<void> {
-  nock.activate();
+  if (!nock.isActive()) {
+    nock.activate();
+  }
 
   const { context, nockDone } = await nockBack(`${guid}.json`, {
     afterRecord: function(defs) {
