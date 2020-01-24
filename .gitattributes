@@ -1,1 +1,2 @@
 /tests/fixtures/**/* linguist-generated=true
+/tests/fixtures/api/**/*.txt binary
