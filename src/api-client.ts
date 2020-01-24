@@ -123,7 +123,7 @@ export default class APIClient {
   /**
    * Attempt to get the canonical ID of an existing book
    */
-  async getCanonicalBookID(book: Normalized.Book): Promise<BookID | undefined> {
+  async getCanonicalBookID(book: Normalized.Book): Promise<BookID | null> {
     const results = await this.options.cache.fetch(['book-search', book.id], async () => {
       const response = await this.request(
         ['Find book', book.title],
@@ -141,7 +141,7 @@ export default class APIClient {
     const works = ensureArray(results.search.results.work);
     const match = works.find(w => authorID === w.best_book.author.id._);
 
-    return match && match.best_book.id._;
+    return match ? match.best_book.id._ : null;
   }
 
   /**
