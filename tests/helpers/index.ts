@@ -10,7 +10,7 @@ const readFileAsync = promisify(fs.readFile);
  * Whether tests that involve network access should run
  */
 export function allowNetworkTests(): boolean {
-  return process.env['GREADY_ALLOW_NETWORK_TESTS'] === '1';
+  return process.env['GREADY_RUN_NETWORK_TESTS'] === '1';
 }
 
 /**
