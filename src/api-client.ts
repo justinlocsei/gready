@@ -43,6 +43,7 @@ interface ClientOptions {
 
 interface PendingRequest {
   execute: () => Promise<string>;
+  handleError: (error: any) => void;
   handleResponse: (text: string) => void;
 }
 
@@ -62,8 +63,17 @@ export default class APIClient {
     this.options = options;
 
     this.requestQueue = async.queue(async function(task, callback) {
-      const text = await task.execute();
-      task.handleResponse(text);
+      let text: string | undefined;
+
+      try {
+        text = await task.execute();
+      } catch (error) {
+        task.handleError(error);
+      }
+
+      if (text !== undefined) {
+        task.handleResponse(text);
+      }
 
       callback();
     }, 1);
@@ -295,9 +305,12 @@ export default class APIClient {
 
     logger.debug(...requestMessage, 'Enqueue');
 
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
       this.requestQueue.push({
         execute,
+        handleError: (error: any) => {
+          reject(error);
+        },
         handleResponse: (text: string) => {
           logger.debug(...requestMessage, 'Handle response');
           logger.debug(...requestMessage, `RemainingRequests=${this.requestQueue.length()}`);
