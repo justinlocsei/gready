@@ -33,7 +33,6 @@ import {
   UserID
 } from './types/goodreads';
 
-const READ_BOOKS_PAGE_SIZE = 25;
 const REQUEST_SPACING_MS = 1000;
 
 interface ClientOptions {
@@ -73,9 +72,9 @@ export default class APIClient {
   /**
    * Get information on a book using its Goodreads ID
    */
-  getBook(id: BookID): Promise<Book> {
-    return this.options.cache.fetch(['books', id], async () => {
-      const response = await this.request(
+  async getBook(id: BookID): Promise<Book> {
+    const response = await this.options.cache.fetch(['books', id], () => {
+      return this.request(
         ['Fetch book', `ID=${id}`],
         'book/show.xml',
         {
@@ -83,9 +82,9 @@ export default class APIClient {
           format: 'xml'
         }
       );
-
-      return validateBookResponse(response).book;
     });
+
+    return validateBookResponse(response).book;
   }
 
   /**
@@ -124,8 +123,8 @@ export default class APIClient {
    * Attempt to get the canonical ID of an existing book
    */
   async getCanonicalBookID(book: Normalized.Book): Promise<BookID | null> {
-    const results = await this.options.cache.fetch(['book-search', book.id], async () => {
-      const response = await this.request(
+    const response = await this.options.cache.fetch(['book-search', book.id], () => {
+      return this.request(
         ['Find book', book.title],
         'search/index.xml',
         {
@@ -133,13 +132,13 @@ export default class APIClient {
           q: book.title
         }
       );
-
-      return validateSearchResults(response);
     });
 
-    const authorID = book.author.id;
-    const works = ensureArray(results.search.results.work);
-    const match = works.find(w => authorID === w.best_book.author.id._);
+    const results = validateSearchResults(response);
+
+    const match = ensureArray(results.search.results.work).find(function(work) {
+      return book.author.id === work.best_book.author.id._;
+    });
 
     return match ? match.best_book.id._ : null;
   }
@@ -147,48 +146,56 @@ export default class APIClient {
   /**
    * Get information on a user's read books
    */
-  getReadBooks(userID: UserID): Promise<ReadBook[]> {
-    return this.options.cache.fetch(['read-books', userID], async () => {
-      const readBooks: ReadBook[] = [];
+  async getReadBooks(
+    userID: UserID,
+    options: { pageSize?: number; } = {}
+  ): Promise<ReadBook[]> {
+    const readBooks: ReadBook[] = [];
+    const pageSize = options.pageSize || 25;
 
-      const check = await this.fetchReadBooksPage(['Check read books', `UserID=${userID}`], userID);
-      const totalBooks = parseInt(check.reviews.$.total, 10);
+    const check = await this.fetchReadBooksPage(
+      ['Check read books', `UserID=${userID}`],
+      userID,
+      pageSize
+    );
 
-      if (!totalBooks) {
-        return readBooks;
-      }
+    const totalBooks = parseInt(check.reviews.$.total, 10);
 
-      await runSequence(
-        ['Fetch read books', `UserID=${userID}`],
-        range(1, Math.ceil(totalBooks / READ_BOOKS_PAGE_SIZE) + 1),
-        this.options.logger,
-        async (page) => {
-          const { reviews } = await this.fetchReadBooksPage(
-            [
-              'Fetch read-books page',
-              `From=${(page - 1) * READ_BOOKS_PAGE_SIZE + 1}`,
-              `To=${Math.min(totalBooks, page * READ_BOOKS_PAGE_SIZE)}`
-            ],
-            userID,
-            page
-          );
-
-          reviews.review.forEach(function(review) {
-            readBooks.push(review);
-          });
-        }
-      );
-
+    if (!totalBooks) {
       return readBooks;
-    });
+    }
+
+    await runSequence(
+      ['Fetch read books', `UserID=${userID}`],
+      range(1, Math.ceil(totalBooks / pageSize) + 1),
+      this.options.logger,
+      async (page) => {
+        const { reviews } = await this.fetchReadBooksPage(
+          [
+            'Fetch read-books page',
+            `From=${(page - 1) * pageSize + 1}`,
+            `To=${Math.min(totalBooks, page * pageSize)}`
+          ],
+          userID,
+          pageSize,
+          page
+        );
+
+        ensureArray(reviews.review || []).forEach(function(review) {
+          readBooks.push(review);
+        });
+      }
+    );
+
+    return readBooks;
   }
 
   /**
    * Get information on a review
    */
-  private getReview(id: ReviewID): Promise<Review> {
-    return this.options.cache.fetch(['reviews', id], async () => {
-      const response = await this.request(
+  private async getReview(id: ReviewID): Promise<Review> {
+    const response = await this.options.cache.fetch(['reviews', id], () => {
+      return this.request(
         ['Fetch review', `ID=${id}`],
         'review/show.xml',
         {
@@ -196,26 +203,31 @@ export default class APIClient {
           format: 'xml'
         }
       );
-
-      return validateReviewResponse(response).review;
     });
+
+    return validateReviewResponse(response).review;
   }
 
   /**
    * Fetch a page of reviews
    */
-  private async fetchReadBooksPage(message: string[], userID: UserID, page = 1): Promise<ReadBooksResponse> {
-    const response = await this.request(
-      message,
-      'review/list.xml',
-      {
-        id: userID,
-        page,
-        per_page: READ_BOOKS_PAGE_SIZE,
-        shelf: 'read',
-        v: 2
+  private async fetchReadBooksPage(message: string[], userID: UserID, pageSize: number, page = 1): Promise<ReadBooksResponse> {
+    const response = await this.options.cache.fetch(
+      ['read-books', userID, pageSize, page],
+      () => {
+        return this.request(
+          message,
+          'review/list.xml',
+          {
+            id: userID,
+            page,
+            per_page: pageSize,
+            shelf: 'read',
+            v: 2
+          }
+        )
       }
-    );
+    )
 
     return validateReadBooksResponse(response);
   }
