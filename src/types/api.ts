@@ -45,7 +45,7 @@ export interface ReadBooksResponse {
       start: string;
       total: string;
     };
-    review: ReadBook[];
+    review?: OneOrMore<ReadBook>;
   };
 }
 
