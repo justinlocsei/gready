@@ -70,6 +70,7 @@ function resolvePaths() {
   const testFixturesDir = path.join(rootDir, 'tests', 'fixtures');
 
   return {
+    apiFixturesDir: path.join(testFixturesDir, 'api'),
     defaultConfig: path.join(os.homedir(), '.greadyrc'),
     distDir: path.join(rootDir, 'dist'),
     networkFixturesDir: path.join(testFixturesDir, 'network'),
