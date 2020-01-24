@@ -1,4 +1,4 @@
-import { flatten, sortBy, uniq } from 'lodash';
+import { sortBy } from 'lodash';
 
 import Bookshelf from '../bookshelf';
 import Repository from '../repository';
@@ -34,12 +34,27 @@ export async function findSimilarReaders({
   const usersByID: Record<UserID, User> = {};
   const reviewers: Record<UserID, BookID[]> = {};
 
+  const ratedBooks = readBooks.filter(r => r.rating);
+
+  await runSequence(
+    ['Load data on read books'],
+    ratedBooks,
+    repo.logger,
+    async function({ bookID }) {
+      booksByID[bookID] = await repo.getBook(bookID);
+    }
+  );
+
   await runSequence(
     ['Find similar readers'],
-    readBooks.filter(r => r.rating),
+    ratedBooks,
     repo.logger,
     async function(readBook) {
-      const similar = await repo.getSimilarReviews(readBook, maxReviews);
+      const similar = await repo.getSimilarReviews(
+        booksByID[readBook.bookID],
+        readBook,
+        maxReviews
+      );
 
       similar.forEach(function({ user }) {
         const userID = user.id;
@@ -59,12 +74,6 @@ export async function findSimilarReaders({
       id => id
     ]
   );
-
-  const bookIDs = uniq(flatten(Object.values(reviewers))).sort();
-
-  for (const bookID of bookIDs) {
-    booksByID[bookID] = await repo.getBook(bookID);
-  }
 
   const shelfNames = new Bookshelf(Object.values(booksByID), { shelfPercentile })
     .getShelves()
