@@ -91,7 +91,7 @@ export default class APIClient {
   /**
    * Extract reviews of a book with a given identifier
    */
-  async getBookReviews(id: BookID, {
+  async getBookReviews(bookID: BookID, {
     limit,
     rating
   }: {
@@ -99,16 +99,16 @@ export default class APIClient {
     rating?: number;
   } = {}): Promise<Review[]> {
     const message = [
-      `Book=${id}`,
+      `Book=${bookID}`,
       `Rating=${rating || 'any'}`,
       `Limit=${limit || 'none'}`
     ];
 
     const reviews = await this.options.cache.fetch(
-      ['review-meta', id, rating || 'all', limit || 'all'],
+      ['review-meta', bookID, rating || 'all', limit || 'all'],
       () => {
         this.options.logger.debug('Fetch review metadata', ...message);
-        return findPartialReviewsForBook(id, { limit, rating });
+        return findPartialReviewsForBook(bookID, { limit, rating });
       }
     );
 
