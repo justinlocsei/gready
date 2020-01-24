@@ -95,17 +95,17 @@ export default class APIClient {
     limit,
     rating
   }: {
-    limit?: number;
+    limit: number;
     rating?: number;
-  } = {}): Promise<Review[]> {
+  }): Promise<Review[]> {
     const message = [
       `Book=${bookID}`,
       `Rating=${rating || 'any'}`,
-      `Limit=${limit || 'none'}`
+      `Limit=${limit}`
     ];
 
     const reviews = await this.options.cache.fetch(
-      ['review-meta', bookID, rating || 'all', limit || 'all'],
+      ['review-meta', bookID, rating || 'all', limit],
       () => {
         this.options.logger.debug('Fetch review metadata', ...message);
         return findPartialReviewsForBook(bookID, { limit, rating });
