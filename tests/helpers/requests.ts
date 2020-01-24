@@ -2,13 +2,13 @@ import http from 'http';
 import nock from 'nock';
 import { chunk } from 'lodash';
 
+import { allowNetworkTests } from './index';
 import { paths } from '../../src/environment';
-import { shouldRefreshFixtures } from './index';
 
 const nockBack = nock.back;
 
 nockBack.fixtures = paths.networkFixturesDir;
-nockBack.setMode(shouldRefreshFixtures() ? 'record' : 'lockdown');
+nockBack.setMode(allowNetworkTests() ? 'record' : 'lockdown');
 
 nock.restore();
 
