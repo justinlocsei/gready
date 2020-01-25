@@ -8,6 +8,7 @@ import { OperationalError } from '../src/errors';
 import { UserConfiguration } from '../src/types/config';
 
 import {
+  buildConfig,
   getGoodreadsAPIKey,
   getGoodreadsUserID,
   hasGoodreadsAPIKey,
@@ -29,6 +30,28 @@ describe('config', function() {
     if (sandbox) {
       sandbox.restore();
     }
+  });
+
+  describe('buildConfig', function() {
+
+    it('produces a valid configuration by default', function() {
+      assert.deepEqual(buildConfig(), {
+        ignoreShelves: [],
+        mergePublishers: {},
+        mergeShelves: {}
+      });
+    });
+
+    it('merges in user-provided configuration data', function() {
+      const config: UserConfiguration = {
+        ignoreShelves: ['shelf'],
+        mergePublishers: { alfa: ['bravo'] },
+        mergeShelves: { charlie: ['delta'] }
+      };
+
+      assert.deepEqual(buildConfig(config), config);
+    });
+
   });
 
   describe('getGoodreadsAPIKey', function() {

@@ -43,6 +43,16 @@ export async function loadConfig(
 }
 
 /**
+ * Build a valid configuration from user-provided partial data
+ */
+export function buildConfig(custom?: UserConfiguration): Configuration {
+  return {
+    ...DEFAULT_CONFIG,
+    ...custom
+  };
+}
+
+/**
  * Attempt to load a config file at a given path
  */
 async function loadConfigFile(filePath: string): Promise<Configuration> {
@@ -72,10 +82,7 @@ async function loadConfigFile(filePath: string): Promise<Configuration> {
     throw new OperationalError(`Invalid configuration: ${filePath}\n--\n${error}`);
   }
 
-  return {
-    ...DEFAULT_CONFIG,
-    ...config
-  };
+  return buildConfig(config);
 }
 
 /**
