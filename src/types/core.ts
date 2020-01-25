@@ -36,7 +36,7 @@ export interface Review {
   bookID: BookID;
   id: ReviewID;
   posted: number;
-  rating: number;
+  rating?: number;
   shelves: string[];
   user: User;
 }

@@ -135,7 +135,7 @@ export default class Repository {
       bookID: readBook.book.id._,
       id: readBook.id,
       posted: new Date(readBook.read_at || readBook.date_added).getTime(),
-      rating: parseInt(readBook.rating, 10),
+      rating: readBook.rating ? parseInt(readBook.rating, 10) : undefined,
       shelves
     };
   }
