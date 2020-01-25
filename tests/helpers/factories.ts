@@ -1,10 +1,10 @@
+import * as Core from '../../src/types/core';
 import Bookshelf from '../../src/bookshelf';
-import { Book } from '../../src/types/core';
 
 /**
  * Create a valid book
  */
-export function createBook(data?: Partial<Book>): Book {
+export function createBook(data?: Partial<Core.Book>): Core.Book {
   return {
     author: { id: '1', name: 'Author Name' },
     averageRating: 1,
@@ -25,7 +25,7 @@ export function createBook(data?: Partial<Book>): Book {
  * Create a bookshelf with books
  */
 export function createBookshelf(
-  books: Partial<Book>[] = [],
+  books: Partial<Core.Book>[] = [],
   shelfPercentile = 0
 ): Bookshelf {
   return new Bookshelf(
