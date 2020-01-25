@@ -2,7 +2,7 @@ import querystring from 'querystring';
 import superagent from 'superagent';
 import { URL } from 'url';
 
-import { OperationalError } from './errors';
+import { NetworkError } from './errors';
 
 /**
  * Make a GET request
@@ -21,7 +21,7 @@ export async function makeGetRequest(
   try {
     response = await superagent.get(endpoint.toString());
   } catch(error) {
-    throw new OperationalError(`GET request to ${endpoint} failed:\n${error}`);
+    throw new NetworkError(`GET request to ${endpoint} failed:\n${error}`, error.status);
   }
 
   return response.text || response.body.toString();

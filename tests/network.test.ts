@@ -1,5 +1,6 @@
 import assert from './helpers/assert';
 import { makeGetRequest } from '../src/network';
+import { NetworkError } from '../src/errors';
 import { useServer } from './helpers/requests';
 
 describe('network', function() {
@@ -53,11 +54,29 @@ describe('network', function() {
       return useServer(
         404,
         {},
-        () => 'Invalid',
+        () => 'Not found',
         async function(url) {
           await assert.isRejected(
             makeGetRequest(url),
             /failed/
+          );
+        });
+    });
+
+    it('exposes the status of a failed request', function() {
+      return useServer(
+        500,
+        {},
+        () => 'Server error',
+        function(url) {
+          return makeGetRequest(url).then(
+            function() {
+              assert.fail('unexpected request success');
+            },
+            function(error) {
+              assert.instanceOf(error, NetworkError);
+              assert.equal(error.statusCode, 500);
+            }
           );
         });
     });
