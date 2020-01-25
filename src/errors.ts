@@ -15,3 +15,16 @@ export class OperationalError extends Error {
   }
 
 }
+
+export class NetworkError extends OperationalError {
+
+  statusCode?: number;
+
+  constructor(message: string, statusCode?: number) {
+    super(message);
+    this.statusCode = statusCode;
+
+    Object.setPrototypeOf(this, NetworkError.prototype);
+  }
+
+}
