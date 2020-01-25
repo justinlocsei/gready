@@ -2,6 +2,7 @@ import fs from 'graceful-fs';
 import tmp from 'tmp';
 import { promisify } from 'util';
 
+import Cache from '../../src/cache';
 import Logger, { Options as LoggerOptions } from '../../src/logger';
 import { buildConfig } from '../../src/config';
 import { Configuration, UserConfiguration } from '../../src/types/config';
@@ -13,6 +14,16 @@ const readFileAsync = promisify(fs.readFile);
  */
 export function canUpdateFixtures(): boolean {
   return process.env['GREADY_ALLOW_TEST_FIXTURE_UPDATES'] === '1';
+}
+
+/**
+ * Create a pass-through cache for testing
+ */
+export function createTestCache(): Cache {
+  return new Cache(
+    tmp.dirSync().name,
+    { enabled: false }
+  );
 }
 
 /**
