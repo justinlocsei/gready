@@ -8,6 +8,7 @@ import Logger from './logger';
 import { ensureArray } from './util';
 import { findPartialReviewsForBook } from './reviews';
 import { makeGetRequest } from './network';
+import { NetworkError, OperationalError } from './errors';
 import { runSequence } from './flow';
 import { URLS } from './goodreads';
 
@@ -167,7 +168,13 @@ export default class APIClient {
       ['Check read books', `UserID=${userID}`],
       userID,
       pageSize
-    );
+    ).catch(function(error) {
+      if (error instanceof NetworkError && error.statusCode === 404) {
+        throw new OperationalError(`Invalid Goodreads user ID: ${userID}`);
+      } else {
+        throw error;
+      }
+    });
 
     const totalBooks = parseInt(check.reviews.$.total, 10);
 

@@ -3,11 +3,12 @@ import { uniq } from 'lodash';
 import assert from './helpers/assert';
 import APIClient from '../src/api-client';
 import Cache from '../src/cache';
-import { configureNetworkAccess } from './helpers/requests';
+import { configureNetworkAccess, simulateResponse } from './helpers/requests';
 import { canUpdateFixtures, createTestLogger } from './helpers';
 import { createBook } from './helpers/factories';
 import { getGoodreadsAPIKey, hasGoodreadsAPIKey } from '../src/config';
 import { paths } from '../src/environment';
+import { URLS } from '../src/goodreads';
 
 describe('api-client', function() {
 
@@ -118,6 +119,15 @@ describe('api-client', function() {
 
       it('handles an empty list of read books', async function() {
         assert.isEmpty(await createClient().getReadBooks('10'));
+      });
+
+      it('raises an error when an invalid Goodreads user ID is provided', function() {
+        return simulateResponse(URLS.apiBase, 404, async function() {
+          await assert.isRejected(
+            createClient().getReadBooks('---'),
+            /Invalid Goodreads user ID: ---/
+          );
+        });
       });
 
     });
