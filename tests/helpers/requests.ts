@@ -60,6 +60,21 @@ export function configureNetworkAccess(suite: Mocha.Suite, {
 }
 
 /**
+ * Cause any requests made to a host to return a specific status code
+ */
+export function simulateResponse(
+  host: string,
+  statusCode: number,
+  runTest: () => Promise<void>
+): Promise<void> {
+  nock(host)
+    .get(uri => true)
+    .reply(statusCode);
+
+  return runTest();
+}
+
+/**
  * Remove unwanted headers from a flattened list of name/value data
  */
 function filterHeaders(headers: string[], remove: string[]): string[] {
