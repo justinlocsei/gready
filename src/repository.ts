@@ -203,7 +203,7 @@ export default class Repository {
     }
 
     if (!normalized.publisher && canonicalID && id !== canonicalID) {
-      const canonicalBook = await this.getBook(canonicalID);
+      const canonicalBook = await this.apiClient.getBook(canonicalID);
       normalized.publisher = canonicalBook.publisher;
     }
 
