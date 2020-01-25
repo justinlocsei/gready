@@ -3,6 +3,8 @@ import tmp from 'tmp';
 import { promisify } from 'util';
 
 import Logger, { Options as LoggerOptions } from '../../src/logger';
+import { buildConfig } from '../../src/config';
+import { Configuration, UserConfiguration } from '../../src/types/config';
 
 const readFileAsync = promisify(fs.readFile);
 
@@ -11,6 +13,13 @@ const readFileAsync = promisify(fs.readFile);
  */
 export function canUpdateFixtures(): boolean {
   return process.env['GREADY_ALLOW_TEST_FIXTURE_UPDATES'] === '1';
+}
+
+/**
+ * Create a configuration for testing
+ */
+export function createTestConfig(data?: UserConfiguration): Configuration {
+  return buildConfig(data);
 }
 
 /**
