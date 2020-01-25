@@ -18,7 +18,7 @@ export function freezeTime(timestamp: number, runTest: () => any): void {
 /**
  * Replace a method on an object with a custom implementation
  */
-export function override<T, K extends keyof T>(
+export function mockMethod<T, K extends keyof T>(
   object: T,
   method: K,
   impl: T[K] extends (...args: infer U) => infer V ? (...args: U) => V : never
