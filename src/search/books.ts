@@ -150,7 +150,7 @@ export function summarizeRecommendedBooks(
       underline(`${book.title} | p${percentile}`),
       '',
       `Author: ${book.author.name}`,
-      `Shelves: ${shelves.join(', ')}`,
+      `Shelves: ${shelves.join(', ')}`
     ];
 
     if (book.averageRating) {
