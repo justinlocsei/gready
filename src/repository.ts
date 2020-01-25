@@ -173,7 +173,7 @@ export default class Repository {
       };
     });
 
-    const shelves = book.popular_shelves.shelf.map(function({ $: shelf }): Shelf {
+    const shelves = ensureArray(book.popular_shelves.shelf).map(function({ $: shelf }): Shelf {
       return {
         count: parseInt(shelf.count, 10),
         name: normalizeString(shelf.name)
@@ -190,7 +190,7 @@ export default class Repository {
       publisher: book.publisher,
       reviewsID: extractReviewsIDFromWidget(book.reviews_widget) || id,
       shelves,
-      similarBooks: similarBooks.map(b => b.id),
+      similarBooks: ensureArray(similarBooks).map(b => b.id),
       title,
       totalRatings,
       workID: work.id._

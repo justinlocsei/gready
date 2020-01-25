@@ -9,19 +9,19 @@ export interface Book {
   };
   id: string;
   popular_shelves: {
-    shelf: {
+    shelf: OneOrMore<{
       $: {
         count: string;
         name: string;
       };
-    }[];
+    }>;
   };
   publisher: string;
   reviews_widget: string;
   similar_books?: {
-    book: {
+    book: OneOrMore<{
       id: string;
-    }[];
+    }>;
   };
   title: string;
   work: {
