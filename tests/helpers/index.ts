@@ -1,7 +1,9 @@
 import tmp from 'tmp';
 
+import APIClient from '../../src/api-client';
 import Cache from '../../src/cache';
 import Logger, { Options as LoggerOptions } from '../../src/logger';
+import Repository from '../../src/repository';
 import { buildConfig } from '../../src/config';
 import { Configuration, UserConfiguration } from '../../src/types/config';
 import { OutputHandler } from '../../src/types/system';
@@ -37,6 +39,29 @@ export function createTestCache(): Cache {
  */
 export function createTestConfig(data?: UserConfiguration): Configuration {
   return buildConfig(data);
+}
+
+/**
+ * Create a repository for testing
+ */
+export function createTestRepo(options: {
+  cache?: Cache;
+  config?: UserConfiguration;
+} = {}): Repository {
+  const [logger] = createTestLogger();
+
+  const apiClient = new APIClient({
+    apiKey: 'testing',
+    cache: createTestCache(),
+    logger
+  });
+
+  return new Repository({
+    apiClient,
+    cache: options.cache || createTestCache(),
+    config: createTestConfig(options.config),
+    logger
+  });
 }
 
 /**

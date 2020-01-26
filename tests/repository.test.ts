@@ -4,14 +4,11 @@ import * as API from '../src/types/api';
 import * as Core from '../src/types/core';
 import * as F from './helpers/factories';
 import * as reviews from '../src/reviews';
-import APIClient from '../src/api-client';
 import assert from './helpers/assert';
-import Cache from '../src/cache';
-import Repository from '../src/repository';
 import { allowOverrides } from './helpers/mocking';
 import { BookID } from '../src/types/goodreads';
 import { configureNetworkAccess } from './helpers/requests';
-import { createTestCache, createTestConfig, createTestLogger } from './helpers';
+import { createTestCache, createTestRepo } from './helpers';
 import { UserConfiguration } from '../src/types/config';
 
 describe('repository', function() {
@@ -26,26 +23,6 @@ describe('repository', function() {
       useFixtures: false
     });
 
-    function createRepo(options: {
-      cache?: Cache;
-      config?: UserConfiguration;
-    } = {}): Repository {
-      const [logger] = createTestLogger();
-
-      const apiClient = new APIClient({
-        apiKey: 'testing',
-        cache: createTestCache(),
-        logger
-      });
-
-      return new Repository({
-        apiClient,
-        cache: options.cache || createTestCache(),
-        config: createTestConfig(options.config),
-        logger
-      });
-    }
-
     describe('.getBook', function() {
 
       function getBook(
@@ -53,7 +30,7 @@ describe('repository', function() {
         canonical?: Partial<API.Book>,
         config?: UserConfiguration
       ): Promise<Core.Book> {
-        const repo = createRepo({ config });
+        const repo = createTestRepo({ config });
 
         const book = F.createAPIBook(query);
         const canonicalBook = canonical ? F.createAPIBook(canonical) : book;
@@ -395,7 +372,7 @@ describe('repository', function() {
         config?: UserConfiguration
       ): Promise<Core.Book[]> {
         const cache = createTestCache();
-        const repo = createRepo({ cache, config });
+        const repo = createTestRepo({ cache, config });
 
         const books = availableBooks.map(F.createBook);
 
@@ -488,7 +465,7 @@ describe('repository', function() {
     describe('.getReadBooks', function() {
 
       function getReadBooks(books: Partial<API.ReadBook>[], userID = '1'): Promise<Core.ReadBook[]> {
-        const repo = createRepo();
+        const repo = createTestRepo();
 
         stub(repo.apiClient, 'getReadBooks', function(id) {
           if (id === userID) {
@@ -596,7 +573,7 @@ describe('repository', function() {
     describe('.getSimilarReviews', function() {
 
       function getSimilarReviews(reviews: Partial<API.Review>[]): Promise<Core.Review[]> {
-        const repo = createRepo();
+        const repo = createTestRepo();
 
         const book = F.createBook({ id: '1', reviewsID: '2' });
         const readBook = F.createReadBook({ id: '3', rating: 5 });
