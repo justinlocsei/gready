@@ -4,6 +4,7 @@ import { allowOverrides } from './helpers/mocking';
 import {
   createStderrWriter,
   createStdoutWriter,
+  getArgs,
   getEnvironmentVariable,
   markProcessAsFailed
 } from '../src/system';
@@ -34,6 +35,15 @@ describe('system', function() {
       createStdoutWriter()('testing');
 
       stdout.verify();
+    });
+
+  });
+
+  describe('getArgs', function() {
+
+    it('returns the arguments passed to the process', function() {
+      stub(process, 'argv', ['alfa', 'bravo']);
+      assert.deepEqual(getArgs(), ['alfa', 'bravo']);
     });
 
   });

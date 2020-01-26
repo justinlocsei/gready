@@ -1,6 +1,13 @@
 import { OutputHandler } from './types/system';
 
 /**
+ * Get the arguments passed to the current process
+ */
+export function getArgs(): string[] {
+  return process.argv;
+}
+
+/**
  * Read the value of an environment variable
  */
 export function getEnvironmentVariable(name: string): string | undefined {
