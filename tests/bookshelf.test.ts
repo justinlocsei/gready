@@ -38,21 +38,21 @@ describe('bookshelf', function() {
       it('returns all books in a set of shelves at the given percentile', function() {
         const books: Partial<Book>[] = [
           {
-            title: 'bravo',
+            title: 'Bravo',
             shelves: [
               { count: 2, name: 'alfa' },
               { count: 1, name: 'bravo' }
             ]
           },
           {
-            title: 'alfa',
+            title: 'Alfa',
             shelves: [
               { count: 1, name: 'alfa' },
               { count: 2, name: 'bravo' }
             ]
           },
           {
-            title: 'charlie',
+            title: 'Charlie',
             shelves: [
               { count: 1, name: 'charlie' }
             ]
@@ -68,29 +68,29 @@ describe('bookshelf', function() {
         const lowBravo = low.getBooksInShelves('bravo').map(b => b.title);
         const highBravo = high.getBooksInShelves('bravo').map(b => b.title);
 
-        assert.deepEqual(lowAlfa, ['alfa', 'bravo']);
-        assert.deepEqual(highAlfa, ['bravo']);
+        assert.deepEqual(lowAlfa, ['Alfa', 'Bravo']);
+        assert.deepEqual(highAlfa, ['Bravo']);
 
-        assert.deepEqual(lowBravo, ['alfa', 'bravo']);
-        assert.deepEqual(highBravo, ['alfa']);
+        assert.deepEqual(lowBravo, ['Alfa', 'Bravo']);
+        assert.deepEqual(highBravo, ['Alfa']);
       });
 
       it('includes books from multiple shelves', function() {
         const bookshelf = createBookshelf([
           {
-            title: 'bravo',
+            title: 'Bravo',
             shelves: [
               { count: 1, name: 'alfa' }
             ]
           },
           {
-            title: 'alfa',
+            title: 'Alfa',
             shelves: [
               { count: 1, name: 'bravo' }
             ]
           },
           {
-            title: 'charlie',
+            title: 'Charlie',
             shelves: [
               { count: 1, name: 'charlie' }
             ]
@@ -99,12 +99,12 @@ describe('bookshelf', function() {
 
         assert.deepEqual(
           bookshelf.getBooksInShelves('alfa', 'charlie').map(b => b.title),
-          ['bravo', 'charlie']
+          ['Bravo', 'Charlie']
         );
 
         assert.deepEqual(
           bookshelf.getBooksInShelves('alfa', 'bravo').map(b => b.title),
-          ['alfa', 'bravo']
+          ['Alfa', 'Bravo']
         );
       });
 
@@ -303,7 +303,7 @@ describe('bookshelf', function() {
               { count: 2, name: 'alfa' },
               { count: 1, name: 'bravo' }
             ],
-            title: 'alfa'
+            title: 'Alfa'
           },
           {
             id: '1',
@@ -311,7 +311,7 @@ describe('bookshelf', function() {
               { count: 1, name: 'alfa' },
               { count: 2, name: 'bravo' }
             ],
-            title: 'alfa'
+            title: 'Alfa'
           },
           {
             id: '3',
@@ -319,7 +319,7 @@ describe('bookshelf', function() {
               { count: 1, name: 'alfa' },
               { count: 1, name: 'charlie' }
             ],
-            title: 'bravo'
+            title: 'Bravo'
           }
         ];
 
@@ -385,7 +385,7 @@ describe('bookshelf', function() {
               { count: 1, name: 'alfa' },
               { count: 3, name: 'bravo' }
             ],
-            title: 'bravo'
+            title: 'Bravo'
           },
           {
             id: '1',
@@ -393,7 +393,7 @@ describe('bookshelf', function() {
               { count: 1, name: 'alfa' },
               { count: 2, name: 'charlie' }
             ],
-            title: 'alfa'
+            title: 'Alfa'
           },
           {
             id: '3',
@@ -401,7 +401,7 @@ describe('bookshelf', function() {
               { count: 2, name: 'alfa' },
               { count: 1, name: 'bravo' }
             ],
-            title: 'charlie'
+            title: 'Charlie'
           }
         ], 100);
 
@@ -421,7 +421,7 @@ describe('bookshelf', function() {
       it('returns an empty bookshelf when no shelves are given', function() {
         const bookshelf = createBookshelf([{
           shelves: [{ count: 1, name: 'alfa' }],
-          title: 'alfa'
+          title: 'Alfa'
         }]);
 
         assert.isEmpty(bookshelf.restrictShelves().getBooks());
