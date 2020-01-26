@@ -54,28 +54,22 @@ describe('environment', function() {
 
   describe('prepareDataDirectory', function() {
 
-    let tmpDir: tmp.DirResult;
-    let tmpDirPath: string;
-
-    beforeEach(function() {
-      tmpDir = tmp.dirSync();
-      tmpDirPath = path.join(tmpDir.name, 'data');
-    });
-
-    afterEach(function() {
-      tmpDir.removeCallback();
-    });
+    function getDirPath(): string {
+      return path.join(tmp.dirSync().name, 'data');
+    }
 
     it('creates cache directories', async function() {
-      const { cacheDirs } = await prepareDataDirectory(tmpDirPath);
+      const { cacheDirs } = await prepareDataDirectory(getDirPath());
 
       assert.isTrue(fs.statSync(cacheDirs.apiRequests).isDirectory());
       assert.isTrue(fs.statSync(cacheDirs.data).isDirectory());
     });
 
     it('ignores an existing directory structure', async function() {
-      const first = await prepareDataDirectory(tmpDirPath);
-      const second = await prepareDataDirectory(tmpDirPath);
+      const dirPath = getDirPath();
+
+      const first = await prepareDataDirectory(dirPath);
+      const second = await prepareDataDirectory(dirPath);
 
       assert.deepEqual(first, second);
     });
