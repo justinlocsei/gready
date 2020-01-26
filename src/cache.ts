@@ -105,7 +105,7 @@ export default class Cache {
     const cacheFile = await this.prepareFS(keyPath);
 
     if (!this.options.enabled) {
-      return this.storeValue(cacheFile, computeValue);
+      return computeValue();
     }
 
     try {

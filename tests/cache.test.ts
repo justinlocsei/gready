@@ -108,8 +108,27 @@ describe('cache', function() {
             assert.equal(second, 'bravo');
           });
 
+          it('persists cached values', async function() {
+            const firstCache = createCache();
+
+            const firstValue = await firstCache.fetch(
+              ['alfa'],
+              () => Promise.resolve('bravo')
+            );
+
+            const secondCache = createCache(firstCache.directory);
+
+            const secondValue = await secondCache.fetch(
+              ['alfa'],
+              () => Promise.resolve('charlie')
+            );
+
+            assert.equal(firstValue, 'bravo');
+            assert.equal(secondValue, 'bravo');
+          });
+
           it('can bypass the cache', async function() {
-            const cache = createCache({ enabled: false });
+            const cache = createCache(undefined, { enabled: false });
 
             const first = await cache.fetch(
               ['alfa'],
@@ -123,6 +142,25 @@ describe('cache', function() {
 
             assert.equal(first, 'bravo');
             assert.equal(second, 'charlie');
+          });
+
+          it('does not persists values when bypassing the cache', async function() {
+            const firstCache = createCache(undefined, { enabled: false });
+
+            const firstValue = await firstCache.fetch(
+              ['alfa'],
+              () => Promise.resolve('bravo')
+            );
+
+            const secondCache = createCache(firstCache.directory);
+
+            const secondValue = await secondCache.fetch(
+              ['alfa'],
+              () => Promise.resolve('charlie')
+            );
+
+            assert.equal(firstValue, 'bravo');
+            assert.equal(secondValue, 'charlie');
           });
 
         });
