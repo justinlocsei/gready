@@ -36,7 +36,7 @@ export async function findRecommendedBooks({
   shelves?: string[];
 }): Promise<PartitionedRecommendation[]> {
   let bookIDs = readBooks
-    .filter(r => r.rating >= minRating)
+    .filter(r => r.rating && r.rating >= minRating)
     .map(r => r.bookID);
 
   if (coreBookIDs) {
