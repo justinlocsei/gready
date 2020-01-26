@@ -5,8 +5,10 @@ import path from 'path';
 import { mkdirp } from 'fs-extra';
 import { promisify } from 'util';
 
+import { createStdoutWriter } from '../system';
 import { formatJSON } from '../serialization';
 import { OperationalError } from '../errors';
+import { OutputHandler } from '../types/system';
 import { paths, resolveRequire } from '../environment';
 import { runAsScript } from '../scripts';
 
@@ -21,16 +23,21 @@ const TYPE_FILES = [
  * Generate validators for a subset of types
  */
 async function generateValidators(): Promise<void> {
+  const log = createStdoutWriter();
+
   await mkdirp(paths.validatorsDir);
 
   let index = 0;
   const lastIndex = TYPE_FILES.length - 1;
 
   while (index <= lastIndex) {
-    await generateValidator(path.join(paths.typesDir, TYPE_FILES[index]));
+    await generateValidator(
+      log,
+      path.join(paths.typesDir, TYPE_FILES[index])
+    );
 
     if (index < lastIndex) {
-      console.log();
+      log('');
     }
 
     index++;
@@ -40,8 +47,8 @@ async function generateValidators(): Promise<void> {
 /**
  * Generate validator code for all types in a file
  */
-async function generateValidator(tsFile: string): Promise<void> {
-  console.log(path.relative(paths.srcDir, tsFile));
+async function generateValidator(log: OutputHandler, tsFile: string): Promise<void> {
+  log(path.relative(paths.srcDir, tsFile));
 
   const program = TJS.getProgramFromFiles([tsFile]);
 
@@ -84,7 +91,7 @@ async function generateValidator(tsFile: string): Promise<void> {
     generateValidatorCode(tsFile, schemaFile, codeFile, symbols) + '\n'
   );
 
-  console.log(` => ${path.relative(paths.srcDir, dirPath)}`);
+  log(`  => ${path.relative(paths.srcDir, dirPath)}`);
 }
 
 /**
@@ -131,4 +138,4 @@ function generateValidatorCode(
   return lines.join('\n');
 }
 
-runAsScript(generateValidators, { stderr: process.stderr });
+runAsScript(generateValidators);

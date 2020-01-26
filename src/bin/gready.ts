@@ -9,10 +9,8 @@ import { runCLI } from '../gready';
  */
 function runGready(): Promise<void> {
   return runCLI({
-    args: extractArgs(process.argv),
-    stderr: process.stderr,
-    stdout: process.stdout
+    args: extractArgs(process.argv)
   });
 }
 
-runAsScript(runGready, { stderr: process.stderr });
+runAsScript(runGready);

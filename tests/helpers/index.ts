@@ -1,15 +1,12 @@
-import fs from 'graceful-fs';
 import tmp from 'tmp';
-import { promisify } from 'util';
 
 import Cache from '../../src/cache';
 import Logger, { Options as LoggerOptions } from '../../src/logger';
 import { buildConfig } from '../../src/config';
 import { Configuration, UserConfiguration } from '../../src/types/config';
+import { OutputHandler } from '../../src/types/system';
 
-type StreamReader = () => Promise<string[]>;
-
-const readFileAsync = promisify(fs.readFile);
+type OutputReader = () => string[];
 
 /**
  * Whether test fixtures can be updated
@@ -43,39 +40,29 @@ export function createTestConfig(data?: UserConfiguration): Configuration {
 }
 
 /**
- * Create an output stream and a function that reads its messages
+ * Create an output handler and a function that reads its messages
  */
-export function createOutputStream(): [NodeJS.WritableStream, StreamReader] {
-  const file = tmp.fileSync();
-  const stream = fs.createWriteStream(file.name);
+export function createOutputHandler(): [OutputHandler, OutputReader] {
+  const messages: string[] = [];
 
-  function closeStream() {
-    return new Promise(function(resolve, reject) {
-      stream.on('error', reject);
-      stream.on('finish', resolve);
-
-      stream.end();
-    });
+  function handleMessage(message: string) {
+    messages.push(message);
   }
 
-  async function readStream() {
-    await closeStream();
-    const lines = await readFileAsync(file.name, 'utf8');
-
-    return lines.split('\n').slice(0, -1);
-  }
-
-  return [stream, readStream];
+  return [
+    handleMessage,
+    () => messages
+  ];
 }
 
 /**
  * Create a logger for use in testing and a function to read its output
  */
-export function createTestLogger(options?: LoggerOptions): [Logger, StreamReader] {
-  const [stream, readLog] = createOutputStream();
+export function createTestLogger(options?: LoggerOptions): [Logger, OutputReader] {
+  const [handleMessage, readOutput] = createOutputHandler();
 
   return [
-    new Logger(stream, { useColor: false, ...options }),
-    readLog
+    new Logger(handleMessage, { useColor: false, ...options }),
+    readOutput
   ];
 }

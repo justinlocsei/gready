@@ -1,4 +1,4 @@
-type MessageLogger = (message: string) => void;
+import { OutputHandler } from './types/system';
 
 /**
  * Read the value of an environment variable
@@ -10,24 +10,24 @@ export function getEnvironmentVariable(name: string): string | undefined {
 /**
  * Create a function that writes a message to a stream
  */
-function createLogger(stream: NodeJS.WritableStream): MessageLogger {
+function createStreamWriter(stream: NodeJS.WritableStream): OutputHandler {
   return function(message: string) {
     stream.write(message + '\n');
   };
 }
 
 /**
- * Create a logging function to show non-essential output metadata
+ * Create a function to write output to stderr
  */
-export function createMetaLogger(): MessageLogger {
-  return createLogger(process.stderr);
+export function createStderrWriter(): OutputHandler {
+  return createStreamWriter(process.stderr);
 }
 
 /**
- * Create a logging function to show program output to the user
+ * Create a function to write output to stdout
  */
-export function createOutputLogger(): MessageLogger {
-  return createLogger(process.stdout);
+export function createStdoutWriter(): OutputHandler {
+  return createStreamWriter(process.stdout);
 }
 
 /**

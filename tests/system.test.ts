@@ -2,8 +2,8 @@ import assert from './helpers/assert';
 import { allowOverrides } from './helpers/mocking';
 
 import {
-  createMetaLogger,
-  createOutputLogger,
+  createStderrWriter,
+  createStdoutWriter,
   getEnvironmentVariable,
   markProcessAsFailed
 } from '../src/system';
@@ -12,26 +12,26 @@ describe('system', function() {
 
   const { mock, stub } = allowOverrides(this);
 
-  describe('createMetaLogger', function() {
+  describe('createStderrWriter', function() {
 
     it('creates a function that writes to stderr', function() {
       const stdout = mock(process.stderr);
       stdout.expects('write').once().withArgs('testing\n');
 
-      createMetaLogger()('testing');
+      createStderrWriter()('testing');
 
       stdout.verify();
     });
 
   });
 
-  describe('createOutputLogger', function() {
+  describe('createStdoutWriter', function() {
 
     it('creates a function that writes to stdout', function() {
       const stdout = mock(process.stdout);
       stdout.expects('write').once().withArgs('testing\n');
 
-      createOutputLogger()('testing');
+      createStdoutWriter()('testing');
 
       stdout.verify();
     });

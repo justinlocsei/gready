@@ -1,6 +1,7 @@
 import chalk, { ForegroundColor } from 'chalk';
 
 import { ExtractArrayType } from './types/util';
+import { OutputHandler } from './types/system';
 
 const LEVELS = [
   { rank: 0, name: 'none' },
@@ -33,22 +34,22 @@ export default class Logger {
 
   isEnabled: boolean;
 
+  private handleMessage: OutputHandler;
   private indentation: number;
   private lastTime: number;
   private level: LevelName;
   private showTime: boolean;
-  private stream: NodeJS.WritableStream;
   private useColor: boolean;
 
   /**
    * Create a new logger
    */
-  constructor(stream: NodeJS.WritableStream, options: Options = {}) {
+  constructor(handleMessage: OutputHandler, options: Options = {}) {
+    this.handleMessage = handleMessage;
     this.indentation = 0;
     this.lastTime = 0;
     this.level = options.logLevel || DEFAULT_LEVEL;
     this.showTime = options.showTime === undefined ? false : options.showTime;
-    this.stream = stream;
     this.useColor = options.useColor === undefined ? true : options.useColor;
 
     this.isEnabled = this.level !== 'none';
@@ -126,7 +127,7 @@ export default class Logger {
       message = `${this.useColor ? chalk.white(time) : time} ${message}`;
     }
 
-    this.stream.write(message + '\n');
+    this.handleMessage(message);
   }
 
   /**

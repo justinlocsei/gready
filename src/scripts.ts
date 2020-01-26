@@ -1,6 +1,8 @@
 import { remove } from 'fs-extra';
 
+import { createStderrWriter, createStdoutWriter, markProcessAsFailed } from './system';
 import { OperationalError } from './errors';
+import { OutputHandler } from './types/system';
 
 /**
  * Remove a series of paths
@@ -8,39 +10,39 @@ import { OperationalError } from './errors';
 export function removePaths(
   title: string,
   paths: string[],
-  {
-    stderr,
-    stdout
-  }: {
-    stderr: NodeJS.WritableStream;
-    stdout: NodeJS.WritableStream;
-  }
+  options: {
+    writeToStderr?: OutputHandler;
+    writeToStdout?: OutputHandler;
+  } = {}
 ): Promise<void> {
+  const writeToStderr = options.writeToStderr || createStderrWriter();
+  const writeToStdout = options.writeToStdout || createStdoutWriter();
+
   return runAsScript(async function() {
-    stdout.write(title + '\n');
+    writeToStdout(title);
 
     for (const path of paths) {
-      stdout.write(`  ${path}\n`);
+      writeToStdout(`  ${path}`);
       await remove(path);
     }
-  }, { stderr });
+  }, { writeToStderr });
 }
 
 /**
  * Run a function as a script
  */
-export function runAsScript(execute: () => Promise<void>, {
-  stderr
-}: {
-  stderr: NodeJS.WritableStream;
-}): Promise<void> {
+export function runAsScript(execute: () => Promise<void>, options: {
+  writeToStderr?: OutputHandler;
+} = {}): Promise<void> {
+  const writeToStderr = options.writeToStderr || createStderrWriter();
+
   return execute().catch(function(error) {
-    process.exitCode = 1;
+    markProcessAsFailed();
 
     if (error instanceof OperationalError) {
-      stderr.write(error.message + '\n');
+      writeToStderr(error.message);
     } else {
-      stderr.write(error + '\n');
+      writeToStderr(error);
     }
   });
 }

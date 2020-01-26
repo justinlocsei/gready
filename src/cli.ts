@@ -4,6 +4,7 @@ import Repository from './repository';
 import { CLIError } from './errors';
 import { findRecommendedBooks, summarizeRecommendedBooks } from './search/books';
 import { findSimilarReaders, summarizeSimilarReaders } from './search/readers';
+import { OutputHandler } from './types/system';
 import { runSequence } from './flow';
 import { SectionID, summarizeBookshelf } from './summary';
 import { UserID } from './types/goodreads';
@@ -12,8 +13,8 @@ export default class CLI {
 
   private logger: Logger;
   private repo: Repository;
-  private stdout: NodeJS.WritableStream;
   private userID: UserID;
+  private writeOutput: OutputHandler;
 
   /**
    * Create a new CLI
@@ -21,18 +22,18 @@ export default class CLI {
   constructor({
     logger,
     repo,
-    stdout,
-    userID
+    userID,
+    writeOutput
   }: {
     logger: Logger;
     repo: Repository;
-    stdout: NodeJS.WritableStream;
     userID: UserID;
+    writeOutput: OutputHandler;
   }) {
     this.logger = logger;
     this.repo = repo;
-    this.stdout = stdout;
     this.userID = userID;
+    this.writeOutput = writeOutput;
   }
 
   /**
@@ -64,10 +65,10 @@ export default class CLI {
     });
 
     if (this.logger.isEnabled) {
-      this.stdout.write('\n');
+      this.writeOutput('');
     }
 
-    this.stdout.write(summarizeRecommendedBooks(recommended) + '\n');
+    this.writeOutput(summarizeRecommendedBooks(recommended));
   }
 
   /**
@@ -106,12 +107,12 @@ export default class CLI {
     });
 
     if (this.logger.isEnabled) {
-      this.stdout.write('\n');
+      this.writeOutput('');
     }
 
     const summary = summarizeSimilarReaders(readers.filter(r => r.books.length >= minBooks));
 
-    this.stdout.write(summary + '\n');
+    this.writeOutput(summary);
   }
 
   /**
@@ -154,7 +155,7 @@ export default class CLI {
       { sections }
     );
 
-    this.stdout.write(summarySections.join('\n\n') + '\n');
+    this.writeOutput(summarySections.join('\n\n'));
   }
 
 }

@@ -9,9 +9,11 @@ import Logger, { DEFAULT_LEVEL, getLevelNames, LevelName } from './logger';
 import Repository from './repository';
 import { CLIError } from './errors';
 import { Configuration } from './types/config';
+import { createStderrWriter, createStdoutWriter, markProcessAsFailed } from './system';
 import { ExtractArrayType } from './types/util';
 import { getGoodreadsAPIKey, getGoodreadsUserID, loadConfig } from './config';
 import { isNumeric, maybeMap, unreachable } from './util';
+import { OutputHandler } from './types/system';
 import { paths, prepareDataDirectory } from './environment';
 import { SectionID, SECTION_IDS } from './summary';
 
@@ -19,8 +21,8 @@ const CACHE_NAMES = ['data', 'response'] as const;
 
 interface CLIOptions {
   args: string[];
-  stderr: NodeJS.WriteStream;
-  stdout: NodeJS.WriteStream;
+  writeToStderr?: OutputHandler;
+  writeToStdout?: OutputHandler;
 }
 
 type CacheName = ExtractArrayType<typeof CACHE_NAMES>;
@@ -286,7 +288,7 @@ function showCacheStats(cacheMap: CacheMap): Promise<string> {
 /**
  * Start the CLI
  */
-async function startCLI(cliOptions: CLIOptions): Promise<void> {
+async function startCLI(cliOptions: Required<CLIOptions>): Promise<void> {
   const parsed = await parseCLIArgs(cliOptions.args);
   const { options } = parsed;
 
@@ -300,7 +302,7 @@ async function startCLI(cliOptions: CLIOptions): Promise<void> {
     config = await loadConfig(paths.defaultConfig, { allowMissing: true });
   }
 
-  const logger = new Logger(cliOptions.stderr, {
+  const logger = new Logger(cliOptions.writeToStderr, {
     logLevel: options['log-level'] as LevelName,
     showTime: options['log-time'],
     useColor: options.color
@@ -330,8 +332,8 @@ async function startCLI(cliOptions: CLIOptions): Promise<void> {
   const cli = new CLI({
     logger,
     repo,
-    stdout: cliOptions.stdout,
-    userID: getGoodreadsUserID()
+    userID: getGoodreadsUserID(),
+    writeOutput: cliOptions.writeToStdout
   });
 
   const shelfPercentile = ensureNumeric(parsed.options, 'shelf-percentile');
@@ -363,7 +365,7 @@ async function startCLI(cliOptions: CLIOptions): Promise<void> {
 
     case 'show-cache-stats':
       return showCacheStats(cacheMap).then(function(stats) {
-        cliOptions.stdout.write(stats + '\n');
+        cliOptions.writeToStdout(stats);
       });
 
     case 'summarize':
@@ -387,12 +389,18 @@ async function startCLI(cliOptions: CLIOptions): Promise<void> {
  * Run the CLI
  */
 export function runCLI(options: CLIOptions): Promise<void> {
-  return startCLI(options).catch(function(error) {
-    if (error instanceof CLIError) {
-      process.exitCode = 1;
+  const settings: Required<CLIOptions> = {
+    ...options,
+    writeToStderr: createStderrWriter(),
+    writeToStdout: createStdoutWriter()
+  };
 
-      options.stderr.write(`${error.message}\n\nUsage\n-----\n`);
-      yargs.showHelp('error');
+  return startCLI(settings).catch(function(error) {
+    if (error instanceof CLIError) {
+      markProcessAsFailed();
+
+      settings.writeToStderr(`${error.message}\n\nUsage\n-----`);
+      yargs.showHelp(h => settings.writeToStderr(h));
     } else {
       throw error;
     }
