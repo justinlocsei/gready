@@ -14,7 +14,7 @@ import { createTestCache, createTestConfig, createTestLogger } from './helpers';
 import { replaceMethod } from './helpers/mocking';
 import { UserConfiguration } from '../src/types/config';
 
-describe.only('repository', function() {
+describe('repository', function() {
 
   describe('Repository', function() {
 
