@@ -82,22 +82,22 @@ describe('repository', function() {
       it('gets information on a book using its ID', async function() {
         const book = await getBook({
           id: '1',
-          publisher: 'Book Publisher',
-          title: 'Book Title'
+          publisher: 'Publisher',
+          title: 'Title'
         });
 
         assert.equal(book.id, '1');
-        assert.equal(book.publisher, 'Book Publisher');
-        assert.equal(book.title, 'Book Title');
+        assert.equal(book.publisher, 'Publisher');
+        assert.equal(book.title, 'Title');
       });
 
       it('uses the work’s original title when the book lacks a title', async function() {
         const book = await getBook({
           title: '',
-          work: F.createAPIWork({ title: 'Work Title' })
+          work: F.createAPIWork({ title: 'Title' })
         });
 
-        assert.equal(book.title, 'Work Title');
+        assert.equal(book.title, 'Title');
       });
 
       it('removes excess whitespace from the book’s title', async function() {
@@ -421,7 +421,7 @@ describe('repository', function() {
 
       it('applies sanitization based on the configuration to each book', async function() {
         const book = F.createBook({
-          publisher: 'bravo',
+          publisher: 'Bravo',
           shelves: [
             { count: 1, name: 'alfa' },
             { count: 2, name: 'bravo' },
@@ -434,7 +434,7 @@ describe('repository', function() {
 
         const withConfig = await getLocalBooks([book], [book.id], {
           ignoreShelves: ['charlie'],
-          mergePublishers: { alfa: ['bravo'] },
+          mergePublishers: { Alfa: ['Bravo'] },
           mergeShelves: { alfa: ['bravo'] }
         });
 
@@ -444,8 +444,8 @@ describe('repository', function() {
         const normal = noConfig[0];
         const sanitized = withConfig[0];
 
-        assert.equal(normal.publisher, 'bravo');
-        assert.equal(sanitized.publisher, 'alfa');
+        assert.equal(normal.publisher, 'Bravo');
+        assert.equal(sanitized.publisher, 'Alfa');
 
         assert.equal(normal.shelves.length, 4);
 
