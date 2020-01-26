@@ -2,6 +2,10 @@ import * as API from '../../src/types/api';
 import * as Core from '../../src/types/core';
 import Bookshelf from '../../src/bookshelf';
 
+let counter = 0;
+
+const string = () => `S${++counter}`;
+
 /**
  * Create a valid book as returned from the API
  */
@@ -9,28 +13,16 @@ export function createAPIBook(data?: Partial<API.Book>): API.Book {
   return {
     authors: {
       author: {
-        id: '1',
-        name: 'Author'
+        id: string(),
+        name: string()
       }
     },
-    id: '1',
-    popular_shelves: {
-      shelf: {
-        $: {
-          count: '1',
-          name: 'Shelf'
-        }
-      }
-    },
-    publisher: 'Publisher',
-    reviews_widget: '',
-    title: 'Title',
-    work: createAPIWork({
-      id: '1',
-      ratingsCount: '1',
-      ratingsSum: '1',
-      title: 'Title'
-    }),
+    id: string(),
+    popular_shelves: { shelf: [] },
+    publisher: string(),
+    reviews_widget: string(),
+    title: string(),
+    work: createAPIWork(),
     ...data
   };
 }
@@ -41,19 +33,15 @@ export function createAPIBook(data?: Partial<API.Book>): API.Book {
 export function createAPIReadBook(data?: Partial<API.ReadBook>): API.ReadBook {
   return {
     book: {
-      id: { _: '1' },
-      publisher: 'Publisher',
-      work: { id: '1' }
+      id: { _: string() },
+      publisher: string(),
+      work: { id: string() }
     },
     date_added: 'Tue Dec 31 12:00:00 -0500 2019',
-    id: '1',
+    id: string(),
     rating: '5',
     read_at: 'Tue Dec 31 12:00:00 -0500 2019',
-    shelves: {
-      shelf: {
-        $: { name: 'shelf' }
-      }
-    },
+    shelves: { shelf: [] },
     ...data
   };
 }
@@ -66,9 +54,9 @@ export function createAPIReview(data?: Partial<API.Review>): API.Review {
   return {
     ...createAPIReadBook(data),
     user: {
-      id: '1',
-      link: '',
-      name: 'User'
+      id: string(),
+      link: string(),
+      name: string()
     },
     ...data
   };
@@ -84,10 +72,10 @@ export function createAPIWork(data: Partial<{
   title: string;
 }> = {}): API.Book['work'] {
   return {
-    id: { _: data.id || '1' },
-    original_title: data.title || 'Title',
+    id: { _: data.id || string() },
+    original_title: data.title || string(),
     ratings_count: { _: data.ratingsCount || '1' },
-    ratings_sum: { _: data.ratingsSum || '1' }
+    ratings_sum: { _: data.ratingsSum || '5' }
   };
 }
 
@@ -96,17 +84,17 @@ export function createAPIWork(data: Partial<{
  */
 export function createBook(data?: Partial<Core.Book>): Core.Book {
   return {
-    author: { id: '1', name: 'Author Name' },
-    averageRating: 1,
-    canonicalID: '1',
-    id: '1',
-    publisher: 'Publisher',
-    reviewsID: '1',
+    author: { id: string(), name: string() },
+    averageRating: 5,
+    canonicalID: string(),
+    id: string(),
+    publisher: string(),
+    reviewsID: string(),
     shelves: [],
     similarBooks: [],
-    title: 'Title',
+    title: string(),
     totalRatings: 0,
-    workID: '1',
+    workID: string(),
     ...data
   };
 }
@@ -129,8 +117,8 @@ export function createBookshelf(
  */
 export function createReadBook(data?: Partial<Core.ReadBook>): Core.ReadBook {
   return {
-    bookID: '1',
-    id: '2',
+    bookID: string(),
+    id: string(),
     posted: 0,
     rating: 5,
     shelves: [],
