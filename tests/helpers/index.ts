@@ -7,6 +7,8 @@ import Logger, { Options as LoggerOptions } from '../../src/logger';
 import { buildConfig } from '../../src/config';
 import { Configuration, UserConfiguration } from '../../src/types/config';
 
+type StreamReader = () => Promise<string[]>;
+
 const readFileAsync = promisify(fs.readFile);
 
 /**
@@ -41,9 +43,9 @@ export function createTestConfig(data?: UserConfiguration): Configuration {
 }
 
 /**
- * Create a logger for use in testing and a function to read its output
+ * Create an output stream and a function that reads its messages
  */
-export function createTestLogger(options?: LoggerOptions): [Logger, () => Promise<string[]>] {
+export function createOutputStream(): [NodeJS.WritableStream, StreamReader] {
   const file = tmp.fileSync();
   const stream = fs.createWriteStream(file.name);
 
@@ -56,12 +58,21 @@ export function createTestLogger(options?: LoggerOptions): [Logger, () => Promis
     });
   }
 
-  async function readLog() {
+  async function readStream() {
     await closeStream();
     const lines = await readFileAsync(file.name, 'utf8');
 
     return lines.split('\n').slice(0, -1);
   }
+
+  return [stream, readStream];
+}
+
+/**
+ * Create a logger for use in testing and a function to read its output
+ */
+export function createTestLogger(options?: LoggerOptions): [Logger, StreamReader] {
+  const [stream, readLog] = createOutputStream();
 
   return [
     new Logger(stream, { useColor: false, ...options }),
