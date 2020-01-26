@@ -2,7 +2,7 @@ import http from 'http';
 import nock, { BackMode } from 'nock';
 import { chunk } from 'lodash';
 
-import { canUpdateFixtures } from './index';
+import { canUpdateFixtures, shouldBypassFixtures } from './index';
 import { paths } from '../../src/environment';
 
 nock.back.fixtures = paths.networkFixturesDir;
@@ -24,7 +24,11 @@ export function configureNetworkAccess(suite: Mocha.Suite, {
   let previousMode: BackMode | undefined;
   let targetMode: BackMode;
 
-  if (allowRequests) {
+  const permitRequests = allowRequests || shouldBypassFixtures();
+
+  if (shouldBypassFixtures()) {
+    targetMode = 'wild';
+  } else if (permitRequests) {
     targetMode = useFixtures ? 'record' : 'wild';
   } else {
     targetMode = 'lockdown';
@@ -41,7 +45,7 @@ export function configureNetworkAccess(suite: Mocha.Suite, {
       nock.activate();
     }
 
-    if (!allowRequests) {
+    if (!permitRequests) {
       nock.disableNetConnect();
     }
   });
@@ -51,7 +55,7 @@ export function configureNetworkAccess(suite: Mocha.Suite, {
       nock.back.setMode(previousMode);
     }
 
-    if (!allowRequests) {
+    if (!permitRequests) {
       nock.enableNetConnect();
     }
 

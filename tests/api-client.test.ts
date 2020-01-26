@@ -4,7 +4,7 @@ import assert from './helpers/assert';
 import APIClient from '../src/api-client';
 import Cache from '../src/cache';
 import { configureNetworkAccess, simulateResponse } from './helpers/requests';
-import { canUpdateFixtures, createTestLogger } from './helpers';
+import { canUpdateFixtures, createTestLogger, shouldBypassFixtures } from './helpers';
 import { createBook } from './helpers/factories';
 import { getGoodreadsAPIKey, hasGoodreadsAPIKey } from '../src/config';
 import { paths } from '../src/environment';
@@ -22,7 +22,7 @@ describe('api-client', function() {
 
     function createClient(): APIClient {
       const cache = new Cache(paths.apiFixturesDir, {
-        enabled: true,
+        enabled: !shouldBypassFixtures(),
         encoding: 'base64'
       });
 
