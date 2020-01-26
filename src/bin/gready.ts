@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { extractArgs } from '../environment';
+import { getArgs } from '../system';
 import { runAsScript } from '../scripts';
 import { runCLI } from '../gready';
 
@@ -9,7 +10,7 @@ import { runCLI } from '../gready';
  */
 function runGready(): Promise<void> {
   return runCLI({
-    args: extractArgs(process.argv)
+    args: extractArgs(getArgs())
   });
 }
 
