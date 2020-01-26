@@ -11,9 +11,9 @@ describe('cache', function() {
 
       context(`with ${encoding} encoding`, function() {
 
-        function createCache(options: Partial<Options> = {}): Cache {
+        function createCache(directory?: string, options: Partial<Options> = {}): Cache {
           return new Cache(
-            tmp.dirSync().name,
+            directory || tmp.dirSync().name,
             { ...options, encoding }
           );
         }
