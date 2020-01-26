@@ -35,7 +35,8 @@ const EXTENSIONS: Record<Encoding, string> = {
 
 export default class Cache {
 
-  private directory: string;
+  directory: string;
+
   private extension: string;
   private createdDirectories: Set<string>;
   private options: Options;
