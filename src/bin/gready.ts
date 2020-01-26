@@ -15,4 +15,4 @@ function runGready(): Promise<void> {
   });
 }
 
-runAsScript(runGready);
+runAsScript(runGready, { stderr: process.stderr });

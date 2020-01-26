@@ -131,4 +131,4 @@ function generateValidatorCode(
   return lines.join('\n');
 }
 
-runAsScript(generateValidators);
+runAsScript(generateValidators, { stderr: process.stderr });
