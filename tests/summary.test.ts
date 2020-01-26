@@ -9,20 +9,20 @@ describe('summary', function() {
     it('produces a summary of a bookshelf', function() {
       const bookshelf = createBookshelf([
         {
-          author: { id: '1', name: 'Alfa Bravo' },
-          id: '1',
+          author: { id: 'Author1', name: 'Alfa Bravo' },
+          id: 'Book1',
           publisher: 'Publisher Alfa',
           shelves: [
-            { count: 1, name: 'Shelf Alfa' },
-            { count: 2, name: 'Shelf Bravo' }
+            { count: 1, name: 'shelf-alfa' },
+            { count: 2, name: 'shelf-bravo' }
           ],
           title: 'Book Alfa'
         },
         {
-          author: { id: '2', name: 'Charlie Delta' },
-          id: '2',
+          author: { id: 'Author2', name: 'Charlie Delta' },
+          id: 'Book2',
           publisher: 'Publisher Bravo',
-          shelves: [{ count: 1, name: 'Shelf Alfa' }],
+          shelves: [{ count: 1, name: 'shelf-alfa' }],
           title: 'Book Bravo'
         }
       ], 0);
@@ -35,11 +35,11 @@ describe('summary', function() {
           'Books by Author',
           '===============',
           '',
-          '* Bravo, Alfa (ID=1)',
-          '  - Book Alfa (ID=1)',
+          '* Bravo, Alfa (ID=Author1)',
+          '  - Book Alfa (ID=Book1)',
           '',
-          '* Delta, Charlie (ID=2)',
-          '  - Book Bravo (ID=2)'
+          '* Delta, Charlie (ID=Author2)',
+          '  - Book Bravo (ID=Book2)'
         ],
         [
           'Books by Publisher',
@@ -62,19 +62,19 @@ describe('summary', function() {
           'Popular Shelves',
           '===============',
           '',
-          '* Shelf Alfa | p100',
+          '* shelf-alfa | p100',
           '  - p100 | Book Bravo',
           '  - p50  | Book Alfa',
           '',
-          '* Shelf Bravo | p50',
+          '* shelf-bravo | p50',
           '  - p100 | Book Alfa'
         ],
         [
           'All Shelves',
           '===========',
           '',
-          '* p100 | Shelf Alfa',
-          '* p50  | Shelf Bravo'
+          '* p100 | shelf-alfa',
+          '* p50  | shelf-bravo'
         ]
       ]);
     });
