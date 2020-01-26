@@ -11,20 +11,11 @@ describe('cache', function() {
 
       context(`with ${encoding} encoding`, function() {
 
-        let cacheDir: tmp.DirResult;
-
-        beforeEach(function() {
-          cacheDir = tmp.dirSync();
-        });
-
-        afterEach(function() {
-          if (cacheDir) {
-            cacheDir.removeCallback();
-          }
-        });
-
         function createCache(options: Partial<Options> = {}): Cache {
-          return new Cache(cacheDir.name, { ...options, encoding });
+          return new Cache(
+            tmp.dirSync().name,
+            { ...options, encoding }
+          );
         }
 
         describe('.clear', function() {
