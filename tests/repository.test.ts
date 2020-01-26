@@ -26,23 +26,23 @@ describe('repository', function() {
       useFixtures: false
     });
 
-    function createClient(): APIClient {
-      return new APIClient({
-        apiKey: 'testing',
-        cache: createTestCache(),
-        logger: createTestLogger()[0]
-      });
-    }
-
-    function createRepo(client: APIClient, options: {
+    function createRepo(options: {
       cache?: Cache;
       config?: UserConfiguration;
     } = {}): Repository {
+      const [logger] = createTestLogger();
+
+      const apiClient = new APIClient({
+        apiKey: 'testing',
+        cache: createTestCache(),
+        logger
+      });
+
       return new Repository({
-        apiClient: client,
+        apiClient,
         cache: options.cache || createTestCache(),
         config: createTestConfig(options.config),
-        logger: createTestLogger()[0]
+        logger
       });
     }
 
@@ -53,13 +53,12 @@ describe('repository', function() {
         canonical?: Partial<API.Book>,
         config?: UserConfiguration
       ): Promise<Core.Book> {
-        const client = createClient();
-        const repo = createRepo(client, { config });
+        const repo = createRepo({ config });
 
         const book = F.createAPIBook(query);
         const canonicalBook = canonical ? F.createAPIBook(canonical) : book;
 
-        stub(client, 'getBook', function(id) {
+        stub(repo.apiClient, 'getBook', function(id) {
           switch (id) {
             case book.id:
               return Promise.resolve(book);
@@ -70,7 +69,7 @@ describe('repository', function() {
           }
         });
 
-        stub(client, 'getCanonicalBookID', function(sourceBook) {
+        stub(repo.apiClient, 'getCanonicalBookID', function(sourceBook) {
           if (sourceBook.id === book.id) {
             return Promise.resolve(canonicalBook.id);
           } else {
@@ -395,9 +394,8 @@ describe('repository', function() {
         bookIDs: BookID[],
         config?: UserConfiguration
       ): Promise<Core.Book[]> {
-        const client = createClient();
         const cache = createTestCache();
-        const repo = createRepo(client, { cache, config });
+        const repo = createRepo({ cache, config });
 
         const books = availableBooks.map(F.createBook);
 
@@ -490,10 +488,9 @@ describe('repository', function() {
     describe('.getReadBooks', function() {
 
       function getReadBooks(books: Partial<API.ReadBook>[], userID = '1'): Promise<Core.ReadBook[]> {
-        const client = createClient();
-        const repo = createRepo(client);
+        const repo = createRepo();
 
-        stub(client, 'getReadBooks', function(id) {
+        stub(repo.apiClient, 'getReadBooks', function(id) {
           if (id === userID) {
             return Promise.resolve(books.map(F.createAPIReadBook));
           } else {
@@ -599,13 +596,12 @@ describe('repository', function() {
     describe('.getSimilarReviews', function() {
 
       function getSimilarReviews(reviews: Partial<API.Review>[]): Promise<Core.Review[]> {
-        const client = createClient();
-        const repo = createRepo(client);
+        const repo = createRepo();
 
         const book = F.createBook({ id: '1', reviewsID: '2' });
         const readBook = F.createReadBook({ id: '3', rating: 5 });
 
-        stub(client, 'getBookReviews', function(id, options) {
+        stub(repo.apiClient, 'getBookReviews', function(id, options) {
           assert.equal(options.limit, reviews.length);
           assert.equal(options.rating, 5);
 
