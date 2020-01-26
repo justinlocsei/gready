@@ -46,7 +46,7 @@ export function createOutputHandler(): [OutputHandler, OutputReader] {
   const messages: string[] = [];
 
   function handleMessage(message: string) {
-    messages.push(message);
+    messages.push(message.toString());
   }
 
   return [
