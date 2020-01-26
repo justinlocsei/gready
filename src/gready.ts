@@ -391,7 +391,7 @@ export function runCLI(options: CLIOptions): Promise<void> {
     if (error instanceof CLIError) {
       process.exitCode = 1;
 
-      console.error(`${error.message}\n\nUsage\n-----\n`);
+      options.stderr.write(`${error.message}\n\nUsage\n-----\n`);
       yargs.showHelp('error');
     } else {
       throw error;
