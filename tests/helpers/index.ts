@@ -17,6 +17,13 @@ export function canUpdateFixtures(): boolean {
 }
 
 /**
+ * Whether tests should bypass fixtures
+ */
+export function shouldBypassFixtures(): boolean {
+  return process.env['GREADY_BYPASS_TEST_FIXTURES'] === '1';
+}
+
+/**
  * Create a pass-through cache for testing
  */
 export function createTestCache(): Cache {
