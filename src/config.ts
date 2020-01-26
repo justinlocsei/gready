@@ -3,6 +3,7 @@ import { promisify } from 'util';
 import { readFile } from 'fs';
 
 import { Configuration, UserConfiguration } from './types/config';
+import { getEnvironmentVariable } from './system';
 import { OperationalError } from './errors';
 import { validateUserConfiguration } from './validators/config';
 
@@ -109,14 +110,14 @@ export function getGoodreadsUserID(): string {
  * Whether a Goodreads API key has been set
  */
 export function hasGoodreadsAPIKey(): boolean {
-  return !!process.env[ENV_VARS.goodreadsAPIKey];
+  return getEnvironmentVariable(ENV_VARS.goodreadsAPIKey) !== undefined;
 }
 
 /**
  * Get a required value from the environment
  */
 function requireEnvironmentVariable(name: string, description: string): string {
-  const value = process.env[name];
+  const value = getEnvironmentVariable(name);
 
   if (!value) {
     throw new OperationalError(`You must provide ${description} in the ${name} environment variable`);

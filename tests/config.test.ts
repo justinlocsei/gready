@@ -1,9 +1,10 @@
 import fs from 'graceful-fs';
-import sinon from 'sinon';
 import tmp from 'tmp';
 import { promisify } from 'util';
 
+import * as system from '../src/system';
 import assert from './helpers/assert';
+import { allowOverrides } from './helpers/mocking';
 import { OperationalError } from '../src/errors';
 import { UserConfiguration } from '../src/types/config';
 
@@ -20,17 +21,7 @@ const writeFileAsync = promisify(fs.writeFile);
 
 describe('config', function() {
 
-  let sandbox: sinon.SinonSandbox;
-
-  beforeEach(function() {
-    sandbox = sinon.createSandbox();
-  });
-
-  afterEach(function() {
-    if (sandbox) {
-      sandbox.restore();
-    }
-  });
+  const { stub } = allowOverrides(this);
 
   describe('buildConfig', function() {
 
@@ -57,15 +48,15 @@ describe('config', function() {
   describe('getGoodreadsAPIKey', function() {
 
     it('returns the key when the environment variable is set', function() {
-      sandbox.stub(process, 'env').value({
-        GREADY_GOODREADS_API_KEY: 'key'
+      stub(system, 'getEnvironmentVariable', function(varName) {
+        return varName === 'GREADY_GOODREADS_API_KEY' ? 'key' : undefined;
       });
 
       assert.equal(getGoodreadsAPIKey(), 'key');
     });
 
     it('throws an error when the environment variable is unset', function() {
-      sandbox.stub(process, 'env').value({});
+      stub(system, 'getEnvironmentVariable', v => undefined);
 
       assert.throws(
         () => getGoodreadsAPIKey(),
@@ -79,15 +70,15 @@ describe('config', function() {
   describe('getGoodreadsUserID', function() {
 
     it('returns the user ID when the environment variable is set', function() {
-      sandbox.stub(process, 'env').value({
-        GREADY_GOODREADS_USER_ID: 'id'
+      stub(system, 'getEnvironmentVariable', function(varName) {
+        return varName === 'GREADY_GOODREADS_USER_ID' ? 'id' : undefined;
       });
 
       assert.equal(getGoodreadsUserID(), 'id');
     });
 
     it('throws an error when the environment variable is unset', function() {
-      sandbox.stub(process, 'env').value({});
+      stub(system, 'getEnvironmentVariable', v => undefined);
 
       assert.throws(
         () => getGoodreadsUserID(),
@@ -101,15 +92,15 @@ describe('config', function() {
   describe('hasGoodreadsAPIKey', function() {
 
     it('returns true when the environment variable is set', function() {
-      sandbox.stub(process, 'env').value({
-        GREADY_GOODREADS_API_KEY: 'key'
+      stub(system, 'getEnvironmentVariable', function(varName) {
+        return varName === 'GREADY_GOODREADS_API_KEY' ? 'key' : undefined;
       });
 
       assert.isTrue(hasGoodreadsAPIKey());
     });
 
     it('returns false when the environment variable is unset', function() {
-      sandbox.stub(process, 'env').value({});
+      stub(system, 'getEnvironmentVariable', v => undefined);
 
       assert.isFalse(hasGoodreadsAPIKey());
     });
