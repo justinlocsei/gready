@@ -8,7 +8,7 @@ import { partition, underline } from '../content';
 import { Partitioned } from '../types/util';
 import { runSequence } from '../flow';
 
-type PartitionedRecommendation = Partitioned<RecommendedBook>;
+export type PartitionedRecommendation = Partitioned<RecommendedBook>;
 
 interface RecommendedBook {
   book: Book;
