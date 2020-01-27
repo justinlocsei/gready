@@ -5,7 +5,8 @@
     "src/**/*.ts"
   ],
   "exclude": [
-    "src/types/*.ts"
+    "src/types/*.ts",
+    "src/validators/"
   ],
   "reporter": [
     "html",
