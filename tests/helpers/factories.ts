@@ -52,13 +52,12 @@ export function createAPIReadBook(data?: Partial<API.ReadBook>): API.ReadBook {
  */
 export function createAPIReview(data?: Partial<API.Review>): API.Review {
   return {
-    ...createAPIReadBook(data),
     user: {
       id: string(),
       link: string(),
       name: string()
     },
-    ...data
+    ...createAPIReadBook(data)
   };
 }
 
@@ -116,12 +115,32 @@ export function createBookshelf(
  * Create a valid read book
  */
 export function createReadBook(data?: Partial<Core.ReadBook>): Core.ReadBook {
+  return createReview(data);
+}
+
+/**
+ * Create a valid review
+ */
+export function createReview(data?: Partial<Core.Review>): Core.Review {
   return {
     bookID: string(),
     id: string(),
     posted: 0,
     rating: 5,
     shelves: [],
+    user: createUser(),
+    ...data
+  };
+}
+
+/**
+ * Create a valid user
+ */
+export function createUser(data?: Partial<Core.User>): Core.User {
+  return {
+    id: string(),
+    name: string(),
+    profileURL: string(),
     ...data
   };
 }
