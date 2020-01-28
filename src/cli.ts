@@ -107,13 +107,13 @@ export default class CLI {
       repo: this.repo
     });
 
+    const bestMatches = readers.filter(r => r.books.length >= minBooks);
+
     if (this.logger.isEnabled) {
       this.writeOutput('');
     }
 
-    const summary = summarizeSimilarReaders(readers.filter(r => r.books.length >= minBooks));
-
-    this.writeOutput(summary);
+    this.writeOutput(summarizeSimilarReaders(bestMatches));
   }
 
   /**
