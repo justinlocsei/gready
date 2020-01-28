@@ -1,7 +1,8 @@
-import assert from './helpers/assert';
 import fs from 'graceful-fs';
 import path from 'path';
 import tmp from 'tmp';
+
+import assert from './helpers/assert';
 
 import {
   extractArgs,
