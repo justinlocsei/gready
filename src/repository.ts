@@ -29,8 +29,8 @@ const SHARED_NAMESPACES = {
 
 export default class Repository {
 
-  apiClient: APIClient;
-  logger: Logger;
+  readonly apiClient: APIClient;
+  readonly logger: Logger;
 
   private cache: Cache;
   private config: Configuration;
