@@ -11,8 +11,9 @@ import { UserID } from './types/goodreads';
 
 export default class CLI {
 
-  private logger: Logger;
-  private repo: Repository;
+  readonly logger: Logger;
+  readonly repo: Repository;
+
   private userID: UserID;
   private writeOutput: OutputHandler;
 
