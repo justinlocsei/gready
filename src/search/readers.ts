@@ -8,7 +8,7 @@ import { getUserBooksURL } from '../goodreads';
 import { runSequence } from '../flow';
 import { underline } from '../content';
 
-interface SimilarReader {
+export interface SimilarReader {
   books: Book[];
   shelves: Shelf[];
   user: User & {

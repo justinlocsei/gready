@@ -8,7 +8,7 @@ import { buildConfig } from '../../src/config';
 import { Configuration, UserConfiguration } from '../../src/types/config';
 import { OutputHandler } from '../../src/types/system';
 
-type OutputReader = () => string[];
+export type OutputReader = () => string[];
 
 /**
  * Whether test fixtures can be updated
