@@ -3,18 +3,11 @@ import assert from '../helpers/assert';
 import { allowOverrides } from '../helpers/mocking';
 import { Book, ReadBook } from '../../src/types/core';
 import { BookID } from '../../src/types/goodreads';
-import { configureNetworkAccess } from '../helpers/requests';
 import { createBook, createReadBook } from '../helpers/factories';
 import { createTestRepo } from '../helpers';
 import { findRecommendedBooks, PartitionedRecommendation, summarizeRecommendedBooks } from '../../src/search/books';
 
 describe('search/books', function() {
-
-  configureNetworkAccess(this, {
-    allowRequests: false,
-    timeout: this.timeout(),
-    useFixtures: false
-  });
 
   const { stub } = allowOverrides(this);
 

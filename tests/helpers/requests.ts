@@ -10,20 +10,23 @@ nock.back.fixtures = paths.networkFixturesDir;
 nock.restore();
 
 /**
- * Configure a test's network access
+ * Allow network access within a test context
  */
-export function configureNetworkAccess(suite: Mocha.Suite, {
-  allowRequests = canUpdateFixtures(),
+export function allowNetworkAccess(suite: Mocha.Suite, {
+  always = false,
   timeout,
-  useFixtures = true
+  useFixtures,
+  when = () => true
 }: {
-  allowRequests?: boolean;
+  always?: boolean;
   timeout: number;
-  useFixtures?: boolean;
-}): void {
+  useFixtures: boolean;
+  when?: () => boolean;
+}) {
   let previousMode: BackMode | undefined;
   let targetMode: BackMode;
 
+  const allowRequests = always || (canUpdateFixtures() && when());
   const permitRequests = allowRequests || shouldBypassFixtures();
 
   if (shouldBypassFixtures()) {
@@ -41,12 +44,8 @@ export function configureNetworkAccess(suite: Mocha.Suite, {
     previousMode = nock.back.currentMode;
     nock.back.setMode(targetMode);
 
-    if (!nock.isActive()) {
-      nock.activate();
-    }
-
-    if (!permitRequests) {
-      nock.disableNetConnect();
+    if (permitRequests) {
+      nock.enableNetConnect();
     }
   });
 
@@ -55,12 +54,30 @@ export function configureNetworkAccess(suite: Mocha.Suite, {
       nock.back.setMode(previousMode);
     }
 
-    if (!permitRequests) {
-      nock.enableNetConnect();
-    }
-
-    nock.restore();
+    nock.disableNetConnect();
   });
+}
+
+/**
+ * Prevent network access
+ */
+export function preventNetworkAccess() {
+  if (!nock.isActive()) {
+    nock.activate();
+  }
+
+  nock.disableNetConnect();
+  nock.back.setMode('lockdown');
+}
+
+/**
+ * Restore network access
+ */
+export function restoreNetworkAccess() {
+  nock.enableNetConnect();
+  nock.back.setMode('record');
+
+  nock.restore();
 }
 
 /**

@@ -3,9 +3,9 @@ import { uniq } from 'lodash';
 import assert from './helpers/assert';
 import APIClient from '../src/api-client';
 import Cache from '../src/cache';
-import { configureNetworkAccess, simulateResponse } from './helpers/requests';
-import { canUpdateFixtures, createTestLogger, shouldBypassFixtures } from './helpers';
+import { allowNetworkAccess, simulateResponse } from './helpers/requests';
 import { createBook } from './helpers/factories';
+import { createTestLogger, shouldBypassFixtures } from './helpers';
 import { getGoodreadsAPIKey, hasGoodreadsAPIKey } from '../src/config';
 import { paths } from '../src/environment';
 import { URLS } from '../src/goodreads';
@@ -14,10 +14,10 @@ describe('api-client', function() {
 
   describe('APIClient', function() {
 
-    configureNetworkAccess(this, {
-      allowRequests: canUpdateFixtures() && hasGoodreadsAPIKey(),
+    allowNetworkAccess(this, {
       timeout: 20000,
-      useFixtures: false
+      useFixtures: false,
+      when: hasGoodreadsAPIKey
     });
 
     function createClient(): APIClient {

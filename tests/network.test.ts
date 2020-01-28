@@ -1,9 +1,15 @@
 import assert from './helpers/assert';
 import { makeGetRequest } from '../src/network';
 import { NetworkError } from '../src/errors';
-import { useServer } from './helpers/requests';
+import { allowNetworkAccess, useServer } from './helpers/requests';
 
 describe('network', function() {
+
+  allowNetworkAccess(this, {
+    always: true,
+    timeout: 1000,
+    useFixtures: false
+  });
 
   describe('makeGetRequest', function() {
 

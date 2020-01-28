@@ -7,7 +7,6 @@ import * as reviews from '../src/reviews';
 import assert from './helpers/assert';
 import { allowOverrides } from './helpers/mocking';
 import { BookID } from '../src/types/goodreads';
-import { configureNetworkAccess } from './helpers/requests';
 import { createTestCache, createTestRepo } from './helpers';
 import { UserConfiguration } from '../src/types/config';
 
@@ -16,12 +15,6 @@ describe('repository', function() {
   const { stub } = allowOverrides(this);
 
   describe('Repository', function() {
-
-    configureNetworkAccess(this, {
-      allowRequests: false,
-      timeout: this.timeout(),
-      useFixtures: false
-    });
 
     describe('.getBook', function() {
 
