@@ -227,6 +227,10 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
       .alias('h', 'help')
       .scriptName('gready')
       .version()
+      .exitProcess(false)
+      .fail(function(message) {
+        throw new CLIError(message);
+      })
       .parse(args);
   });
 }
