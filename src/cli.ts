@@ -9,7 +9,14 @@ import { runSequence } from './flow';
 import { SectionID, summarizeBookshelf } from './summary';
 import { UserID } from './types/goodreads';
 
-export default class CLI {
+interface CLIOptions {
+  logger: Logger;
+  repo: Repository;
+  userID: UserID;
+  writeOutput: OutputHandler;
+}
+
+export class CLI {
 
   readonly logger: Logger;
   readonly repo: Repository;
@@ -25,12 +32,7 @@ export default class CLI {
     repo,
     userID,
     writeOutput
-  }: {
-    logger: Logger;
-    repo: Repository;
-    userID: UserID;
-    writeOutput: OutputHandler;
-  }) {
+  }: CLIOptions) {
     this.logger = logger;
     this.repo = repo;
     this.userID = userID;
@@ -159,4 +161,11 @@ export default class CLI {
     this.writeOutput(summarySections.join('\n\n'));
   }
 
+}
+
+/**
+ * Create a new CLI instance
+ */
+export async function createCLI(options: CLIOptions): Promise<CLI> {
+  return new CLI(options);
 }

@@ -5,10 +5,10 @@ import * as Core from '../src/types/core';
 import * as readersSearch from '../src/search/readers';
 import * as summary from '../src/summary';
 import assert from './helpers/assert';
-import CLI from '../src/cli';
 import Logger from '../src/logger';
 import { allowOverrides } from './helpers/mocking';
 import { createBook, createReadBook, createUser } from './helpers/factories';
+import { createCLI, CLI } from '../src/cli';
 import { createOutputHandler, createTestLogger, createTestRepo, OutputReader } from './helpers';
 import { OutputHandler } from '../src/types/system';
 import { UserID } from '../src/types/goodreads';
@@ -19,7 +19,7 @@ describe('cli', function() {
 
   describe('CLI', function() {
 
-    function createCLI({
+    function createTestCLI({
       logger,
       userID = '1',
       writeOutput
@@ -43,7 +43,7 @@ describe('cli', function() {
     describe('.findBooks', function() {
 
       it('finds and summarizes recommended books', async function() {
-        const [cli, readOutput] = createCLI({ userID: '1', });
+        const [cli, readOutput] = createTestCLI({ userID: '1', });
 
         const readBooks: Core.ReadBook[] = [];
         const recommendations: booksSearch.PartitionedRecommendation[] = [];
@@ -84,7 +84,7 @@ describe('cli', function() {
       });
 
       it('removes the separator when logging is disabled', async function() {
-        const [cli, readOutput] = createCLI({
+        const [cli, readOutput] = createTestCLI({
           logger: createTestLogger({ logLevel: 'none' })[0]
         });
 
@@ -123,7 +123,7 @@ describe('cli', function() {
       }
 
       it('finds readers with similar tastes', async function() {
-        const [cli, readOutput] = createCLI({ userID: '1' });
+        const [cli, readOutput] = createTestCLI({ userID: '1' });
 
         const readBooks: Core.ReadBook[] = [];
 
@@ -150,7 +150,7 @@ describe('cli', function() {
       });
 
       it('can filter readers based on the number of matching books', async function() {
-        const [cli, readOutput] = createCLI();
+        const [cli, readOutput] = createTestCLI();
 
         stub(cli.repo, 'getReadBooks', () => Promise.resolve([]));
 
@@ -173,7 +173,7 @@ describe('cli', function() {
       });
 
       it('can find readers based on a subset of books', async function() {
-        const [cli, readOutput] = createCLI();
+        const [cli, readOutput] = createTestCLI();
 
         stub(cli.repo, 'getReadBooks', function() {
           return Promise.resolve([
@@ -200,7 +200,7 @@ describe('cli', function() {
       });
 
       it('throws an error when a book ID is not part of the set of read books', async function() {
-        const [cli] = createCLI();
+        const [cli] = createTestCLI();
 
         stub(cli.repo, 'getReadBooks', function() {
           return Promise.resolve([
@@ -223,7 +223,7 @@ describe('cli', function() {
       });
 
       it('removes the separator when logging is disabled', async function() {
-        const [cli, readOutput] = createCLI({
+        const [cli, readOutput] = createTestCLI({
           logger: createTestLogger({ logLevel: 'none' })[0]
         });
 
@@ -244,7 +244,7 @@ describe('cli', function() {
     describe('.syncBooks', function() {
 
       it('gets data on a list of read books', async function() {
-        const [cli] = createCLI({ userID: '1' });
+        const [cli] = createTestCLI({ userID: '1' });
 
         stub(cli.repo, 'getReadBooks', function(id) {
           assert.equal(id, '1');
@@ -266,7 +266,7 @@ describe('cli', function() {
       });
 
       it('can limit the number of books fetched', async function() {
-        const [cli] = createCLI();
+        const [cli] = createTestCLI();
 
         stub(cli.repo, 'getReadBooks', function(id) {
           return Promise.resolve([
@@ -289,7 +289,7 @@ describe('cli', function() {
     describe('.summarize', function() {
 
       it('shows a summary of local books', async function() {
-        const [cli, readOutput] = createCLI({ userID: '1' });
+        const [cli, readOutput] = createTestCLI({ userID: '1' });
 
         stub(cli.repo, 'getReadBooks', function(id) {
           assert.equal(id, '1');
@@ -319,7 +319,7 @@ describe('cli', function() {
       });
 
       it('can filter the summary', async function() {
-        const [cli, readOutput] = createCLI();
+        const [cli, readOutput] = createTestCLI();
 
         stub(cli.repo, 'getReadBooks', () => Promise.resolve([]));
 
@@ -352,6 +352,21 @@ describe('cli', function() {
         assert.deepEqual(readOutput(), ['alfa\n\npublishers']);
       });
 
+    });
+
+  });
+
+  describe('createCLI', function() {
+
+    it('creates an instance of a CLI', async function() {
+      const cli = await createCLI({
+        logger: createTestLogger()[0],
+        repo: createTestRepo(),
+        userID: '1',
+        writeOutput: createOutputHandler()[0]
+      });
+
+      assert.instanceOf(cli, CLI);
     });
 
   });

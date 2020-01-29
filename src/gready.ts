@@ -4,11 +4,11 @@ import yargs from 'yargs';
 
 import APIClient from './api-client';
 import Cache from './cache';
-import CLI from './cli';
 import Logger, { DEFAULT_LEVEL, getLevelNames, LevelName } from './logger';
 import Repository from './repository';
 import { CLIError } from './errors';
 import { Configuration } from './types/config';
+import { createCLI } from './cli';
 import { createStderrWriter, createStdoutWriter, markProcessAsFailed } from './system';
 import { ExtractArrayType } from './types/util';
 import { getGoodreadsAPIKey, getGoodreadsUserID, loadConfig } from './config';
@@ -333,7 +333,7 @@ async function startCLI(cliOptions: Required<CLIOptions>): Promise<void> {
     logger
   });
 
-  const cli = new CLI({
+  const cli = await createCLI({
     logger,
     repo,
     userID: getGoodreadsUserID(),
