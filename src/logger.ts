@@ -32,14 +32,14 @@ export function getLevelNames(): string[] {
 
 export default class Logger {
 
-  isEnabled: boolean;
+  readonly isEnabled: boolean;
+  readonly level: LevelName;
+  readonly showTime: boolean;
+  readonly useColor: boolean;
 
   private handleMessage: OutputHandler;
   private indentation: number;
   private lastTime: number;
-  private level: LevelName;
-  private showTime: boolean;
-  private useColor: boolean;
 
   /**
    * Create a new logger
