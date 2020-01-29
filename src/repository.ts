@@ -30,10 +30,9 @@ const SHARED_NAMESPACES = {
 export default class Repository {
 
   readonly apiClient: APIClient;
+  readonly cache: Cache;
+  readonly config: Configuration;
   readonly logger: Logger;
-
-  private cache: Cache;
-  private config: Configuration;
 
   /**
    * Create a data repository
