@@ -1,4 +1,5 @@
 import tmp from 'tmp';
+import { flatten } from 'lodash';
 
 import APIClient from '../../src/api-client';
 import Cache from '../../src/cache';
@@ -76,7 +77,7 @@ export function createOutputHandler(): [OutputHandler, OutputReader] {
 
   return [
     handleMessage,
-    () => messages
+    () => flatten(messages.map(m => m.split('\n')))
   ];
 }
 
