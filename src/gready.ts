@@ -75,6 +75,7 @@ type CommandOptions =
   | { command: 'show-cache-stats'; options: CoreOptions; }
   | { command: 'summarize'; options: SummarizeOptions; }
   | { command: 'sync-books'; options: SyncBooksOptions; }
+  | { command: 'test'; options: CoreOptions; }
 
 /**
  * Parse command-line arguments
@@ -220,6 +221,12 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
             });
         },
         options => resolve({ command: 'summarize', options })
+      )
+      .command(
+        'test',
+        'Test that gready can run',
+        opts => opts,
+        options => resolve({ command: 'test', options })
       )
       .demandCommand(1, 'You must specify a subcommand')
       .strict()
@@ -383,6 +390,9 @@ async function startCLI(cliOptions: Required<CLIOptions>): Promise<void> {
       return cli.syncBooks(
         parsed.options['recent'] ? ensureNumeric(parsed.options, 'recent') : undefined
       );
+
+    case 'test':
+      return;
 
     default:
       unreachable(parsed);
