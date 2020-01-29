@@ -11,17 +11,21 @@ import {
 
 describe('system', function() {
 
-  const { mock, stub } = allowOverrides(this);
+  const { stub } = allowOverrides(this);
 
   describe('createStderrWriter', function() {
 
     it('creates a function that writes to stderr', function() {
-      const stdout = mock(process.stderr);
-      stdout.expects('write').once().withArgs('testing\n');
+      let output: unknown;
+
+      stub(process.stderr, 'write', function(message) {
+        output = message;
+        return true;
+      });
 
       createStderrWriter()('testing');
 
-      stdout.verify();
+      assert.equal(output, 'testing\n');
     });
 
   });
@@ -29,12 +33,16 @@ describe('system', function() {
   describe('createStdoutWriter', function() {
 
     it('creates a function that writes to stdout', function() {
-      const stdout = mock(process.stdout);
-      stdout.expects('write').once().withArgs('testing\n');
+      let output: unknown;
+
+      stub(process.stdout, 'write', function(message) {
+        output = message;
+        return true;
+      });
 
       createStdoutWriter()('testing');
 
-      stdout.verify();
+      assert.equal(output, 'testing\n');
     });
 
   });

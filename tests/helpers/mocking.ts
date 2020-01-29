@@ -41,14 +41,6 @@ export function allowOverrides(suite: Mocha.Suite) {
     };
   }
 
-  function mock(object: any) {
-    if (!sandbox) {
-      throw new Error('No sandbox available for mocking');
-    }
-
-    return sandbox.mock(object);
-  }
-
   function stub<T, K extends keyof T>(
     object: T,
     property: K,
@@ -69,7 +61,6 @@ export function allowOverrides(suite: Mocha.Suite) {
 
   return {
     expectAssertions,
-    mock,
     stub
   };
 }

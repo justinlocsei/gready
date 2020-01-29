@@ -7,15 +7,15 @@ import * as summary from '../src/summary';
 import assert from './helpers/assert';
 import Logger from '../src/logger';
 import { allowOverrides } from './helpers/mocking';
+import { BookID, UserID } from '../src/types/goodreads';
 import { createBook, createReadBook, createUser } from './helpers/factories';
 import { createCLI, CLI } from '../src/cli';
 import { createOutputHandler, createTestLogger, createTestRepo, OutputReader } from './helpers';
 import { OutputHandler } from '../src/types/system';
-import { UserID } from '../src/types/goodreads';
 
 describe('cli', function() {
 
-  const { mock, stub } = allowOverrides(this);
+  const { stub } = allowOverrides(this);
 
   describe('CLI', function() {
 
@@ -246,6 +246,8 @@ describe('cli', function() {
       it('gets data on a list of read books', async function() {
         const [cli] = createTestCLI({ userID: '1' });
 
+        const ids: BookID[] = [];
+
         stub(cli.repo, 'getReadBooks', function(id) {
           assert.equal(id, '1');
 
@@ -255,18 +257,20 @@ describe('cli', function() {
           ]);
         });
 
-        const repo = mock(cli.repo);
-
-        repo.expects('getBook').withArgs('2');
-        repo.expects('getBook').withArgs('3');
+        stub(cli.repo, 'getBook', function(id) {
+          ids.push(id);
+          return Promise.resolve(createBook());
+        });
 
         await cli.syncBooks();
 
-        repo.verify();
+        assert.deepEqual(ids, ['2', '3']);
       });
 
       it('can limit the number of books fetched', async function() {
         const [cli] = createTestCLI();
+
+        const ids: BookID[] = [];
 
         stub(cli.repo, 'getReadBooks', function(id) {
           return Promise.resolve([
@@ -275,13 +279,14 @@ describe('cli', function() {
           ]);
         });
 
-        const repo = mock(cli.repo);
-
-        repo.expects('getBook').withArgs('2');
+        stub(cli.repo, 'getBook', function(id) {
+          ids.push(id);
+          return Promise.resolve(createBook());
+        });
 
         await cli.syncBooks(1);
 
-        repo.verify();
+        assert.deepEqual(ids, ['2']);
       });
 
     });
