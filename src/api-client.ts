@@ -50,6 +50,9 @@ interface PendingRequest {
 
 export default class APIClient {
 
+  readonly cache: Cache;
+  readonly logger: Logger;
+
   private lastRequestID: number;
   private lastRequestTime: number;
   private options: ClientOptions;
@@ -62,6 +65,9 @@ export default class APIClient {
     this.lastRequestID = 0;
     this.lastRequestTime = Date.now();
     this.options = options;
+
+    this.cache = options.cache;
+    this.logger = options.logger;
 
     this.requestQueue = async.queue(async function(task, callback) {
       let text: string | undefined;
@@ -84,7 +90,7 @@ export default class APIClient {
    * Get information on a book using its Goodreads ID
    */
   async getBook(id: BookID): Promise<Book> {
-    const response = await this.options.cache.fetch(['books', id], () => {
+    const response = await this.cache.fetch(['books', id], () => {
       return this.request(
         ['Fetch book', `ID=${id}`],
         'book/show.xml',
@@ -114,10 +120,10 @@ export default class APIClient {
       `Limit=${limit}`
     ];
 
-    const reviews = await this.options.cache.fetch(
+    const reviews = await this.cache.fetch(
       ['review-meta', bookID, rating || 'all', limit],
       () => {
-        this.options.logger.debug('Fetch review metadata', ...message);
+        this.logger.debug('Fetch review metadata', ...message);
         return findPartialReviewsForBook(bookID, { limit, rating });
       }
     );
@@ -125,7 +131,7 @@ export default class APIClient {
     return runSequence(
       ['Load reviews', ...message],
       reviews,
-      this.options.logger,
+      this.logger,
       async ({ id }) => this.getReview(id)
     );
   }
@@ -134,7 +140,7 @@ export default class APIClient {
    * Attempt to get the canonical ID of an existing book
    */
   async getCanonicalBookID(book: Normalized.Book): Promise<BookID | null> {
-    const response = await this.options.cache.fetch(['book-search', book.id], () => {
+    const response = await this.cache.fetch(['book-search', book.id], () => {
       return this.request(
         ['Find book', book.title],
         'search/index.xml',
@@ -185,7 +191,7 @@ export default class APIClient {
     await runSequence(
       ['Fetch read books', `UserID=${userID}`],
       range(1, Math.ceil(totalBooks / pageSize) + 1),
-      this.options.logger,
+      this.logger,
       async (page) => {
         const { reviews } = await this.fetchReadBooksPage(
           [
@@ -211,7 +217,7 @@ export default class APIClient {
    * Get information on a review
    */
   private async getReview(id: ReviewID): Promise<Review> {
-    const response = await this.options.cache.fetch(['reviews', id], () => {
+    const response = await this.cache.fetch(['reviews', id], () => {
       return this.request(
         ['Fetch review', `ID=${id}`],
         'review/show.xml',
@@ -229,7 +235,7 @@ export default class APIClient {
    * Fetch a page of reviews
    */
   private async fetchReadBooksPage(message: string[], userID: UserID, pageSize: number, page = 1): Promise<ReadBooksResponse> {
-    const response = await this.options.cache.fetch(
+    const response = await this.cache.fetch(
       ['read-books', userID, pageSize, page],
       () => {
         return this.request(
