@@ -146,7 +146,7 @@ describe('cli', function() {
           shelfPercentile: 0
         });
 
-        assert.deepEqual(readOutput(), ['', '2\n3']);
+        assert.deepEqual(readOutput(), ['', '2', '3']);
       });
 
       it('can filter readers based on the number of matching books', async function() {
@@ -320,7 +320,7 @@ describe('cli', function() {
 
         await cli.summarize({ shelfPercentile: 0 });
 
-        assert.deepEqual(readOutput(), ['4\n\n5']);
+        assert.deepEqual(readOutput(), ['4', '', '5']);
       });
 
       it('can filter the summary', async function() {
@@ -354,7 +354,7 @@ describe('cli', function() {
           shelves: ['alfa']
         });
 
-        assert.deepEqual(readOutput(), ['alfa\n\npublishers']);
+        assert.deepEqual(readOutput(), ['alfa', '', 'publishers']);
       });
 
     });
