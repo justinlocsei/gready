@@ -394,9 +394,9 @@ async function startCLI(cliOptions: Required<CLIOptions>): Promise<void> {
  */
 export function runCLI(options: CLIOptions): Promise<void> {
   const settings: Required<CLIOptions> = {
-    ...options,
     writeToStderr: createStderrWriter(),
-    writeToStdout: createStdoutWriter()
+    writeToStdout: createStdoutWriter(),
+    ...options
   };
 
   return startCLI(settings).catch(function(error) {
