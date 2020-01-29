@@ -8,6 +8,7 @@ import assert from './assert';
  */
 export function allowOverrides(suite: Mocha.Suite) {
   let sandbox: sinon.SinonSandbox | undefined;
+  const stubs = new WeakMap<object, Map<any, sinon.SinonStub>>();
 
   suite.beforeEach(function() {
     sandbox = sinon.createSandbox();
@@ -41,13 +42,26 @@ export function allowOverrides(suite: Mocha.Suite) {
     };
   }
 
-  function stub<T, K extends keyof T>(
+  function stub<T extends object, K extends keyof T>(
     object: T,
     property: K,
     impl: T[K] extends (...args: infer U) => infer V ? (...args: U) => V : T[K]
   ): void {
     if (!sandbox) {
       throw new Error('No sandbox available for stubbing');
+    }
+
+    let objStubs = stubs.get(object);
+
+    if (!objStubs) {
+      objStubs = new Map();
+      stubs.set(object, objStubs);
+    }
+
+    const objStub = objStubs.get(property);
+
+    if (objStub) {
+      objStub.restore();
     }
 
     const replacement = sandbox.stub(object, property);
@@ -57,6 +71,8 @@ export function allowOverrides(suite: Mocha.Suite) {
     } else {
       replacement.value(impl);
     }
+
+    objStubs.set(property, replacement);
   }
 
   return {
