@@ -41,7 +41,6 @@ describe('validators', function() {
       );
     });
 
-
   });
 
 });

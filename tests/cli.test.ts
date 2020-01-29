@@ -43,7 +43,7 @@ describe('cli', function() {
     describe('.findBooks', function() {
 
       it('finds and summarizes recommended books', async function() {
-        const [cli, readOutput] = createTestCLI({ userID: '1', });
+        const [cli, readOutput] = createTestCLI({ userID: '1' });
 
         const readBooks: Core.ReadBook[] = [];
         const recommendations: booksSearch.PartitionedRecommendation[] = [];

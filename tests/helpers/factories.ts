@@ -46,7 +46,6 @@ export function createAPIReadBook(data?: Partial<API.ReadBook>): API.ReadBook {
   };
 }
 
-
 /**
  * Create a valid review as returned from the API
  */
