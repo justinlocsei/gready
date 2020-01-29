@@ -402,21 +402,23 @@ async function startCLI(cliOptions: Required<CLIOptions>): Promise<void> {
 /**
  * Run the CLI
  */
-export function runCLI(options: CLIOptions): Promise<void> {
+export function runCLI(options: CLIOptions): Promise<boolean> {
   const settings: Required<CLIOptions> = {
     writeToStderr: createStderrWriter(),
     writeToStdout: createStdoutWriter(),
     ...options
   };
 
-  return startCLI(settings).catch(function(error) {
-    if (error instanceof CLIError) {
-      markProcessAsFailed();
-
-      settings.writeToStderr(`${error.message}\n\nUsage\n-----`);
-      yargs.showHelp(h => settings.writeToStderr(h));
-    } else {
+  return startCLI(settings).then(() => true, function(error) {
+    if (!(error instanceof CLIError)) {
       throw error;
     }
+
+    markProcessAsFailed();
+
+    settings.writeToStderr(`${error.message}\n\nUsage\n-----`);
+    yargs.showHelp(h => settings.writeToStderr(h));
+
+    return false;
   });
 }

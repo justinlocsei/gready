@@ -11,7 +11,7 @@ import { runCLI } from '../gready';
 function runGready(): Promise<void> {
   return runCLI({
     args: extractArgs(getArgs())
-  });
+  }).then(() => undefined);
 }
 
 runAsScript(runGready);
