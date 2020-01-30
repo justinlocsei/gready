@@ -16,7 +16,7 @@ const writeFileAsync = promisify(writeFile);
 export const ENCODINGS = ['base64', 'utf-8'] as const;
 
 type Encoding = ExtractArrayType<typeof ENCODINGS>;
-type KeyPath = (number | string)[];
+export type KeyPath = (number | string)[];
 
 interface NamespaceStats {
   items: number;
