@@ -9,6 +9,7 @@
   ],
   "rules": {
     "comma-dangle": ["error", "never"],
+    "keyword-spacing": ["error"],
     "no-multiple-empty-lines": ["error", {"max": 1}],
     "object-curly-spacing": ["error", "always"],
     "quotes": ["error", "single"],
