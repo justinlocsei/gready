@@ -112,7 +112,7 @@ export default class Cache {
 
     try {
       return this.deserializeValue(await readFileAsync(cacheFile, 'utf8'));
-    } catch(error) {
+    } catch (error) {
       if (error.code === 'ENOENT') {
         return this.storeValue(cacheFile, computeValue);
       } else {
