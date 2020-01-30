@@ -3,7 +3,7 @@ import xml2js from 'xml2js';
 import { range } from 'lodash';
 
 import * as Normalized from './types/core';
-import Cache from './cache';
+import Cache, { KeyPath } from './cache';
 import Logger from './logger';
 import { ensureArray } from './util';
 import { findPartialReviewsForBook } from './reviews';
@@ -90,16 +90,15 @@ export default class APIClient {
    * Get information on a book using its Goodreads ID
    */
   async getBook(id: BookID): Promise<Book> {
-    const response = await this.cache.fetch(['books', id], () => {
-      return this.request(
-        ['Fetch book', `ID=${id}`],
-        'book/show.xml',
-        {
-          id,
-          format: 'xml'
-        }
-      );
-    });
+    const response = await this.requestWithCache(
+      ['books', id],
+      ['Fetch book', `ID=${id}`],
+      'book/show.xml',
+      {
+        id,
+        format: 'xml'
+      }
+    );
 
     return validateBookResponse(response).book;
   }
@@ -140,16 +139,15 @@ export default class APIClient {
    * Attempt to get the canonical ID of an existing book
    */
   async getCanonicalBookID(book: Normalized.Book): Promise<BookID | null> {
-    const response = await this.cache.fetch(['book-search', book.id], () => {
-      return this.request(
-        ['Find book', book.title],
-        'search/index.xml',
-        {
-          'search[field]': 'title',
-          q: book.title
-        }
-      );
-    });
+    const response = await this.requestWithCache(
+      ['book-search', book.id],
+      ['Find book', book.title],
+      'search/index.xml',
+      {
+        'search[field]': 'title',
+        q: book.title
+      }
+    );
 
     const results = validateSearchResults(response);
 
@@ -217,16 +215,15 @@ export default class APIClient {
    * Get information on a review
    */
   private async getReview(id: ReviewID): Promise<Review> {
-    const response = await this.cache.fetch(['reviews', id], () => {
-      return this.request(
-        ['Fetch review', `ID=${id}`],
-        'review/show.xml',
-        {
-          id,
-          format: 'xml'
-        }
-      );
-    });
+    const response = await this.requestWithCache(
+      ['reviews', id],
+      ['Fetch review', `ID=${id}`],
+      'review/show.xml',
+      {
+        id,
+        format: 'xml'
+      }
+    );
 
     return validateReviewResponse(response).review;
   }
@@ -235,25 +232,33 @@ export default class APIClient {
    * Fetch a page of reviews
    */
   private async fetchReadBooksPage(message: string[], userID: UserID, pageSize: number, page = 1): Promise<ReadBooksResponse> {
-    const response = await this.cache.fetch(
+    const response = await this.requestWithCache(
       ['read-books', userID, pageSize, page],
-      () => {
-        return this.request(
-          message,
-          'review/list.xml',
-          {
-            id: userID,
-            page,
-            per_page: pageSize,
-            shelf: 'read',
-            v: 2
-          }
-        );
+      message,
+      'review/list.xml',
+      {
+        id: userID,
+        page,
+        per_page: pageSize,
+        shelf: 'read',
+        v: 2
       }
     );
 
     return validateReadBooksResponse(response);
   }
+
+  /**
+   * Make a cached request to the Goodreads API and cache its response
+   */
+ private async requestWithCache(
+   cacheKey: KeyPath,
+   ...request: Parameters<APIClient['request']>
+ ): Promise<ResponseBody> {
+   return this.cache.fetch(cacheKey, () => {
+     return this.request(...request);
+   });
+ }
 
   /**
    * Make a request to the Goodreads API
