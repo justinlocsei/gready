@@ -1,12 +1,12 @@
 import { sortBy } from 'lodash';
 
 import * as API from './types/api';
-import APIClient from './api-client';
-import Cache from './cache';
-import Logger from './logger';
+import { APIClient } from './api-client';
+import { Cache } from './cache';
 import { Configuration } from './types/config';
 import { ensureArray } from './util';
 import { extractReviewsIDFromWidget } from './reviews';
+import { Logger } from './logger';
 import { normalizeString } from './content';
 import { SHELVES } from './goodreads';
 
@@ -27,7 +27,14 @@ const SHARED_NAMESPACES = {
   books: 'books'
 };
 
-export default class Repository {
+interface RepositoryOptions {
+  apiClient: APIClient;
+  cache: Cache;
+  config: Configuration;
+  logger: Logger;
+}
+
+class RepositoryClass {
 
   readonly apiClient: APIClient;
   readonly cache: Cache;
@@ -42,12 +49,7 @@ export default class Repository {
     cache,
     config,
     logger
-  }: {
-    apiClient: APIClient;
-    cache: Cache;
-    config: Configuration;
-    logger: Logger;
-  }) {
+  }: RepositoryOptions) {
     this.apiClient = apiClient;
     this.cache = cache;
     this.config = config;
@@ -281,4 +283,13 @@ export default class Repository {
       .concat(merged);
   }
 
+}
+
+export type Repository = InstanceType<typeof RepositoryClass>;
+
+/**
+ * Create a repository
+ */
+export function createRepository(options: RepositoryOptions): Repository {
+  return new RepositoryClass(options);
 }

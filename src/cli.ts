@@ -1,10 +1,10 @@
-import Bookshelf from './bookshelf';
-import Logger from './logger';
-import Repository from './repository';
 import { CLIError } from './errors';
+import { createBookshelf } from './bookshelf';
 import { findRecommendedBooks, summarizeRecommendedBooks } from './search/books';
 import { findSimilarReaders, summarizeSimilarReaders } from './search/readers';
+import { Logger } from './logger';
 import { OutputHandler } from './types/system';
+import { Repository } from './repository';
 import { runSequence } from './flow';
 import { SectionID, summarizeBookshelf } from './summary';
 import { UserID } from './types/goodreads';
@@ -151,7 +151,7 @@ export class CLI {
     const readBooks = await this.repo.getReadBooks(this.userID);
 
     const books = await this.repo.getLocalBooks(readBooks.map(b => b.bookID));
-    const bookshelf = new Bookshelf(books, { shelfPercentile });
+    const bookshelf = createBookshelf(books, { shelfPercentile });
 
     const summarySections = summarizeBookshelf(
       shelves ? bookshelf.restrictShelves(...shelves) : bookshelf,

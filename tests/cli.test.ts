@@ -5,12 +5,12 @@ import * as Core from '../src/types/core';
 import * as readersSearch from '../src/search/readers';
 import * as summary from '../src/summary';
 import assert from './helpers/assert';
-import Logger from '../src/logger';
 import { allowOverrides } from './helpers/mocking';
 import { BookID, UserID } from '../src/types/goodreads';
 import { createBook, createReadBook, createUser } from './helpers/factories';
 import { createCLI, CLI } from '../src/cli';
 import { createOutputHandler, createTestLogger, createTestRepo, OutputReader } from './helpers';
+import { Logger } from '../src/logger';
 import { OutputHandler } from '../src/types/system';
 
 describe('cli', function() {

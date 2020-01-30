@@ -3,10 +3,10 @@ import xml2js from 'xml2js';
 import { range } from 'lodash';
 
 import * as Normalized from './types/core';
-import Cache, { KeyPath } from './cache';
-import Logger from './logger';
+import { Cache, KeyPath } from './cache';
 import { ensureArray } from './util';
 import { findPartialReviewsForBook } from './reviews';
+import { Logger } from './logger';
 import { makeGetRequest } from './network';
 import { NetworkError, OperationalError } from './errors';
 import { runSequence } from './flow';
@@ -36,7 +36,7 @@ import {
 
 const REQUEST_SPACING_MS = 1000;
 
-interface ClientOptions {
+interface APIClientOptions {
   apiKey: string;
   cache: Cache;
   logger: Logger;
@@ -48,20 +48,20 @@ interface PendingRequest {
   handleResponse: (text: string) => void;
 }
 
-export default class APIClient {
+class APIClientClass {
 
   readonly cache: Cache;
   readonly logger: Logger;
 
   private lastRequestID: number;
   private lastRequestTime: number;
-  private options: ClientOptions;
+  private options: APIClientOptions;
   private requestQueue: async.AsyncQueue<PendingRequest>;
 
   /**
    * Create a new interface to the Goodreads API
    */
-  constructor(options: ClientOptions) {
+  constructor(options: APIClientOptions) {
     this.lastRequestID = 0;
     this.lastRequestTime = Date.now();
     this.options = options;
@@ -347,4 +347,13 @@ export default class APIClient {
     });
   }
 
+}
+
+export type APIClient = InstanceType<typeof APIClientClass>;
+
+/**
+ * Create an API client
+ */
+export function createAPIClient(options: APIClientOptions): APIClient {
+  return new APIClientClass(options);
 }

@@ -1,10 +1,10 @@
 import { uniq } from 'lodash';
 
 import assert from './helpers/assert';
-import APIClient from '../src/api-client';
-import Cache from '../src/cache';
 import { allowNetworkAccess, simulateResponse } from './helpers/requests';
+import { APIClient, createAPIClient } from '../src/api-client';
 import { createBook } from './helpers/factories';
+import { createCache } from '../src/cache';
 import { createTestLogger, shouldBypassFixtures } from './helpers';
 import { getGoodreadsAPIKey, hasGoodreadsAPIKey } from '../src/config';
 import { paths } from '../src/environment';
@@ -21,12 +21,12 @@ describe('api-client', function() {
     });
 
     function createClient(): APIClient {
-      const cache = new Cache(paths.apiFixturesDir, {
+      const cache = createCache(paths.apiFixturesDir, {
         enabled: !shouldBypassFixtures(),
         encoding: 'base64'
       });
 
-      return new APIClient({
+      return createAPIClient({
         apiKey: getGoodreadsAPIKey(),
         cache,
         logger: createTestLogger()[0]

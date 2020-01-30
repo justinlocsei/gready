@@ -27,7 +27,7 @@ interface BooksByShelf {
 
 type PartitionedShelf = Partitioned<Shelf>;
 
-export default class Bookshelf {
+class BookshelfClass {
 
   private books: Book[];
   private shelfPercentile: number;
@@ -215,7 +215,7 @@ export default class Bookshelf {
    * shelves in a list at or above the current percentile
    */
   restrictShelves(...shelfNames: string[]): Bookshelf {
-    return new Bookshelf(this.getBooksInShelves(...shelfNames), {
+    return createBookshelf(this.getBooksInShelves(...shelfNames), {
       shelfPercentile: this.shelfPercentile
     });
   }
@@ -227,4 +227,13 @@ export default class Bookshelf {
     return partition(shelves, s => s.count);
   }
 
+}
+
+export type Bookshelf = InstanceType<typeof BookshelfClass>;
+
+/**
+ * Create a bookshelf
+ */
+export function createBookshelf(...args: ConstructorParameters<typeof BookshelfClass>): Bookshelf {
+  return new BookshelfClass(...args);
 }

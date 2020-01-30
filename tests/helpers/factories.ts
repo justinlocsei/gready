@@ -1,6 +1,6 @@
 import * as API from '../../src/types/api';
+import * as bookshelf from '../../src/bookshelf';
 import * as Core from '../../src/types/core';
-import Bookshelf from '../../src/bookshelf';
 
 let counter = 0;
 
@@ -103,8 +103,8 @@ export function createBook(data?: Partial<Core.Book>): Core.Book {
 export function createBookshelf(
   books: Partial<Core.Book>[] = [],
   shelfPercentile = 0
-): Bookshelf {
-  return new Bookshelf(
+): bookshelf.Bookshelf {
+  return bookshelf.createBookshelf(
     books.map(createBook),
     { shelfPercentile }
   );

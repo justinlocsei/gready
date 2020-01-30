@@ -17,7 +17,7 @@ export const DEFAULT_LEVEL: LevelName = 'info';
 export type LevelName = ExtractArrayType<typeof LEVEL_NAMES>;
 export type LoggingMethod = 'debug' | 'info';
 
-export interface Options {
+export interface LoggerOptions {
   logLevel?: LevelName;
   showTime?: boolean;
   useColor?: boolean;
@@ -30,7 +30,7 @@ export function getLevelNames(): string[] {
   return LEVELS.map(l => l.name).sort();
 }
 
-export default class Logger {
+class LoggerClass {
 
   readonly isEnabled: boolean;
   readonly level: LevelName;
@@ -44,7 +44,7 @@ export default class Logger {
   /**
    * Create a new logger
    */
-  constructor(handleMessage: OutputHandler, options: Options = {}) {
+  constructor(handleMessage: OutputHandler, options: LoggerOptions = {}) {
     this.handleMessage = handleMessage;
     this.indentation = 0;
     this.lastTime = 0;
@@ -149,4 +149,13 @@ export default class Logger {
     return time.toString().padStart(TIME_DIGITS, ' ') + 'ms';
   }
 
+}
+
+export type Logger = InstanceType<typeof LoggerClass>;
+
+/**
+ * Create a logger
+ */
+export function createLogger(...args: ConstructorParameters<typeof LoggerClass>): Logger {
+  return new LoggerClass(...args);
 }

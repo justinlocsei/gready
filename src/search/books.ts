@@ -1,11 +1,11 @@
 import { intersection, sortBy, uniq } from 'lodash';
 
-import Repository from '../repository';
 import { Book, ReadBook } from '../types/core';
 import { BookID } from '../types/goodreads';
 import { getViewBookURL } from '../goodreads';
 import { partition, underline } from '../content';
 import { Partitioned } from '../types/util';
+import { Repository } from '../repository';
 import { runSequence } from '../flow';
 
 export type PartitionedRecommendation = Partitioned<RecommendedBook>;

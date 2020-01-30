@@ -2,13 +2,13 @@ import os from 'os';
 import path from 'path';
 import yargs from 'yargs';
 
-import APIClient from './api-client';
-import Cache from './cache';
-import Logger, { DEFAULT_LEVEL, getLevelNames, LevelName } from './logger';
-import Repository from './repository';
+import { Cache, createCache } from './cache';
 import { CLIError } from './errors';
 import { Configuration } from './types/config';
+import { createAPIClient } from './api-client';
 import { createCLI } from './cli';
+import { createLogger, DEFAULT_LEVEL, getLevelNames, LevelName } from './logger';
+import { createRepository } from './repository';
 import { createStderrWriter, createStdoutWriter, markProcessAsFailed } from './system';
 import { ExtractArrayType } from './types/util';
 import { getGoodreadsAPIKey, getGoodreadsUserID, loadConfig } from './config';
@@ -325,27 +325,27 @@ async function startCLI(cliOptions: Required<CLIOptions>): Promise<void> {
     config = await loadConfig(paths.defaultConfig, { allowMissing: true });
   }
 
-  const logger = new Logger(cliOptions.writeToStderr, {
+  const logger = createLogger(cliOptions.writeToStderr, {
     logLevel: options['log-level'] as LevelName,
     showTime: options['log-time'],
     useColor: options.color
   });
 
-  const apiCache = new Cache(cacheDirs.apiRequests, { enabled: options['cache-responses'] });
-  const dataCache = new Cache(cacheDirs.data, { enabled: options['cache-data'] });
+  const apiCache = createCache(cacheDirs.apiRequests, { enabled: options['cache-responses'] });
+  const dataCache = createCache(cacheDirs.data, { enabled: options['cache-data'] });
 
   const cacheMap: CacheMap = {
     data: dataCache,
     response: apiCache
   };
 
-  const apiClient = new APIClient({
+  const apiClient = createAPIClient({
     apiKey: getGoodreadsAPIKey(),
     cache: apiCache,
     logger
   });
 
-  const repo = new Repository({
+  const repo = createRepository({
     apiClient,
     cache: dataCache,
     config,

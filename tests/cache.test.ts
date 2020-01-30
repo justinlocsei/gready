@@ -1,7 +1,7 @@
 import tmp from 'tmp';
 
 import assert from './helpers/assert';
-import Cache, { ENCODINGS, Options } from '../src/cache';
+import { Cache, CacheOptions, createCache, ENCODINGS } from '../src/cache';
 
 describe('cache', function() {
 
@@ -11,8 +11,8 @@ describe('cache', function() {
 
       context(`with ${encoding} encoding`, function() {
 
-        function createCache(directory?: string, options: Partial<Options> = {}): Cache {
-          return new Cache(
+        function createTestCache(directory?: string, options: Partial<CacheOptions> = {}): Cache {
+          return createCache(
             directory || tmp.dirSync().name,
             { ...options, encoding }
           );
@@ -21,7 +21,7 @@ describe('cache', function() {
         describe('.clear', function() {
 
           it('can clear the cache', async function() {
-            const cache = createCache();
+            const cache = createTestCache();
 
             await cache.fetch(['alfa'], () => Promise.resolve('charlie'));
             await cache.clear();
@@ -31,7 +31,7 @@ describe('cache', function() {
           });
 
           it('can clear a set of namespaces', async function() {
-            const cache = createCache();
+            const cache = createTestCache();
 
             const alfaOne = await cache.fetch(['alfa', 'bravo'], () => Promise.resolve('before'));
             const charlieOne = await cache.fetch(['charlie', 'delta'], () => Promise.resolve('before'));
@@ -52,7 +52,7 @@ describe('cache', function() {
         describe('.entries', function() {
 
           it('lists all entries in a given namespace', async function() {
-            const cache = createCache();
+            const cache = createTestCache();
 
             const first = await cache.entries(['alfa']);
 
@@ -70,7 +70,7 @@ describe('cache', function() {
         describe('.fetch', function() {
 
           it('calculates a value', async function() {
-            const cache = createCache();
+            const cache = createTestCache();
 
             const result = await cache.fetch(
               ['alfa'],
@@ -81,7 +81,7 @@ describe('cache', function() {
           });
 
           it('supports namespaces', async function() {
-            const cache = createCache();
+            const cache = createTestCache();
 
             const result = await cache.fetch(
               ['alfa', 'bravo'],
@@ -92,7 +92,7 @@ describe('cache', function() {
           });
 
           it('uses a cached value', async function() {
-            const cache = createCache();
+            const cache = createTestCache();
 
             const first = await cache.fetch(
               ['alfa'],
@@ -109,14 +109,14 @@ describe('cache', function() {
           });
 
           it('persists cached values', async function() {
-            const firstCache = createCache();
+            const firstCache = createTestCache();
 
             const firstValue = await firstCache.fetch(
               ['alfa'],
               () => Promise.resolve('bravo')
             );
 
-            const secondCache = createCache(firstCache.directory);
+            const secondCache = createTestCache(firstCache.directory);
 
             const secondValue = await secondCache.fetch(
               ['alfa'],
@@ -128,7 +128,7 @@ describe('cache', function() {
           });
 
           it('can bypass the cache', async function() {
-            const cache = createCache(undefined, { enabled: false });
+            const cache = createTestCache(undefined, { enabled: false });
 
             const first = await cache.fetch(
               ['alfa'],
@@ -145,14 +145,14 @@ describe('cache', function() {
           });
 
           it('does not persists values when bypassing the cache', async function() {
-            const firstCache = createCache(undefined, { enabled: false });
+            const firstCache = createTestCache(undefined, { enabled: false });
 
             const firstValue = await firstCache.fetch(
               ['alfa'],
               () => Promise.resolve('bravo')
             );
 
-            const secondCache = createCache(firstCache.directory);
+            const secondCache = createTestCache(firstCache.directory);
 
             const secondValue = await secondCache.fetch(
               ['alfa'],
@@ -168,7 +168,7 @@ describe('cache', function() {
         describe('.stats', function() {
 
           it('lists all namespaces', async function() {
-            const cache = createCache();
+            const cache = createTestCache();
 
             const first = await cache.stats();
 

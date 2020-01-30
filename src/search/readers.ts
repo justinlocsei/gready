@@ -1,10 +1,10 @@
 import { sortBy } from 'lodash';
 
-import Bookshelf from '../bookshelf';
-import Repository from '../repository';
 import { Book, ReadBook, Shelf, User } from '../types/core';
 import { BookID, UserID } from '../types/goodreads';
+import { createBookshelf } from '../bookshelf';
 import { getUserBooksURL } from '../goodreads';
+import { Repository } from '../repository';
 import { runSequence } from '../flow';
 import { underline } from '../content';
 
@@ -75,7 +75,7 @@ export async function findSimilarReaders({
     ]
   );
 
-  const shelfNames = new Bookshelf(Object.values(booksByID), { shelfPercentile })
+  const shelfNames = createBookshelf(Object.values(booksByID), { shelfPercentile })
     .getShelves()
     .map(s => s.data.name)
     .sort();
@@ -89,7 +89,7 @@ export async function findSimilarReaders({
       ]
     );
 
-    const userBooks = new Bookshelf(books, { shelfPercentile });
+    const userBooks = createBookshelf(books, { shelfPercentile });
 
     const shelves = shelfNames.reduce(function(previous: Shelf[], shelfName) {
       const shelved = userBooks.getBooksInShelves(shelfName);

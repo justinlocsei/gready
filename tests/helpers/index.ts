@@ -1,12 +1,12 @@
 import tmp from 'tmp';
 import { flatten } from 'lodash';
 
-import APIClient from '../../src/api-client';
-import Cache from '../../src/cache';
-import Logger, { Options as LoggerOptions } from '../../src/logger';
-import Repository from '../../src/repository';
 import { buildConfig } from '../../src/config';
+import { Cache, createCache } from '../../src/cache';
 import { Configuration, UserConfiguration } from '../../src/types/config';
+import { createAPIClient } from '../../src/api-client';
+import { createLogger, Logger, LoggerOptions } from '../../src/logger';
+import { createRepository, Repository } from '../../src/repository';
 import { OutputHandler } from '../../src/types/system';
 
 export type OutputReader = () => string[];
@@ -29,7 +29,7 @@ export function shouldBypassFixtures(): boolean {
  * Create a pass-through cache for testing
  */
 export function createTestCache(): Cache {
-  return new Cache(
+  return createCache(
     tmp.dirSync().name,
     { enabled: false }
   );
@@ -51,13 +51,13 @@ export function createTestRepo(options: {
 } = {}): Repository {
   const [logger] = createTestLogger();
 
-  const apiClient = new APIClient({
+  const apiClient = createAPIClient({
     apiKey: 'testing',
     cache: createTestCache(),
     logger
   });
 
-  return new Repository({
+  return createRepository({
     apiClient,
     cache: options.cache || createTestCache(),
     config: createTestConfig(options.config),
@@ -88,7 +88,7 @@ export function createTestLogger(options?: LoggerOptions): [Logger, OutputReader
   const [handleMessage, readOutput] = createOutputHandler();
 
   return [
-    new Logger(handleMessage, { useColor: false, ...options }),
+    createLogger(handleMessage, { useColor: false, ...options }),
     readOutput
   ];
 }

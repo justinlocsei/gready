@@ -23,7 +23,7 @@ interface NamespaceStats {
   namespace: string;
 }
 
-export interface Options {
+export interface CacheOptions {
   enabled: boolean;
   encoding: Encoding;
 }
@@ -33,19 +33,19 @@ const EXTENSIONS: Record<Encoding, string> = {
   'utf-8': 'json'
 };
 
-export default class Cache {
+class CacheClass {
 
   readonly directory: string;
   readonly isEnabled: boolean;
 
   private extension: string;
   private createdDirectories: Set<string>;
-  private options: Options;
+  private options: CacheOptions;
 
   /**
    * Create a new interface to a filesystem cache
    */
-  constructor(directory: string, options: Partial<Options> = {}) {
+  constructor(directory: string, options: Partial<CacheOptions> = {}) {
     this.directory = directory;
 
     this.options = {
@@ -230,4 +230,13 @@ export default class Cache {
     return JSON.parse(data);
   }
 
+}
+
+export type Cache = InstanceType<typeof CacheClass>;
+
+/**
+ * Create a cache
+ */
+export function createCache(...args: ConstructorParameters<typeof CacheClass>): Cache {
+  return new CacheClass(...args);
 }

@@ -1,4 +1,4 @@
-import Logger, { LoggingMethod } from './logger';
+import { Logger, LoggingMethod } from './logger';
 
 /**
  * Run a sequence of asynchronous tasks
