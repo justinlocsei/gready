@@ -35,7 +35,8 @@ const EXTENSIONS: Record<Encoding, string> = {
 
 export default class Cache {
 
-  directory: string;
+  readonly directory: string;
+  readonly isEnabled: boolean;
 
   private extension: string;
   private createdDirectories: Set<string>;
@@ -53,6 +54,7 @@ export default class Cache {
       ...options
     };
 
+    this.isEnabled = this.options.enabled;
     this.createdDirectories = new Set();
     this.extension = EXTENSIONS[this.options.encoding];
   }
