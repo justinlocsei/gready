@@ -328,6 +328,10 @@ describe('search/readers', function() {
       ]);
     });
 
+    it('can handle a lack of summarizable data', function() {
+      assert.isEmpty(summarizeSimilarReaders([]));
+    });
+
   });
 
 });

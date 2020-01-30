@@ -230,16 +230,16 @@ describe('search/books', function() {
 
   describe('summarizeRecommendedBooks', function() {
 
-    function getSummaryLines(books: PartitionedRecommendation[], genrePercentile: number): string[] {
+    function getSummary(books: PartitionedRecommendation[], genrePercentile: number): string {
       stub(goodreads, 'getViewBookURL', function(id) {
         return `view-${id}`;
       });
 
-      return summarizeRecommendedBooks(books, genrePercentile).split('\n');
+      return summarizeRecommendedBooks(books, genrePercentile);
     }
 
     it('summarizes a list of recommended books', function() {
-      const summary = getSummaryLines([
+      const summary = getSummary([
         {
           data: {
             book: createBook({
@@ -280,7 +280,7 @@ describe('search/books', function() {
         }
       ], 50);
 
-      assert.deepEqual(summary, [
+      assert.deepEqual(summary.split('\n'), [
         'Alfa | p100',
         '===========',
         '',
@@ -299,6 +299,10 @@ describe('search/books', function() {
         '',
         '[View on Goodreads](view-2)'
       ]);
+    });
+
+    it('can handle a lack of summarizable data', async function() {
+      assert.isEmpty(await getSummary([], 0));
     });
 
   });
