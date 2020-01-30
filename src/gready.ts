@@ -259,6 +259,18 @@ function ensureNumeric<
 }
 
 /**
+ * Ensure that an option is numeric if it is provided
+ */
+function ensureNumericWhenPresent<
+  T extends object,
+  U extends keyof T
+>(options: T, optionName: U): number | undefined {
+  return options[optionName] === undefined
+    ? undefined
+    : ensureNumeric(options, optionName);
+}
+
+/**
  * Clear a cache
  */
 function clearCache(
@@ -370,7 +382,7 @@ async function startCLI(cliOptions: Required<CLIOptions>): Promise<void> {
       return cli.findReaders({
         bookIDs: maybeMap(parsed.options['book-id'], s => s.toString()),
         maxReviews: ensureNumeric(parsed.options, 'reviews'),
-        minBooks: parsed.options['min-books'] ? ensureNumeric(parsed.options, 'min-books') : undefined,
+        minBooks: ensureNumericWhenPresent(parsed.options, 'min-books'),
         shelfPercentile
       });
 
@@ -387,9 +399,7 @@ async function startCLI(cliOptions: Required<CLIOptions>): Promise<void> {
       });
 
     case 'sync-books':
-      return cli.syncBooks(
-        parsed.options['recent'] ? ensureNumeric(parsed.options, 'recent') : undefined
-      );
+      return cli.syncBooks(ensureNumericWhenPresent(parsed.options, 'recent'));
 
     case 'test':
       return;
