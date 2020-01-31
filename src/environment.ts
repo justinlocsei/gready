@@ -81,7 +81,8 @@ function resolvePaths() {
     testsDir,
     testFixturesDir,
     typesDir: path.join(srcDir, 'types'),
-    validatorsDir: path.join(srcDir, 'validators')
+    validatorsDir: path.join(srcDir, 'validators'),
+    validationFile: path.join(srcDir, 'validation.ts')
   };
 }
 
