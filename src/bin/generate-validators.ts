@@ -49,7 +49,7 @@ async function writeValidator(typesFile: string): Promise<string> {
 }
 
 export function run() {
-  runAsScript(
+  return runAsScript(
     () => writeValidators(createStdoutWriter()),
     { writeToStderr: createStderrWriter() }
   );
