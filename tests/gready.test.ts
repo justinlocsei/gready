@@ -10,7 +10,7 @@ import { runCLI } from '../src/gready';
 
 describe('gready', function() {
 
-  const { expectAssertions, stub } = allowOverrides(this);
+  const { expectAssertions, override } = allowOverrides(this);
 
   async function testCLI(
     args?: string[],
@@ -28,10 +28,10 @@ describe('gready', function() {
     const [handleStderr, readStderr] = createOutputHandler();
     const [handleStdout, readStdout] = createOutputHandler();
 
-    stub(config, 'getGoodreadsAPIKey', () => 'apikey');
-    stub(config, 'getGoodreadsUserID', () => 'user');
+    override(config, 'getGoodreadsAPIKey', () => 'apikey');
+    override(config, 'getGoodreadsUserID', () => 'user');
 
-    stub(libCLI, 'createCLI', async function(options) {
+    override(libCLI, 'createCLI', async function(options) {
       const cli = new libCLI.CLI(options);
 
       if (prepare) {
@@ -67,7 +67,7 @@ describe('gready', function() {
   it('shows usage when no arguments are provided', async function() {
     const plan = expectAssertions(1);
 
-    stub(system, 'markProcessAsFailed', function() {
+    override(system, 'markProcessAsFailed', function() {
       plan.checkpoint();
     });
 
@@ -158,7 +158,7 @@ describe('gready', function() {
   it('accepts a path to a custom configuration', async function() {
     let configPath: unknown;
 
-    stub(config, 'loadConfig', function(path) {
+    override(config, 'loadConfig', function(path) {
       configPath = path;
       return Promise.resolve(createTestConfig());
     });
@@ -227,13 +227,13 @@ describe('gready', function() {
       onClearResponseCache?: FakeClearCache;
     } = {}) {
       return testCLI(['clear-cache', ...args], async function({ repo }) {
-        stub(repo.cache, 'clear', async function(namespaces) {
+        override(repo.cache, 'clear', async function(namespaces) {
           if (onClearDataCache) {
             onClearDataCache(namespaces);
           }
         });
 
-        stub(repo.apiClient.cache, 'clear', async function(namespaces) {
+        override(repo.apiClient.cache, 'clear', async function(namespaces) {
           if (onClearResponseCache) {
             onClearResponseCache(namespaces);
           }
@@ -323,7 +323,7 @@ describe('gready', function() {
       checkOptions?: (...args: Parameters<libCLI.CLI['findBooks']>) => void
     ) {
       return testCLI(['find-books', ...args], async function(cli) {
-        stub(cli, 'findBooks', async function(options) {
+        override(cli, 'findBooks', async function(options) {
           if (checkOptions) {
             checkOptions(options);
           }
@@ -449,7 +449,7 @@ describe('gready', function() {
       checkOptions?: (...args: Parameters<libCLI.CLI['findReaders']>) => void
     ) {
       return testCLI(['find-readers', ...args], async function(cli) {
-        stub(cli, 'findReaders', async function(options) {
+        override(cli, 'findReaders', async function(options) {
           if (checkOptions) {
             checkOptions(options);
           }
@@ -559,14 +559,14 @@ describe('gready', function() {
 
     it('shows information on the cache entries', async function() {
       const { stderr, stdoutLines } = await testCLI(['show-cache-stats'], async function({ repo }) {
-        stub(repo.cache, 'stats', async function() {
+        override(repo.cache, 'stats', async function() {
           return [
             { items: 1, namespace: 'alfa' },
             { items: 2, namespace: 'bravo' }
           ];
         });
 
-        stub(repo.apiClient.cache, 'stats', async function() {
+        override(repo.apiClient.cache, 'stats', async function() {
           return [
             { items: 3, namespace: 'charlie' }
           ];
@@ -594,7 +594,7 @@ describe('gready', function() {
       checkOptions?: (...args: Parameters<libCLI.CLI['summarize']>) => void
     ) {
       return testCLI(['summarize', ...args], async function(cli) {
-        stub(cli, 'summarize', async function(options) {
+        override(cli, 'summarize', async function(options) {
           if (checkOptions) {
             checkOptions(options);
           }
@@ -675,7 +675,7 @@ describe('gready', function() {
       checkArgs?: (recent?: number) => void
     ) {
       return testCLI(['sync-books', ...args], async function(cli) {
-        stub(cli, 'syncBooks', async function(recent) {
+        override(cli, 'syncBooks', async function(recent) {
           if (checkArgs) {
             checkArgs(recent);
           }

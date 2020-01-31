@@ -8,12 +8,12 @@ import { run } from '../../src/bin/clear-test-fixtures';
 
 describe('bin/clear-test-fixtures', function() {
 
-  const { expectAssertions, stub } = allowOverrides(this);
+  const { expectAssertions, override } = allowOverrides(this);
 
   it('clears test directories', async function() {
     const plan = expectAssertions(1);
 
-    stub(scripts, 'removePaths', async function(title, removePaths) {
+    override(scripts, 'removePaths', async function(title, removePaths) {
       plan.assert(function() {
         assert.isNotEmpty(removePaths);
 

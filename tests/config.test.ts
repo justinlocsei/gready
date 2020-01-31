@@ -21,7 +21,7 @@ const writeFileAsync = promisify(fs.writeFile);
 
 describe('config', function() {
 
-  const { stub } = allowOverrides(this);
+  const { override } = allowOverrides(this);
 
   describe('buildConfig', function() {
 
@@ -48,7 +48,7 @@ describe('config', function() {
   describe('getGoodreadsAPIKey', function() {
 
     it('returns the key when the environment variable is set', function() {
-      stub(system, 'getEnvironmentVariable', function(varName) {
+      override(system, 'getEnvironmentVariable', function(varName) {
         return varName === 'GREADY_GOODREADS_API_KEY' ? 'key' : undefined;
       });
 
@@ -56,7 +56,7 @@ describe('config', function() {
     });
 
     it('throws an error when the environment variable is unset', function() {
-      stub(system, 'getEnvironmentVariable', v => undefined);
+      override(system, 'getEnvironmentVariable', v => undefined);
 
       assert.throws(
         () => getGoodreadsAPIKey(),
@@ -70,7 +70,7 @@ describe('config', function() {
   describe('getGoodreadsUserID', function() {
 
     it('returns the user ID when the environment variable is set', function() {
-      stub(system, 'getEnvironmentVariable', function(varName) {
+      override(system, 'getEnvironmentVariable', function(varName) {
         return varName === 'GREADY_GOODREADS_USER_ID' ? 'id' : undefined;
       });
 
@@ -78,7 +78,7 @@ describe('config', function() {
     });
 
     it('throws an error when the environment variable is unset', function() {
-      stub(system, 'getEnvironmentVariable', v => undefined);
+      override(system, 'getEnvironmentVariable', v => undefined);
 
       assert.throws(
         () => getGoodreadsUserID(),
@@ -92,7 +92,7 @@ describe('config', function() {
   describe('hasGoodreadsAPIKey', function() {
 
     it('returns true when the environment variable is set', function() {
-      stub(system, 'getEnvironmentVariable', function(varName) {
+      override(system, 'getEnvironmentVariable', function(varName) {
         return varName === 'GREADY_GOODREADS_API_KEY' ? 'key' : undefined;
       });
 
@@ -100,7 +100,7 @@ describe('config', function() {
     });
 
     it('returns false when the environment variable is unset', function() {
-      stub(system, 'getEnvironmentVariable', v => undefined);
+      override(system, 'getEnvironmentVariable', v => undefined);
 
       assert.isFalse(hasGoodreadsAPIKey());
     });

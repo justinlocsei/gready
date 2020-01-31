@@ -42,7 +42,7 @@ export function allowOverrides(suite: Mocha.Suite) {
     };
   }
 
-  function stub<T extends object, K extends keyof T>(
+  function override<T extends object, K extends keyof T>(
     object: T,
     property: K,
     impl: T[K] extends (...args: infer U) => infer V ? (...args: U) => V : T[K]
@@ -77,7 +77,7 @@ export function allowOverrides(suite: Mocha.Suite) {
 
   return {
     expectAssertions,
-    stub
+    override
   };
 }
 

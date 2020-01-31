@@ -12,7 +12,7 @@ import { UserConfiguration } from '../src/types/config';
 
 describe('repository', function() {
 
-  const { stub } = allowOverrides(this);
+  const { override } = allowOverrides(this);
 
   describe('Repository', function() {
 
@@ -28,7 +28,7 @@ describe('repository', function() {
         const book = F.createAPIBook(query);
         const canonicalBook = canonical ? F.createAPIBook(canonical) : book;
 
-        stub(repo.apiClient, 'getBook', function(id) {
+        override(repo.apiClient, 'getBook', function(id) {
           switch (id) {
             case book.id:
               return Promise.resolve(book);
@@ -39,7 +39,7 @@ describe('repository', function() {
           }
         });
 
-        stub(repo.apiClient, 'getCanonicalBookID', function(sourceBook) {
+        override(repo.apiClient, 'getCanonicalBookID', function(sourceBook) {
           if (sourceBook.id === book.id) {
             return Promise.resolve(canonicalBook.id);
           } else {
@@ -206,7 +206,7 @@ describe('repository', function() {
       });
 
       it('extracts the ID of the book to use for reviews from its reviews widget', async function() {
-        stub(reviews, 'extractReviewsIDFromWidget', function(embedCode) {
+        override(reviews, 'extractReviewsIDFromWidget', function(embedCode) {
           if (embedCode === 'alfa') {
             return 'bravo';
           } else {
@@ -222,7 +222,7 @@ describe('repository', function() {
       });
 
       it('uses the book’s ID as its reviews ID when its reviews widget does not contain an ID', async function() {
-        stub(reviews, 'extractReviewsIDFromWidget', e => null);
+        override(reviews, 'extractReviewsIDFromWidget', e => null);
 
         const book = await getBook({
           id: '10'
@@ -369,7 +369,7 @@ describe('repository', function() {
 
         const books = availableBooks.map(F.createBook);
 
-        stub(cache, 'entries', function(namespace) {
+        override(cache, 'entries', function(namespace) {
           if (isEqual(namespace, ['books'])) {
             return Promise.resolve(books);
           } else {
@@ -460,7 +460,7 @@ describe('repository', function() {
       function getReadBooks(books: Partial<API.ReadBook>[], userID = '1'): Promise<Core.ReadBook[]> {
         const repo = createTestRepo();
 
-        stub(repo.apiClient, 'getReadBooks', function(id) {
+        override(repo.apiClient, 'getReadBooks', function(id) {
           if (id === userID) {
             return Promise.resolve(books.map(F.createAPIReadBook));
           } else {
@@ -571,7 +571,7 @@ describe('repository', function() {
         const book = F.createBook({ id: '1', reviewsID: '2' });
         const readBook = F.createReadBook({ id: '3', rating: 5 });
 
-        stub(repo.apiClient, 'getBookReviews', function(id, options) {
+        override(repo.apiClient, 'getBookReviews', function(id, options) {
           assert.equal(options.limit, reviews.length);
           assert.equal(options.rating, 5);
 

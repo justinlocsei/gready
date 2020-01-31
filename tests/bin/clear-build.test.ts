@@ -9,7 +9,7 @@ import { run } from '../../src/bin/clear-build';
 
 describe('bin/clear-build', function() {
 
-  const { expectAssertions, stub } = allowOverrides(this);
+  const { expectAssertions, override } = allowOverrides(this);
 
   it('clears transient build paths', async function() {
     const ignoredPaths = readFileSync(paths.gitignore, 'utf8')
@@ -19,7 +19,7 @@ describe('bin/clear-build', function() {
 
     const plan = expectAssertions(1);
 
-    stub(scripts, 'removePaths', async function(title, removePaths) {
+    override(scripts, 'removePaths', async function(title, removePaths) {
       plan.assert(function() {
         assert.isNotEmpty(removePaths);
 

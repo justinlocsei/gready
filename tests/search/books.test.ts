@@ -9,7 +9,7 @@ import { findRecommendedBooks, PartitionedRecommendation, summarizeRecommendedBo
 
 describe('search/books', function() {
 
-  const { stub } = allowOverrides(this);
+  const { override } = allowOverrides(this);
 
   describe('findRecommendedBooks', function() {
 
@@ -33,7 +33,7 @@ describe('search/books', function() {
       const repo = createTestRepo();
       const allBooks = books.map(createBook);
 
-      stub(repo, 'getBook', function(id) {
+      override(repo, 'getBook', function(id) {
         const book = allBooks.find(b => b.id === id);
 
         if (book) {
@@ -231,7 +231,7 @@ describe('search/books', function() {
   describe('summarizeRecommendedBooks', function() {
 
     function getSummary(books: PartitionedRecommendation[], genrePercentile: number): string {
-      stub(goodreads, 'getViewBookURL', function(id) {
+      override(goodreads, 'getViewBookURL', function(id) {
         return `view-${id}`;
       });
 

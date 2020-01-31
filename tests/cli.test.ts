@@ -15,7 +15,7 @@ import { OutputHandler } from '../src/types/system';
 
 describe('cli', function() {
 
-  const { stub } = allowOverrides(this);
+  const { override } = allowOverrides(this);
 
   describe('CLI', function() {
 
@@ -48,12 +48,12 @@ describe('cli', function() {
         const readBooks: Core.ReadBook[] = [];
         const recommendations: booksSearch.PartitionedRecommendation[] = [];
 
-        stub(cli.repo, 'getReadBooks', function(id) {
+        override(cli.repo, 'getReadBooks', function(id) {
           assert.equal(id, '1');
           return Promise.resolve(readBooks);
         });
 
-        stub(booksSearch, 'findRecommendedBooks', function(options) {
+        override(booksSearch, 'findRecommendedBooks', function(options) {
           assert.deepEqual(options, {
             coreBookIDs: ['2'],
             minRating: 3,
@@ -67,7 +67,7 @@ describe('cli', function() {
           return Promise.resolve(recommendations);
         });
 
-        stub(booksSearch, 'summarizeRecommendedBooks', function(recs) {
+        override(booksSearch, 'summarizeRecommendedBooks', function(recs) {
           assert.equal(recs, recommendations);
           return 'summary';
         });
@@ -88,9 +88,9 @@ describe('cli', function() {
           logger: createTestLogger({ logLevel: 'none' })[0]
         });
 
-        stub(cli.repo, 'getReadBooks', () => Promise.resolve([]));
-        stub(booksSearch, 'findRecommendedBooks', () => Promise.resolve([]));
-        stub(booksSearch, 'summarizeRecommendedBooks', () => 'summary');
+        override(cli.repo, 'getReadBooks', () => Promise.resolve([]));
+        override(booksSearch, 'findRecommendedBooks', () => Promise.resolve([]));
+        override(booksSearch, 'summarizeRecommendedBooks', () => 'summary');
 
         await cli.findBooks({
           minRating: 1,
@@ -127,19 +127,19 @@ describe('cli', function() {
 
         const readBooks: Core.ReadBook[] = [];
 
-        stub(cli.repo, 'getReadBooks', function(id) {
+        override(cli.repo, 'getReadBooks', function(id) {
           assert.equal(id, '1');
           return Promise.resolve(readBooks);
         });
 
-        stub(readersSearch, 'findSimilarReaders', function(options) {
+        override(readersSearch, 'findSimilarReaders', function(options) {
           return Promise.resolve([
             createSimilarReader('2'),
             createSimilarReader('3')
           ]);
         });
 
-        stub(readersSearch, 'summarizeSimilarReaders', listReaderIDs);
+        override(readersSearch, 'summarizeSimilarReaders', listReaderIDs);
 
         await cli.findReaders({
           maxReviews: 1,
@@ -152,16 +152,16 @@ describe('cli', function() {
       it('can filter readers based on the number of matching books', async function() {
         const [cli, readOutput] = createTestCLI();
 
-        stub(cli.repo, 'getReadBooks', () => Promise.resolve([]));
+        override(cli.repo, 'getReadBooks', () => Promise.resolve([]));
 
-        stub(readersSearch, 'findSimilarReaders', function(options) {
+        override(readersSearch, 'findSimilarReaders', function(options) {
           return Promise.resolve([
             createSimilarReader('2', 1),
             createSimilarReader('3', 2)
           ]);
         });
 
-        stub(readersSearch, 'summarizeSimilarReaders', listReaderIDs);
+        override(readersSearch, 'summarizeSimilarReaders', listReaderIDs);
 
         await cli.findReaders({
           minBooks: 2,
@@ -175,20 +175,20 @@ describe('cli', function() {
       it('can find readers based on a subset of books', async function() {
         const [cli, readOutput] = createTestCLI();
 
-        stub(cli.repo, 'getReadBooks', function() {
+        override(cli.repo, 'getReadBooks', function() {
           return Promise.resolve([
             createReadBook({ bookID: '2' }),
             createReadBook({ bookID: '3' })
           ]);
         });
 
-        stub(readersSearch, 'findSimilarReaders', function(options) {
+        override(readersSearch, 'findSimilarReaders', function(options) {
           return Promise.resolve(options.readBooks.map(function({ bookID }) {
             return createSimilarReader(bookID);
           }));
         });
 
-        stub(readersSearch, 'summarizeSimilarReaders', listReaderIDs);
+        override(readersSearch, 'summarizeSimilarReaders', listReaderIDs);
 
         await cli.findReaders({
           bookIDs: ['2'],
@@ -202,15 +202,15 @@ describe('cli', function() {
       it('throws an error when a book ID is not part of the set of read books', async function() {
         const [cli] = createTestCLI();
 
-        stub(cli.repo, 'getReadBooks', function() {
+        override(cli.repo, 'getReadBooks', function() {
           return Promise.resolve([
             createReadBook({ bookID: '2' }),
             createReadBook({ bookID: '3' })
           ]);
         });
 
-        stub(readersSearch, 'findSimilarReaders', () => Promise.resolve([]));
-        stub(readersSearch, 'summarizeSimilarReaders', () => 'summary');
+        override(readersSearch, 'findSimilarReaders', () => Promise.resolve([]));
+        override(readersSearch, 'summarizeSimilarReaders', () => 'summary');
 
         await assert.isRejected(
           cli.findReaders({
@@ -227,9 +227,9 @@ describe('cli', function() {
           logger: createTestLogger({ logLevel: 'none' })[0]
         });
 
-        stub(cli.repo, 'getReadBooks', () => Promise.resolve([]));
-        stub(readersSearch, 'findSimilarReaders', () => Promise.resolve([]));
-        stub(readersSearch, 'summarizeSimilarReaders', () => 'summary');
+        override(cli.repo, 'getReadBooks', () => Promise.resolve([]));
+        override(readersSearch, 'findSimilarReaders', () => Promise.resolve([]));
+        override(readersSearch, 'summarizeSimilarReaders', () => 'summary');
 
         await cli.findReaders({
           maxReviews: 1,
@@ -248,7 +248,7 @@ describe('cli', function() {
 
         const ids: BookID[] = [];
 
-        stub(cli.repo, 'getReadBooks', function(id) {
+        override(cli.repo, 'getReadBooks', function(id) {
           assert.equal(id, '1');
 
           return Promise.resolve([
@@ -257,7 +257,7 @@ describe('cli', function() {
           ]);
         });
 
-        stub(cli.repo, 'getBook', function(id) {
+        override(cli.repo, 'getBook', function(id) {
           ids.push(id);
           return Promise.resolve(createBook());
         });
@@ -272,14 +272,14 @@ describe('cli', function() {
 
         const ids: BookID[] = [];
 
-        stub(cli.repo, 'getReadBooks', function(id) {
+        override(cli.repo, 'getReadBooks', function(id) {
           return Promise.resolve([
             createReadBook({ bookID: '2' }),
             createReadBook({ bookID: '3' })
           ]);
         });
 
-        stub(cli.repo, 'getBook', function(id) {
+        override(cli.repo, 'getBook', function(id) {
           ids.push(id);
           return Promise.resolve(createBook());
         });
@@ -296,7 +296,7 @@ describe('cli', function() {
       it('shows a summary of local books', async function() {
         const [cli, readOutput] = createTestCLI({ userID: '1' });
 
-        stub(cli.repo, 'getReadBooks', function(id) {
+        override(cli.repo, 'getReadBooks', function(id) {
           assert.equal(id, '1');
 
           return Promise.resolve([
@@ -305,7 +305,7 @@ describe('cli', function() {
           ]);
         });
 
-        stub(cli.repo, 'getLocalBooks', function(ids) {
+        override(cli.repo, 'getLocalBooks', function(ids) {
           assert.deepEqual(ids, ['2', '3']);
 
           return Promise.resolve([
@@ -314,7 +314,7 @@ describe('cli', function() {
           ]);
         });
 
-        stub(summary, 'summarizeBookshelf', function(bookshelf, options) {
+        override(summary, 'summarizeBookshelf', function(bookshelf, options) {
           return bookshelf.getBooks().map(b => b.id);
         });
 
@@ -326,9 +326,9 @@ describe('cli', function() {
       it('can filter the summary', async function() {
         const [cli, readOutput] = createTestCLI();
 
-        stub(cli.repo, 'getReadBooks', () => Promise.resolve([]));
+        override(cli.repo, 'getReadBooks', () => Promise.resolve([]));
 
-        stub(cli.repo, 'getLocalBooks', function() {
+        override(cli.repo, 'getLocalBooks', function() {
           return Promise.resolve([
             createBook({
               id: '4',
@@ -341,7 +341,7 @@ describe('cli', function() {
           ]);
         });
 
-        stub(summary, 'summarizeBookshelf', function(bookshelf, options = {}) {
+        override(summary, 'summarizeBookshelf', function(bookshelf, options = {}) {
           return [
             ...bookshelf.getShelves().map(s => s.data.name),
             ...(options.sections || [])

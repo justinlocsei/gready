@@ -9,7 +9,7 @@ import { findSimilarReaders, summarizeSimilarReaders } from '../../src/search/re
 
 describe('search/readers', function() {
 
-  const { stub } = allowOverrides(this);
+  const { override } = allowOverrides(this);
 
   describe('findSimilarReaders', function() {
 
@@ -29,7 +29,7 @@ describe('search/readers', function() {
       const repo = createTestRepo();
       const allBooks = books.map(createBook);
 
-      stub(repo, 'getBook', function(id) {
+      override(repo, 'getBook', function(id) {
         const book = allBooks.find(b => b.id === id);
 
         if (book) {
@@ -39,14 +39,14 @@ describe('search/readers', function() {
         }
       });
 
-      stub(repo, 'getSimilarReviews', function(book, readBook, limit) {
+      override(repo, 'getSimilarReviews', function(book, readBook, limit) {
         assert.equal(limit, maxReviews, 'the review limit was not forwarded');
         assert.equal(book.id, readBook.bookID, 'the book and its review’s book ID were out of sync');
 
         return Promise.resolve((reviews[book.id] || []).map(createReview));
       });
 
-      stub(goodreads, 'getUserBooksURL', function(id) {
+      override(goodreads, 'getUserBooksURL', function(id) {
         return `books-${id}`;
       });
 
