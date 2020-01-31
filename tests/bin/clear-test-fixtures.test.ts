@@ -1,4 +1,4 @@
-import path from 'path'
+import path from 'path';
 
 import * as scripts from '../../src/scripts';
 import assert from '../helpers/assert';

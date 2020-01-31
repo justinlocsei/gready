@@ -1,4 +1,4 @@
-import path from 'path'
+import path from 'path';
 import { readFileSync } from 'graceful-fs';
 
 import * as scripts from '../../src/scripts';
