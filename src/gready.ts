@@ -404,6 +404,7 @@ async function startCLI(cliOptions: Required<CLIOptions>): Promise<void> {
     case 'test':
       return;
 
+    /* istanbul ignore next */
     default:
       unreachable(parsed);
   }

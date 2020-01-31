@@ -55,6 +55,7 @@ export function run() {
   );
 }
 
+/* istanbul ignore if */
 if (require.main === module) {
   run();
 }

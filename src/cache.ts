@@ -201,6 +201,7 @@ class CacheClass {
       case 'utf-8':
         return asJSON;
 
+      /* istanbul ignore next */
       default:
         unreachable(encoding);
     }
@@ -223,6 +224,7 @@ class CacheClass {
         data = serialized;
         break;
 
+      /* istanbul ignore next */
       default:
         unreachable(encoding);
     }

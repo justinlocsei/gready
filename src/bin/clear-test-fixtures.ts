@@ -16,6 +16,7 @@ export function run(): Promise<void> {
   );
 }
 
+/* istanbul ignore if */
 if (require.main === module) {
   run();
 }

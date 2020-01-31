@@ -25,6 +25,7 @@ export function maybeMap<T, U>(
 /**
  * A function that should never be called
  */
+/* istanbul ignore next */
 export function unreachable(reason: never): never {
   throw new Error(reason);
 }
