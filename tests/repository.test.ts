@@ -40,7 +40,9 @@ describe('repository', function() {
         });
 
         override(repo.apiClient, 'getCanonicalBookID', function(sourceBook) {
-          if (sourceBook.id === book.id) {
+          if (!canonical) {
+            return Promise.resolve(null);
+          } if (sourceBook.id === book.id) {
             return Promise.resolve(canonicalBook.id);
           } else {
             throw new Error(`Received unexpected source book when checking for a canonical ID: ${sourceBook.id}`);
@@ -328,7 +330,8 @@ describe('repository', function() {
           {},
           {
             mergeShelves: {
-              alfa: ['bravo', 'charlie']
+              alfa: ['bravo', 'charlie'],
+              echo: ['foxtrot']
             }
           }
         );
