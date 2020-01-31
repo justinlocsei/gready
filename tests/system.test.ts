@@ -2,6 +2,7 @@ import assert from './helpers/assert';
 import { allowOverrides } from './helpers/mocking';
 
 import {
+  captureConsoleOutput,
   createStderrWriter,
   createStdoutWriter,
   getArgs,
@@ -12,6 +13,31 @@ import {
 describe('system', function() {
 
   const { stub } = allowOverrides(this);
+
+  describe('captureConsoleOutput', function() {
+
+    it('captures console messages', function() {
+      const output = captureConsoleOutput(function() {
+        console.log('alfa');
+        console.log('bravo');
+      }, ['log']);
+
+      assert.deepEqual(output, [
+        { args: ['alfa'], method: 'log' },
+        { args: ['bravo'], method: 'log' }
+      ]);
+    });
+
+    it('returns an empty list when no output occurs', function() {
+      const output = captureConsoleOutput(
+        function() {},
+        ['log']
+      );
+
+      assert.isEmpty(output);
+    });
+
+  });
 
   describe('createStderrWriter', function() {
 
