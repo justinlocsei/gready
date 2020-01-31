@@ -1,17 +1,21 @@
 #!/usr/bin/env node
 
+import { createStderrWriter, getArgs } from '../system';
 import { extractArgs } from '../environment';
-import { getArgs } from '../system';
 import { runAsScript } from '../scripts';
 import { runCLI } from '../gready';
 
-/**
- * Run the gready CLI
- */
-function runGready(): Promise<void> {
-  return runCLI({
-    args: extractArgs(getArgs())
-  }).then(() => undefined);
+export function run(): Promise<void> {
+  return runAsScript(
+    function() {
+      return runCLI({
+        args: extractArgs(getArgs())
+      }).then(() => undefined);
+    },
+    { writeToStderr: createStderrWriter() }
+  );
 }
 
-runAsScript(runGready);
+if (require.main === module) {
+  run();
+}
