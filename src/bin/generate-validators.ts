@@ -5,7 +5,7 @@ import path from 'path';
 import { mkdirp } from 'fs-extra';
 import { promisify } from 'util';
 
-import { createStdoutWriter } from '../system';
+import { createStderrWriter, createStdoutWriter } from '../system';
 import { formatJSON } from '../serialization';
 import { OperationalError } from '../errors';
 import { OutputHandler } from '../types/system';
@@ -138,4 +138,4 @@ function generateValidatorCode(
   return lines.join('\n');
 }
 
-runAsScript(generateValidators);
+runAsScript(generateValidators, { writeToStderr: createStderrWriter() });
