@@ -43,22 +43,14 @@ export async function findRecommendedBooks({
     bookIDs = bookIDs.filter(id => coreBookIDs.includes(id));
   }
 
-  const booksByID: Record<BookID, Book> = {};
   const countsByID: Record<BookID, number> = {};
 
   await runSequence(
     ['Find recommended books'],
-    bookIDs.sort(),
+    uniq(bookIDs).sort(),
     repo.logger,
     async function(bookID) {
-      let book: Book;
-
-      if (!booksByID[bookID]) {
-        book = await repo.getBook(bookID);
-        booksByID[bookID] = book;
-      } else {
-        book = booksByID[bookID];
-      }
+      const book = await repo.getBook(bookID);
 
       if (shelves) {
         const shelfNames = partition(book.shelves, s => s.count)
@@ -91,7 +83,7 @@ export async function findRecommendedBooks({
 
   const ranked = partition(recommendations, r => r.recommendations);
   const queries = ranked.filter(r => r.percentile >= percentile);
-  const queryIDs = uniq(queries.map(r => r.data.bookID));
+  const queryIDs = queries.map(r => r.data.bookID);
 
   const percentiles = ranked.reduce(function(previous: Record<BookID, number>, { data: book, percentile }) {
     previous[book.bookID] = percentile;
@@ -100,17 +92,10 @@ export async function findRecommendedBooks({
 
   const recommendedBooks = await runSequence(
     ['Expand recommendations'],
-    queryIDs.sort(),
+    uniq(queryIDs).sort(),
     repo.logger,
     async function(bookID): Promise<RecommendedBook> {
-      let book: Book;
-
-      if (!booksByID[bookID]) {
-        book = await repo.getBook(bookID);
-        booksByID[bookID] = book;
-      } else {
-        book = booksByID[bookID];
-      }
+      const book = await repo.getBook(bookID);
 
       return {
         book,

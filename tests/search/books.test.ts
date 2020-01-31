@@ -97,6 +97,31 @@ describe('search/books', function() {
       ]);
     });
 
+    it('does not recommend read books', async function() {
+      const books = await getRecommendedBooks({
+        books: [
+          {
+            id: '1',
+            similarBooks: ['2', '3']
+          },
+          {
+            id: '2'
+          },
+          {
+            id: '3'
+          }
+        ],
+        readBooks: [
+          { bookID: '1', rating: 5 },
+          { bookID: '3', rating: 4 }
+        ]
+      });
+
+      assert.deepEqual(books, [
+        { bookID: '2', count: 1, percentile: 100 }
+      ]);
+    });
+
     it('can restrict recommendations by rating', async function() {
       const books = await getRecommendedBooks({
         books: [
@@ -136,7 +161,7 @@ describe('search/books', function() {
           },
           {
             id: '3',
-            similarBooks: ['4']
+            similarBooks: ['1', '4']
           },
           {
             id: '4'
@@ -230,7 +255,7 @@ describe('search/books', function() {
 
   describe('summarizeRecommendedBooks', function() {
 
-    function getSummary(books: PartitionedRecommendation[], genrePercentile: number): string {
+    function getSummary(books: PartitionedRecommendation[], genrePercentile?: number): string {
       override(goodreads, 'getViewBookURL', function(id) {
         return `view-${id}`;
       });
@@ -303,6 +328,10 @@ describe('search/books', function() {
 
     it('can handle a lack of summarizable data', async function() {
       assert.isEmpty(await getSummary([], 0));
+    });
+
+    it('uses a default genre percentile', async function() {
+      assert.isEmpty(await getSummary([]));
     });
 
   });
