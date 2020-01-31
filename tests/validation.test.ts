@@ -1,8 +1,8 @@
 import assert from './helpers/assert';
 
-import { validate } from '../src/validators';
+import { validate } from '../src/validation';
 
-describe('validators', function() {
+describe('validation', function() {
 
   describe('validate', function() {
 
