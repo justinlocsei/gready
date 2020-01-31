@@ -168,6 +168,17 @@ describe('gready', function() {
     assert.equal(configPath, '/config.json');
   });
 
+  it('does not intercept non-CLI errors', function() {
+    override(config, 'loadConfig', function(path) {
+      throw new Error('test error');
+    });
+
+    return assert.isRejected(
+      testCLI(['test', '--config', '/config.json']),
+      'test error'
+    );
+  });
+
   it('can disable the data cache', async function() {
     const plan = expectAssertions(2);
 
