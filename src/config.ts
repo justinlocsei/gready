@@ -3,7 +3,7 @@ import { promisify } from 'util';
 import { readFile } from 'fs';
 
 import { Configuration, UserConfiguration } from './types/config';
-import { getEnvironmentVariable } from './system';
+import { getEnvironmentVariable, handleMissingFile } from './system';
 import { OperationalError } from './errors';
 import { validateUserConfiguration } from './validators/config';
 
@@ -29,18 +29,13 @@ export async function loadConfig(
   options: { allowMissing?: boolean; } = {}
 ): Promise<Configuration> {
   if (options.allowMissing) {
-    try {
-      await statAsync(configPath);
-    } catch (error) {
-      if (error.code === 'ENOENT') {
-        return DEFAULT_CONFIG;
-      } else {
-        throw error;
-      }
-    }
+    return handleMissingFile(
+      () => statAsync(configPath).then(() => loadConfigFile(configPath)),
+      () => Promise.resolve(DEFAULT_CONFIG)
+    );
+  } else {
+    return loadConfigFile(configPath);
   }
-
-  return loadConfigFile(configPath);
 }
 
 /**
@@ -57,19 +52,15 @@ export function buildConfig(custom?: UserConfiguration): Configuration {
  * Attempt to load a config file at a given path
  */
 async function loadConfigFile(filePath: string): Promise<Configuration> {
-  let text: string;
   let data: object;
   let config: UserConfiguration;
 
-  try {
-    text = await readFileAsync(filePath, 'utf8');
-  } catch (error) {
-    if (error.code === 'ENOENT') {
+  const text = await handleMissingFile(
+    () => readFileAsync(filePath, 'utf8'),
+    function() {
       throw new OperationalError(`No config file found at path: ${filePath}`);
-    } else {
-      throw error;
     }
-  }
+  );
 
   try {
     data = JSON.parse(text);

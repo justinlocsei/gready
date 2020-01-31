@@ -6,6 +6,7 @@ import { readdir, readFile, writeFile } from 'graceful-fs';
 
 import { ExtractArrayType } from './types/util';
 import { formatJSON } from './serialization';
+import { handleMissingFile } from './system';
 import { unreachable } from './util';
 
 const globAsync = promisify(glob);
@@ -110,15 +111,10 @@ class CacheClass {
       return computeValue();
     }
 
-    try {
-      return this.deserializeValue(await readFileAsync(cacheFile, 'utf8'));
-    } catch (error) {
-      if (error.code === 'ENOENT') {
-        return this.storeValue(cacheFile, computeValue);
-      } else {
-        throw error;
-      }
-    }
+    return handleMissingFile(
+      async () => this.deserializeValue(await readFileAsync(cacheFile, 'utf8')),
+      () => this.storeValue(cacheFile, computeValue)
+    );
   }
 
   /**
