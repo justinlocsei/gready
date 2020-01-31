@@ -101,7 +101,7 @@ function extractReviews(markup: string, withRating?: number): [boolean, PartialR
     const stars = $review.find('[itemprop="reviewRating"]').text();
 
     const id = href && new URL(href).pathname.split('/').pop();
-    const rating = (stars.match(/★/g) || []).length;
+    const rating = stars.split(/★/).length - 1;
 
     if (id && (!withRating || withRating === rating)) {
       reviews.push({ id, rating });
