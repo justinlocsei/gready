@@ -1,141 +1,60 @@
-import * as TJS from 'typescript-json-schema';
-import * as TS from 'typescript';
 import fs from 'graceful-fs';
 import path from 'path';
 import { mkdirp } from 'fs-extra';
 import { promisify } from 'util';
 
 import { createStderrWriter, createStdoutWriter } from '../system';
-import { formatJSON } from '../serialization';
-import { OperationalError } from '../errors';
+import { generateValidator } from '../validators';
 import { OutputHandler } from '../types/system';
-import { paths, resolveRequire } from '../environment';
+import { paths } from '../environment';
 import { runAsScript } from '../scripts';
 
 const writeFileAsync = promisify(fs.writeFile);
 
-const TYPE_FILES = [
-  'api.ts',
-  'config.ts'
-];
+const TYPE_FILES = ['api.ts', 'config.ts'];
 
 /**
- * Generate validators for a subset of types
+ * Write generated validation code for a subset of types to disk
  */
-async function generateValidators(): Promise<void> {
-  const log = createStdoutWriter();
-
+async function writeValidators(log: OutputHandler): Promise<void> {
   await mkdirp(paths.validatorsDir);
 
-  let index = 0;
-  const lastIndex = TYPE_FILES.length - 1;
+  for (const typeFile of TYPE_FILES) {
+    const inputPath = path.join(paths.typesDir, typeFile);
+    log(inputPath);
 
-  while (index <= lastIndex) {
-    await generateValidator(
-      log,
-      path.join(paths.typesDir, TYPE_FILES[index])
-    );
-
-    if (index < lastIndex) {
-      log('');
-    }
-
-    index++;
+    const outputPath = await writeValidator(inputPath);
+    log(`  => ${outputPath}`);
   }
 }
 
 /**
- * Generate validator code for all types in a file
+ * Write generated code for a validator to a directory
  */
-async function generateValidator(log: OutputHandler, tsFile: string): Promise<void> {
-  log(path.relative(paths.srcDir, tsFile));
+async function writeValidator(typesFile: string): Promise<string> {
+  const targetDir = path.join(
+    paths.validatorsDir,
+    path.basename(typesFile, '.ts')
+  );
 
-  const program = TJS.getProgramFromFiles([tsFile]);
+  const files = await generateValidator(typesFile, targetDir);
 
-  const generator = TJS.buildGenerator(program, {
-    ref: false,
-    required: true
-  });
+  await mkdirp(targetDir);
 
-  if (!generator) {
-    throw new OperationalError(`Could not parse types in file: ${tsFile}`);
+  for (const file of Object.values(files)) {
+    await writeFileAsync(file.path, file.content + '\n');
   }
 
-  const exportedSymbols = generator.getSymbols().reduce(function(previous: Record<string, boolean>, symbol) {
-    previous[symbol.name] = symbol.symbol.declarations.some(function({ modifiers }) {
-      return modifiers && modifiers.some(m => m.kind === TS.SyntaxKind.ExportKeyword);
-    });
-
-    return previous;
-  }, {});
-
-  const symbols = generator
-    .getMainFileSymbols(program)
-    .filter(s => exportedSymbols[s])
-    .sort();
-
-  const fileName = path.basename(tsFile, '.ts');
-  const dirPath = path.join(paths.validatorsDir, fileName);
-  const schemaFile = path.join(dirPath, 'schema.json');
-  const codeFile = path.join(dirPath, 'index.ts');
-
-  await mkdirp(dirPath);
-
-  await writeFileAsync(
-    schemaFile,
-    formatJSON(generator.getSchemaForSymbols(symbols)) + '\n'
-  );
-
-  await writeFileAsync(
-    path.join(dirPath, 'index.ts'),
-    generateValidatorCode(tsFile, schemaFile, codeFile, symbols) + '\n'
-  );
-
-  log(`  => ${path.relative(paths.srcDir, dirPath)}`);
+  return targetDir;
 }
 
-/**
- * Generate code for validating types defined in a schema
- */
-function generateValidatorCode(
-  typesFile: string,
-  schemaFile: string,
-  codeFile: string,
-  types: string[]
-): string {
-  const context = path.dirname(codeFile);
-
-  const schemaPath = resolveRequire(context, schemaFile);
-  const typesPath = resolveRequire(context, typesFile, '.ts');
-  const validatorsPath = resolveRequire(context, `${paths.validatorsDir}.ts`, '.ts');
-
-  let lines = [
-    `import * as Types from '${typesPath}';`,
-    `import schema from '${schemaPath}';`,
-    `import { validate } from '${validatorsPath}';`,
-    '',
-    'type Schema = typeof schema;',
-    'type Definition = keyof Schema[\'definitions\'];',
-    '',
-    'function conformToSchema<T>(',
-    '  schema: Schema,',
-    '  definition: Definition,',
-    '  data: unknown',
-    '): T {',
-    '  return validate(schema, definition, data);',
-    '}'
-  ];
-
-  types.forEach(function(type) {
-    lines = lines.concat([
-      '',
-      `export function validate${type}(data: unknown): Types.${type} {`,
-      `  return conformToSchema(schema, '${type}', data);`,
-      '}'
-    ]);
-  });
-
-  return lines.join('\n');
+export function run() {
+  runAsScript(
+    () => writeValidators(createStdoutWriter()),
+    { writeToStderr: createStderrWriter() }
+  );
 }
 
-runAsScript(generateValidators, { writeToStderr: createStderrWriter() });
+if (require.main === module) {
+  run();
+}
