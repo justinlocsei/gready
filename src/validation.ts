@@ -7,8 +7,6 @@ import { formatJSON } from './serialization';
  *
  * The provided schema must contain a `definitions` block that provides a
  * definition for the named type.
- *
- * @throws If the data does not conform to the schema
  */
 export function validate<T>(
   jsonSchema: object,
