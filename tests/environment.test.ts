@@ -32,7 +32,7 @@ describe('environment', function() {
 
     it('handles args without an interpreter', function() {
       assert.deepEqual(
-        ['file.js', 'alfa'],
+        extractArgs(['file.js', 'alfa']),
         ['file.js', 'alfa']
       );
     });
