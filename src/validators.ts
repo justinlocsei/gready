@@ -2,6 +2,7 @@ import * as TJS from 'typescript-json-schema';
 import * as TS from 'typescript';
 import path from 'path';
 
+import { captureConsoleOutput } from './system';
 import { formatJSON } from './serialization';
 import { OperationalError } from './errors';
 import { paths, resolveRequire } from './environment';
@@ -14,22 +15,27 @@ interface ValidatorFile {
 /**
  * Generate validator code for all exported types in a file
  */
-export async function generateValidator(
+export function generateValidator(
   typesFile: string,
   targetDir: string
-): Promise<{
+): {
   schema: ValidatorFile;
   validator: ValidatorFile;
-}> {
+} {
+  let generator: ReturnType<typeof TJS['buildGenerator']> | undefined;
+
   const program = TJS.getProgramFromFiles([typesFile]);
 
-  const generator = TJS.buildGenerator(program, {
-    ref: false,
-    required: true
-  });
+  const errors = captureConsoleOutput(function() {
+    generator = TJS.buildGenerator(program, {
+      ref: false,
+      required: true
+    });
+  }, ['error']);
 
   if (!generator) {
-    throw new OperationalError(`Could not parse types in file: ${typesFile}`);
+    const parseErrors = errors.map(e => e.args.join(' ')).join('\n');
+    throw new OperationalError(`Could not parse types in file: ${typesFile}\n${parseErrors}`);
   }
 
   const exportedSymbols = generator.getSymbols().reduce(function(previous: Record<string, boolean>, symbol) {

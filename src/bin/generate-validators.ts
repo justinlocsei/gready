@@ -37,7 +37,7 @@ async function writeValidator(typesFile: string): Promise<string> {
     path.basename(typesFile, '.ts')
   );
 
-  const files = await generateValidator(typesFile, targetDir);
+  const files = generateValidator(typesFile, targetDir);
 
   await mkdirp(targetDir);
 
