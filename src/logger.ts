@@ -106,12 +106,8 @@ class LoggerClass {
     }
 
     const levelNames = LEVELS
-      .filter(l => l.rank <= currentRank)
+      .filter(l => l.rank && l.rank <= currentRank)
       .map(l => l.name);
-
-    if (!levelNames.length) {
-      return;
-    }
 
     const longestLabel = Math.max(...levelNames.map(n => n.length));
     const label = levelName.toUpperCase().padEnd(longestLabel);

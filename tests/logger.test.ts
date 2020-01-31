@@ -1,7 +1,7 @@
 import assert from './helpers/assert';
-import { createTestLogger } from './helpers';
+import { createOutputHandler, createTestLogger } from './helpers';
 import { freezeTime } from './helpers/mocking';
-import { getLevelNames } from '../src/logger';
+import { createLogger, getLevelNames } from '../src/logger';
 
 describe('logger', function() {
 
@@ -17,6 +17,13 @@ describe('logger', function() {
   });
 
   describe('Logger', function() {
+
+    it('has reasonable defaults when no options are passed', function() {
+      const logger = createLogger(createOutputHandler()[0]);
+
+      assert.isFalse(logger.showTime);
+      assert.isTrue(logger.useColor);
+    });
 
     describe('.debug', function() {
 
