@@ -19,21 +19,12 @@ export function validate<T>(
   };
 
   const validator = new Ajv();
-  const isValid = validator.validate(schema, data);
+  validator.validate(schema, data);
 
-  if (isValid) {
+  if (!validator.errors) {
     return data as T;
-  }
-
-  const errors = validator.errors;
-  let error: string;
-
-  if (errors && errors.length) {
-    error = errors[0].message || formatJSON(errors[0].params);
-    error = `${errors[0].dataPath} ${error}`;
   } else {
-    error = 'unknown validation error';
+    const { dataPath, message } = validator.errors[0];
+    throw new Error(`Invalid ${typeName}: ${dataPath} ${message}\n${formatJSON(data)}`);
   }
-
-  throw new Error(`Invalid ${typeName}: ${error}\n${formatJSON(data)}`);
 }
