@@ -276,6 +276,32 @@ describe('bookshelf', function() {
         ]);
       });
 
+      it('excludes books without a publisher', function() {
+        const bookshelf = createBookshelf([
+          {
+            id: '1',
+            publisher: 'Alfa',
+            title: 'alfa'
+          },
+          {
+            id: '2',
+            publisher: '',
+            title: 'bravo'
+          }
+        ]);
+
+        const grouped = bookshelf.groupByPublisher().map(function(group) {
+          return {
+            publisher: group.publisherName,
+            bookIDs: group.books.map(b => b.id)
+          };
+        });
+
+        assert.deepEqual(grouped, [
+          { publisher: 'Alfa', bookIDs: ['1'] }
+        ]);
+      });
+
       it('returns an empty list when no books are in the shelf', function() {
         assert.isEmpty(createBookshelf().groupByPublisher());
       });
