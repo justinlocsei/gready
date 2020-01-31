@@ -1,6 +1,6 @@
 import { remove } from 'fs-extra';
 
-import { createStderrWriter, createStdoutWriter, markProcessAsFailed } from './system';
+import { markProcessAsFailed } from './system';
 import { OperationalError } from './errors';
 import { OutputHandler } from './types/system';
 
@@ -11,12 +11,11 @@ export function removePaths(
   title: string,
   paths: string[],
   options: {
-    writeToStderr?: OutputHandler;
-    writeToStdout?: OutputHandler;
-  } = {}
+    writeToStderr: OutputHandler;
+    writeToStdout: OutputHandler;
+  }
 ): Promise<void> {
-  const writeToStderr = options.writeToStderr || createStderrWriter();
-  const writeToStdout = options.writeToStdout || createStdoutWriter();
+  const { writeToStderr, writeToStdout } = options;
 
   return runAsScript(async function() {
     writeToStdout(title);
@@ -32,9 +31,9 @@ export function removePaths(
  * Run a function as a script
  */
 export function runAsScript(execute: () => Promise<void>, options: {
-  writeToStderr?: OutputHandler;
-} = {}): Promise<void> {
-  const writeToStderr = options.writeToStderr || createStderrWriter();
+  writeToStderr: OutputHandler;
+}): Promise<void> {
+  const { writeToStderr } = options;
 
   return execute().catch(function(error) {
     markProcessAsFailed();
