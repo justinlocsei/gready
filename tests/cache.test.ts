@@ -18,6 +18,12 @@ describe('cache', function() {
           );
         }
 
+        it('has reasonable default when no options are provided', function() {
+          const cache = createCache(tmp.dirSync().name);
+
+          assert.isTrue(cache.isEnabled);
+        });
+
         describe('.clear', function() {
 
           it('can clear the cache', async function() {
