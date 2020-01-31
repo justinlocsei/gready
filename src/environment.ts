@@ -67,15 +67,18 @@ export function resolveRequire(
 function resolvePaths() {
   const rootDir = path.normalize(path.join(__dirname, '..'));
   const srcDir = path.join(rootDir, 'src');
-  const testFixturesDir = path.join(rootDir, 'tests', 'fixtures');
+  const testsDir = path.join(rootDir, 'tests');
+  const testFixturesDir = path.join(testsDir, 'fixtures');
 
   return {
     apiFixturesDir: path.join(testFixturesDir, 'api'),
     defaultConfig: path.join(os.homedir(), '.greadyrc'),
     distDir: path.join(rootDir, 'dist'),
+    gitignore: path.join(rootDir, '.gitignore'),
     networkFixturesDir: path.join(testFixturesDir, 'network'),
     rootDir,
     srcDir,
+    testsDir,
     testFixturesDir,
     typesDir: path.join(srcDir, 'types'),
     validatorsDir: path.join(srcDir, 'validators')
