@@ -86,8 +86,33 @@ export function createStdoutWriter(): OutputHandler {
 }
 
 /**
+ * Run fallback code when an expected file is missing
+ */
+export async function handleMissingFile<T>(
+  runAction: () => Promise<T>,
+  handleMissing: () => Promise<T>
+): Promise<T> {
+  try {
+    return await runAction();
+  } catch (error) {
+    if (isSystemError(error) && error.code === 'ENOENT') {
+      return handleMissing();
+    } else {
+      throw error;
+    }
+  }
+}
+
+/**
  * Mark the current process as failed
  */
 export function markProcessAsFailed(): void {
   process.exitCode = 1;
+}
+
+/**
+ * Determine whether an error is a system error
+ */
+function isSystemError(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && 'code' in error;
 }

@@ -1,3 +1,7 @@
+import fs from 'fs-extra';
+import path from 'path';
+import tmp from 'tmp';
+
 import assert from './helpers/assert';
 import { allowOverrides } from './helpers/mocking';
 
@@ -7,6 +11,7 @@ import {
   createStdoutWriter,
   getArgs,
   getEnvironmentVariable,
+  handleMissingFile,
   markProcessAsFailed
 } from '../src/system';
 
@@ -92,6 +97,55 @@ describe('system', function() {
     it('returns undefined when a variable is absent', function() {
       override(process, 'env', {});
       assert.isUndefined(getEnvironmentVariable('VAR_NAME'), '1');
+    });
+
+  });
+
+  describe('handleMissingFile', function() {
+
+    it('returns the main branch when no missing-file error is thrown', async function() {
+      const value = await handleMissingFile(
+        async () => 'alfa',
+        async () => 'bravo'
+      );
+
+      assert.equal(value, 'alfa');
+    });
+
+    it('returns the fallback branch if a file is missing', async function() {
+      const dir = tmp.dirSync().name;
+
+      const value = await handleMissingFile(
+        () => fs.readFile(path.join(dir, 'missing'), 'utf8'),
+        async () => 'bravo'
+      );
+
+      assert.equal(value, 'bravo');
+    });
+
+    it('throws an error if a non-missing file error is thrown', function() {
+      const dir = tmp.dirSync().name;
+
+      return assert.isRejected(
+        handleMissingFile(
+          () => fs.readFile(path.join(dir), 'utf8'),
+          async () => 'bravo'
+        ),
+        'EISDIR'
+      );
+    });
+
+    it('throws an error if a non-file error is thrown', function() {
+      return assert.isRejected(
+        handleMissingFile(
+          async function() {
+            throw new Error('testing');
+            return 'alfa';
+          },
+          async () => 'bravo'
+        ),
+        'testing'
+       );
     });
 
   });
