@@ -34,7 +34,6 @@
     "cheerio": "^1.0.0-rc.3",
     "fs-extra": "^8.1.0",
     "glob": "^7.1.6",
-    "graceful-fs": "^4.2.3",
     "json-stable-stringify": "^1.0.1",
     "lodash": "^4.17.15",
     "superagent": "^5.2.1",
