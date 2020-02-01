@@ -11,7 +11,7 @@ describe('reviews', function() {
   describe('extractReviewsIDFromWidget', function() {
 
     it('extracts the ID from valid embed code', function() {
-      const widget = fs.readFileSync(path.join(paths.testFixturesDir, 'reviews-widget.html'), 'utf8');
+      const widget = fs.readFileSync(path.join(paths.testFixturesDir, 'goodreads', 'reviews-widget.html'), 'utf8');
 
       assert.equal(
         extractReviewsIDFromWidget(widget),
