@@ -1,4 +1,4 @@
-import fs from 'graceful-fs';
+import fs from 'fs-extra';
 import tmp from 'tmp';
 import { promisify } from 'util';
 
@@ -17,7 +17,6 @@ import {
 } from '../src/config';
 
 const tmpFileAsync = promisify(tmp.file);
-const writeFileAsync = promisify(fs.writeFile);
 
 describe('config', function() {
 
@@ -112,7 +111,7 @@ describe('config', function() {
     async function createConfig(config: UserConfiguration | string): Promise<string> {
       const configPath = await tmpFileAsync();
 
-      await writeFileAsync(
+      await fs.writeFile(
         configPath,
         typeof config === 'string' ? config : JSON.stringify(config)
       );

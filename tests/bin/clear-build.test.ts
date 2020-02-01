@@ -1,5 +1,5 @@
+import fs from 'fs-extra';
 import path from 'path';
-import { readFileSync } from 'graceful-fs';
 
 import * as scripts from '../../src/scripts';
 import assert from '../helpers/assert';
@@ -12,7 +12,7 @@ describe('bin/clear-build', function() {
   const { expectAssertions, override } = allowOverrides(this);
 
   it('clears transient build paths', async function() {
-    const ignoredPaths = readFileSync(paths.gitignore, 'utf8')
+    const ignoredPaths = fs.readFileSync(paths.gitignore, 'utf8')
       .split('\n')
       .filter(l => l.startsWith('/'))
       .map(l => path.join(paths.rootDir, l));

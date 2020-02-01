@@ -1,8 +1,7 @@
+import fs from 'fs-extra';
 import glob from 'glob';
 import path from 'path';
-import { mkdirp, remove } from 'fs-extra';
 import { promisify } from 'util';
-import { readdir, readFile, writeFile } from 'graceful-fs';
 
 import { ExtractArrayType } from './types/util';
 import { formatJSON } from './serialization';
@@ -10,9 +9,6 @@ import { handleMissingFile } from './system';
 import { unreachable } from './util';
 
 const globAsync = promisify(glob);
-const readdirAsync = promisify(readdir);
-const readFileAsync = promisify(readFile);
-const writeFileAsync = promisify(writeFile);
 
 export const ENCODINGS = ['base64', 'utf-8'] as const;
 
@@ -65,12 +61,12 @@ class CacheClass {
    * Clear the cache
    */
   async clear(namespaces?: string[]): Promise<void> {
-    const names = namespaces || await readdirAsync(this.directory);
+    const names = namespaces || await fs.readdir(this.directory);
     const dirPaths = names.sort().map(n => path.join(this.directory, n));
 
     const removals = dirPaths.map(dirPath => {
       this.createdDirectories.delete(path.relative(this.directory, dirPath));
-      return remove(dirPath);
+      return fs.remove(dirPath);
     });
 
     await Promise.all(removals);
@@ -84,13 +80,13 @@ class CacheClass {
     let entries: string[];
 
     try {
-      entries = await readdirAsync(dirPath);
+      entries = await fs.readdir(dirPath);
     } catch {
       return [];
     }
 
     const parseRequests = entries.sort().map(async (file): Promise<T> => {
-      return this.deserializeValue(await readFileAsync(path.join(dirPath, file), 'utf8'));
+      return this.deserializeValue(await fs.readFile(path.join(dirPath, file), 'utf8'));
     });
 
     return Promise.all(parseRequests);
@@ -113,7 +109,7 @@ class CacheClass {
     }
 
     return handleMissingFile(
-      async () => this.deserializeValue(await readFileAsync(cacheFile, 'utf8')),
+      async () => this.deserializeValue(await fs.readFile(cacheFile, 'utf8')),
       () => this.storeValue(cacheFile, computeValue)
     );
   }
@@ -122,7 +118,7 @@ class CacheClass {
    * Get stats on all namespaces in the cache
    */
   async stats(): Promise<NamespaceStats[]> {
-    const namespaces = await readdirAsync(this.directory);
+    const namespaces = await fs.readdir(this.directory);
 
     const stats = namespaces.sort().map(async (namespace): Promise<NamespaceStats> => {
       const entries = await globAsync(path.join(this.directory, namespace, '**', `*.${this.extension}`));
@@ -146,7 +142,7 @@ class CacheClass {
       return Promise.resolve(filePath);
     }
 
-    return mkdirp(absoluteDir).then(() => {
+    return fs.mkdirp(absoluteDir).then(() => {
       this.createdDirectories.add(relativeDir);
       return filePath;
     });
@@ -178,7 +174,7 @@ class CacheClass {
   ): Promise<T> {
     const value = await computeValue();
 
-    await writeFileAsync(filePath, this.serializeValue(value));
+    await fs.writeFile(filePath, this.serializeValue(value));
 
     return value;
   }

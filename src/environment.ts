@@ -1,10 +1,6 @@
+import fs from 'fs-extra';
 import os from 'os';
 import path from 'path';
-import { chmod } from 'graceful-fs';
-import { mkdirp } from 'fs-extra';
-import { promisify } from 'util';
-
-const chmodAsync = promisify(chmod);
 
 interface DataDirectoryStructure {
   cacheDirs: {
@@ -27,15 +23,15 @@ export function extractArgs(args: string[]): string[] {
  * Create all required directories within a data directory
  */
 export async function prepareDataDirectory(rootDir: string): Promise<DataDirectoryStructure> {
-  await mkdirp(rootDir);
-  await chmodAsync(rootDir, 0o700);
+  await fs.mkdirp(rootDir);
+  await fs.chmod(rootDir, 0o700);
 
   const cacheDir = path.join(rootDir, 'cache');
   const apiRequestsDir = path.join(cacheDir, 'api-requests');
   const dataDir = path.join(cacheDir, 'data');
 
-  await mkdirp(apiRequestsDir);
-  await mkdirp(dataDir);
+  await fs.mkdirp(apiRequestsDir);
+  await fs.mkdirp(dataDir);
 
   return {
     cacheDirs: {

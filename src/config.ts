@@ -1,14 +1,9 @@
-import fs from 'graceful-fs';
-import { promisify } from 'util';
-import { readFile } from 'fs';
+import fs from 'fs-extra';
 
 import { Configuration, UserConfiguration } from './types/config';
 import { getEnvironmentVariable, handleMissingFile } from './system';
 import { OperationalError } from './errors';
 import { validateUserConfiguration } from './validators/config';
-
-const readFileAsync = promisify(readFile);
-const statAsync = promisify(fs.stat);
 
 const DEFAULT_CONFIG: Configuration = {
   ignoreShelves: [],
@@ -30,7 +25,7 @@ export async function loadConfig(
 ): Promise<Configuration> {
   if (options.allowMissing) {
     return handleMissingFile(
-      () => statAsync(configPath).then(() => loadConfigFile(configPath)),
+      () => fs.stat(configPath).then(() => loadConfigFile(configPath)),
       () => Promise.resolve(DEFAULT_CONFIG)
     );
   } else {
@@ -56,7 +51,7 @@ async function loadConfigFile(filePath: string): Promise<Configuration> {
   let config: UserConfiguration;
 
   const text = await handleMissingFile(
-    () => readFileAsync(filePath, 'utf8'),
+    () => fs.readFile(filePath, 'utf8'),
     function() {
       throw new OperationalError(`No config file found at path: ${filePath}`);
     }

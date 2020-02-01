@@ -1,4 +1,4 @@
-import fs from 'graceful-fs';
+import fs from 'fs-extra';
 import path from 'path';
 import tmp from 'tmp';
 
