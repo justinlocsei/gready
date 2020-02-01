@@ -83,7 +83,7 @@ export function restoreNetworkAccess() {
 /**
  * Cause any requests made to a host to return a specific status code
  */
-export function simulateResponse(
+export async function simulateResponse(
   host: string,
   response: {
     body?: string;
@@ -92,7 +92,7 @@ export function simulateResponse(
   },
   runTest: () => Promise<void>
 ): Promise<void> {
-  nock(host)
+  const scope = nock(host)
     .get(uri => true)
     .reply(
       response.status,
@@ -101,7 +101,11 @@ export function simulateResponse(
     )
     .persist();
 
-  return runTest();
+  try {
+    await runTest();
+  } finally {
+    scope.persist(false);
+  }
 }
 
 /**
