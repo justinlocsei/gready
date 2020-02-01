@@ -202,7 +202,7 @@ class APIClientClass {
           page
         );
 
-        ensureArray(reviews.review || []).forEach(function(review) {
+        ensureArray(reviews.review).forEach(function(review) {
           readBooks.push(review);
         });
       }
