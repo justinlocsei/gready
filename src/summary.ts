@@ -81,7 +81,7 @@ function summarizeBooksByAuthor(bookshelf: Bookshelf): string {
     .groupByAuthor()
     .map(function({ author, books: bs }) {
       return [
-        `* ${formalizeAuthorName(author.name)} (ID=${author.id})`,
+        `* ${formalizeAuthorName(author.name)}`,
         ...bs.map(b => `  - ${b.title} (ID=${b.id})`)
       ].join('\n');
     })

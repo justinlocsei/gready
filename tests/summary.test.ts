@@ -35,10 +35,10 @@ describe('summary', function() {
           'Books by Author',
           '===============',
           '',
-          '* Bravo, Alfa (ID=Author1)',
+          '* Bravo, Alfa',
           '  - Book Alfa (ID=Book1)',
           '',
-          '* Delta, Charlie (ID=Author2)',
+          '* Delta, Charlie',
           '  - Book Bravo (ID=Book2)'
         ],
         [
