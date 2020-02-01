@@ -122,7 +122,7 @@ describe('api-client', function() {
       });
 
       it('raises an error when an invalid Goodreads user ID is provided', function() {
-        return simulateResponse(URLS.apiBase, 404, async function() {
+        return simulateResponse(URLS.apiBase, { status: 404 }, async function() {
           await assert.isRejected(
             createClient().getReadBooks('---'),
             /Invalid Goodreads user ID: ---/

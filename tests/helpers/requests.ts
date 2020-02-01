@@ -85,12 +85,20 @@ export function restoreNetworkAccess() {
  */
 export function simulateResponse(
   host: string,
-  statusCode: number,
+  response: {
+    body?: string;
+    headers?: Record<string, string>;
+    status: number;
+  },
   runTest: () => Promise<void>
 ): Promise<void> {
   nock(host)
     .get(uri => true)
-    .reply(statusCode);
+    .reply(
+      response.status,
+      response.body,
+      response.headers
+    );
 
   return runTest();
 }
