@@ -266,7 +266,7 @@ class APIClientClass {
   private async request(
     message: string[],
     relativeURL: string,
-    payload: object = {}
+    payload: object
   ): Promise<ResponseBody> {
     const url = `${URLS.apiBase}/${relativeURL}`;
 
