@@ -11,6 +11,7 @@
     <publisher>Publisher</publisher>
     <work>
       <id type="integer">1</id>
+      <best_book_id type="integer">1</best_book_id>
       <ratings_sum type="integer">5</ratings_sum>
       <ratings_count type="integer">1</ratings_count>
       <original_title>Original Title</original_title>
