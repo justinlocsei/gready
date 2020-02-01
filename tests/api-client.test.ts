@@ -130,6 +130,15 @@ describe('api-client', function() {
         });
       });
 
+      it('forwards non-404 network errors', function() {
+        return simulateResponse(URLS.apiBase, { status: 500 }, async function() {
+          await assert.isRejected(
+            createClient().getReadBooks('---'),
+            /internal server error/i
+          );
+        });
+      });
+
     });
 
   });
