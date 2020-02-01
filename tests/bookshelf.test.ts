@@ -9,25 +9,42 @@ describe('bookshelf', function() {
 
     describe('.getBooks', function() {
 
+      function getBooks(books: Partial<Book>[] = []) {
+        const bookshelf = createBookshelf(books);
+
+        return bookshelf
+          .getBooks()
+          .map(({ id, title }) => ({ id, title }));
+      }
+
       it('returns an empty list when no books are present', function() {
         assert.isEmpty(createBookshelf().getBooks());
       });
 
       it('returns all books in the shelf', function() {
-        const bookshelf = createBookshelf([
+        const books = getBooks([
           { title: 'alfa', id: '2' },
           { title: 'bravo', id: '3' },
           { title: 'alfa', id: '1' }
         ]);
 
-        const books = bookshelf
-          .getBooks()
-          .map(({ id, title }) => ({ id, title }));
-
         assert.deepEqual(books, [
           { title: 'alfa', id: '1' },
           { title: 'alfa', id: '2' },
           { title: 'bravo', id: '3' }
+        ]);
+      });
+
+      it('de-dupes books by their work ID', function() {
+        const books = getBooks([
+          { title: 'alfa', id: '2', canonicalID: '3', workID: '4' },
+          { title: 'bravo', id: '3', canonicalID: '3', workID: '4' },
+          { title: 'charlie', id: '1', canonicalID: '1', workID: '5' }
+        ]);
+
+        assert.deepEqual(books, [
+          { title: 'bravo', id: '3' },
+          { title: 'charlie', id: '1' }
         ]);
       });
 

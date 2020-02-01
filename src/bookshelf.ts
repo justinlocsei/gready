@@ -1,4 +1,4 @@
-import { sortBy } from 'lodash';
+import { sortBy, uniqBy } from 'lodash';
 
 import { Author, Book, Shelf } from './types/core';
 import { AuthorID } from './types/goodreads';
@@ -48,10 +48,13 @@ class BookshelfClass {
    * Get all books in the shelf
    */
   getBooks(): Book[] {
-    return sortBy(this.books, [
+    const books = sortBy(this.books, [
+      b => b.id === b.canonicalID ? 0 : 1,
       b => b.title,
       b => b.id
     ]);
+
+    return uniqBy(books, b => b.workID);
   }
 
   /**
@@ -75,7 +78,7 @@ class BookshelfClass {
    * Provide a partitioned view of the shelves used by all books
    */
   getAllShelves(): PartitionedShelf[] {
-    const countsByName = this.books.reduce(function(previous: Record<string, number>, book) {
+    const countsByName = this.getBooks().reduce(function(previous: Record<string, number>, book) {
       book.shelves.forEach(function({ count, name }) {
         previous[name] = previous[name] || 0;
         previous[name] += count;
@@ -113,7 +116,7 @@ class BookshelfClass {
     const authorsByID: Record<AuthorID, Author> = {};
     const booksByAuthor: Record<AuthorID, Book[]> = {};
 
-    this.books.forEach(function(book) {
+    this.getBooks().forEach(function(book) {
       const { author } = book;
 
       authorsByID[author.id] = author;
@@ -139,7 +142,7 @@ class BookshelfClass {
    * Group all books by publisher
    */
   groupByPublisher(): BooksByPublisher[] {
-    const byPublisher = this.books.reduce(function(previous: Record<string, Book[]>, book) {
+    const byPublisher = this.getBooks().reduce(function(previous: Record<string, Book[]>, book) {
       const { publisher } = book;
 
       if (publisher) {
@@ -164,7 +167,7 @@ class BookshelfClass {
    * Group all books by shelf
    */
   groupByShelf(): BooksByShelf[] {
-    const byShelf = this.books.reduce((previous: Record<string, BooksByShelf>, book) => {
+    const byShelf = this.getBooks().reduce((previous: Record<string, BooksByShelf>, book) => {
       this.partitionShelves(book.shelves).forEach(({ data: shelf, percentile }) => {
         if (percentile < this.shelfPercentile) { return; }
 
