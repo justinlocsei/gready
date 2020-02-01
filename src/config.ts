@@ -9,7 +9,8 @@ const DEFAULT_CONFIG: Configuration = {
   ignoreAuthors: [],
   ignoreShelves: [],
   mergePublishers: {},
-  mergeShelves: {}
+  mergeShelves: {},
+  shelfPercentile: 0
 };
 
 const ENV_VARS = {

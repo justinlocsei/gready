@@ -29,7 +29,8 @@ describe('config', function() {
         ignoreAuthors: [],
         ignoreShelves: [],
         mergePublishers: {},
-        mergeShelves: {}
+        mergeShelves: {},
+        shelfPercentile: 0
       });
     });
 
@@ -38,7 +39,8 @@ describe('config', function() {
         ignoreAuthors: ['Author'],
         ignoreShelves: ['shelf'],
         mergePublishers: { alfa: ['bravo'] },
-        mergeShelves: { charlie: ['delta'] }
+        mergeShelves: { charlie: ['delta'] },
+        shelfPercentile: 1
       };
 
       assert.deepEqual(buildConfig(config), config);
@@ -126,7 +128,8 @@ describe('config', function() {
         ignoreAuthors: ['Author'],
         ignoreShelves: ['shelf'],
         mergePublishers: { 'alfa': ['bravo'] },
-        mergeShelves: { 'charlie': ['delta'] }
+        mergeShelves: { 'charlie': ['delta'] },
+        shelfPercentile: 1
       });
 
       const config = await loadConfig(configPath);
@@ -135,6 +138,7 @@ describe('config', function() {
       assert.deepEqual(config.ignoreShelves, ['shelf']);
       assert.deepEqual(config.mergePublishers, { 'alfa': ['bravo'] });
       assert.deepEqual(config.mergeShelves, { 'charlie': ['delta'] });
+      assert.equal(config.shelfPercentile, 1);
     });
 
     it('allows the config file to be missing', async function() {
@@ -144,6 +148,7 @@ describe('config', function() {
       assert.deepEqual(config.ignoreShelves, []);
       assert.deepEqual(config.mergePublishers, {});
       assert.deepEqual(config.mergeShelves, {});
+      assert.equal(config.shelfPercentile, 0);
     });
 
     it('supports partial configs', async function() {
@@ -157,6 +162,7 @@ describe('config', function() {
       assert.deepEqual(config.ignoreShelves, ['shelf']);
       assert.deepEqual(config.mergePublishers, {});
       assert.deepEqual(config.mergeShelves, {});
+      assert.equal(config.shelfPercentile, 0);
     });
 
     it('throws an error when a config file is missing', function() {
