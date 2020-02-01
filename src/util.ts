@@ -1,8 +1,12 @@
 /**
  * Ensure that a value is an array
  */
-export function ensureArray<T>(value: T | T[]): T[] {
-  return Array.isArray(value) ? value : [value];
+export function ensureArray<T>(value: T | T[] | undefined): T[] {
+  if (value === undefined) {
+    return [];
+  } else {
+    return Array.isArray(value) ? value : [value];
+  }
 }
 
 /**

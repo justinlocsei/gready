@@ -10,6 +10,10 @@ describe('util', function() {
 
   describe('ensureArray', function() {
 
+    it('converts undefined to an empty array', function() {
+      assert.deepEqual(ensureArray(undefined), []);
+    });
+
     it('converts a scalar to an array', function() {
       assert.deepEqual(ensureArray(1), [1]);
     });
