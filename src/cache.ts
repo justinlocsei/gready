@@ -36,8 +36,9 @@ const EXTENSIONS: Record<Encoding, string> = {
 
 class CacheClass {
 
+  isEnabled: boolean;
+
   readonly directory: string;
-  readonly isEnabled: boolean;
 
   private extension: string;
   private createdDirectories: Set<string>;
@@ -107,7 +108,7 @@ class CacheClass {
   ): Promise<T> {
     const cacheFile = await this.prepareFS(keyPath);
 
-    if (!this.options.enabled) {
+    if (!this.isEnabled) {
       return computeValue();
     }
 

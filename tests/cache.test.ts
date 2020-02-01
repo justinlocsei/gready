@@ -150,6 +150,31 @@ describe('cache', function() {
             assert.equal(second, 'charlie');
           });
 
+          it('can toggle a cache’s enabled status', async function() {
+            const cache = createTestCache(undefined, { enabled: true });
+
+            const first = await cache.fetch(
+              ['alfa'],
+              () => Promise.resolve('bravo')
+            );
+
+            const second = await cache.fetch(
+              ['alfa'],
+              () => Promise.resolve('charlie')
+            );
+
+            cache.isEnabled = false;
+
+            const third = await cache.fetch(
+              ['alfa'],
+              () => Promise.resolve('delta')
+            );
+
+            assert.equal(first, 'bravo');
+            assert.equal(second, 'bravo');
+            assert.equal(third, 'delta');
+          });
+
           it('does not persists values when bypassing the cache', async function() {
             const firstCache = createTestCache(undefined, { enabled: false });
 
