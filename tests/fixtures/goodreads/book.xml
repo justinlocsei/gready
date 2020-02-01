@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GoodreadsResponse>
+  <Request>
+    <authentication>true</authentication>
+    <key><![CDATA[key]]></key>
+    <method><![CDATA[book_show]]></method>
+  </Request>
+  <book>
+    <id>1</id>
+    <title>Title</title>
+    <publisher>Publisher</publisher>
+    <work>
+      <id type="integer">1</id>
+      <ratings_sum type="integer">5</ratings_sum>
+      <ratings_count type="integer">1</ratings_count>
+      <original_title>Original Title</original_title>
+    </work>
+    <authors>
+      <author>
+        <id>1</id>
+        <name>Author</name>
+      </author>
+    </authors>
+    <reviews_widget>Reviews Widget</reviews_widget>
+    <popular_shelves>
+      <shelf name="to-read" count="2" />
+      <shelf name="currently-reading" count="2" />
+      <shelf name="fiction" count="2" />
+    </popular_shelves>
+    <similar_books>
+      <book>
+        <id>38709</id>
+      </book>
+      <book>
+        <id>10365</id>
+      </book>
+    </similar_books>
+  </book>
+</GoodreadsResponse>
