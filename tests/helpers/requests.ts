@@ -98,7 +98,8 @@ export function simulateResponse(
       response.status,
       response.body,
       response.headers
-    );
+    )
+    .persist();
 
   return runTest();
 }
