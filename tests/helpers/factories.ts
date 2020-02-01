@@ -9,7 +9,9 @@ const string = () => `S${++counter}`;
 /**
  * Create a valid book as returned from the API
  */
-export function createAPIBook(data?: Partial<API.Book>): API.Book {
+export function createAPIBook(data: Partial<API.Book> = {}): API.Book {
+  const id = data.id || string();
+
   return {
     authors: {
       author: {
@@ -17,13 +19,15 @@ export function createAPIBook(data?: Partial<API.Book>): API.Book {
         name: string()
       }
     },
-    id: string(),
     popular_shelves: { shelf: [] },
     publisher: string(),
     reviews_widget: string(),
     title: string(),
-    work: createAPIWork(),
-    ...data
+    work: createAPIWork({
+      bestBookID: id
+    }),
+    ...data,
+    id
   };
 }
 
@@ -64,12 +68,14 @@ export function createAPIReview(data?: Partial<API.Review>): API.Review {
  * Create a work definition as returned from the API
  */
 export function createAPIWork(data: Partial<{
+  bestBookID: string;
   id: string;
   ratingsCount: string;
   ratingsSum: string;
   title: string;
 }> = {}): API.Book['work'] {
   return {
+    best_book_id: { _: data.bestBookID || string() },
     id: { _: data.id || string() },
     original_title: data.title || string(),
     ratings_count: { _: data.ratingsCount || '1' },

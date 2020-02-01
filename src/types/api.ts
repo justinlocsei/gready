@@ -25,6 +25,7 @@ export interface Book {
   };
   title: string;
   work: {
+    best_book_id: { _: string; };
     id: { _: string; };
     original_title: string;
     ratings_count: { _: string; };
@@ -85,23 +86,4 @@ export interface Review {
 
 export interface ReviewResponse {
   review: Review;
-}
-
-export interface SearchResults {
-  search: {
-    results: {
-      work: OneOrMore<{
-        best_book: {
-          author: {
-            id: {
-              _: string;
-            };
-          };
-          id: {
-            _: string;
-          };
-        };
-      }>;
-    };
-  };
 }

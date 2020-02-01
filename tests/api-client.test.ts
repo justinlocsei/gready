@@ -7,7 +7,6 @@ import assert from './helpers/assert';
 import { allowNetworkAccess, simulateResponse } from './helpers/requests';
 import { allowOverrides } from './helpers/mocking';
 import { APIClient, createAPIClient } from '../src/api-client';
-import { createBook } from './helpers/factories';
 import { createCache } from '../src/cache';
 import { createTestLogger, shouldBypassFixtures } from './helpers';
 import { getGoodreadsAPIKey, hasGoodreadsAPIKey } from '../src/config';
@@ -122,36 +121,6 @@ describe('api-client', function() {
         });
 
         assert.isEmpty(await client.getBookReviews('1', { limit: 1 }));
-      });
-
-    });
-
-    describe('.getCanonicalBookID', function() {
-
-      it('returns the ID of the book that most closely matches the given book', async function() {
-        const book = createBook({
-          author: {
-            id: '1077326',
-            name: 'Name'
-          },
-          id: '28139880',
-          title: 'Harry Potter and the Half-Blood Prince (Harry Potter, #6)'
-        });
-
-        assert.equal(await createClient().getCanonicalBookID(book), '1');
-      });
-
-      it('accounts for the author ID when searching for a book', async function() {
-        const book = createBook({
-          author: {
-            id: '1',
-            name: 'Invalid'
-          },
-          id: '28139880',
-          title: 'Harry Potter and the Half-Blood Prince (Harry Potter, #6)'
-        });
-
-        assert.isNull(await createClient().getCanonicalBookID(book));
       });
 
     });

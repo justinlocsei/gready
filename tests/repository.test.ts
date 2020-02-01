@@ -39,16 +39,6 @@ describe('repository', function() {
           }
         });
 
-        override(repo.apiClient, 'getCanonicalBookID', function(sourceBook) {
-          if (!canonical) {
-            return Promise.resolve(null);
-          } if (sourceBook.id === book.id) {
-            return Promise.resolve(canonicalBook.id);
-          } else {
-            throw new Error(`Received unexpected source book when checking for a canonical ID: ${sourceBook.id}`);
-          }
-        });
-
         return repo.getBook(book.id);
       }
 
@@ -257,7 +247,7 @@ describe('repository', function() {
 
       it('can get a book’s canonical ID', async function() {
         const book = await getBook(
-          { id: '1' },
+          { id: '1', work: F.createAPIWork({ bestBookID: '2' }) },
           { id: '2' }
         );
 
@@ -266,7 +256,7 @@ describe('repository', function() {
 
       it('uses the publisher of the canonical book if the original book lacks a publisher', async function() {
         const book = await getBook(
-          { id: '1', publisher: '' },
+          { id: '1', publisher: '', work: F.createAPIWork({ bestBookID: '2' }) },
           { id: '2', publisher: 'Publisher' }
         );
 

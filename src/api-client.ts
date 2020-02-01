@@ -2,7 +2,6 @@ import async from 'async';
 import xml2js from 'xml2js';
 import { range } from 'lodash';
 
-import * as Normalized from './types/core';
 import { Cache, KeyPath } from './cache';
 import { ensureArray } from './util';
 import { findPartialReviewsForBook } from './reviews';
@@ -16,8 +15,7 @@ import {
   validateBookResponse,
   validateReadBooksResponse,
   validateResponse,
-  validateReviewResponse,
-  validateSearchResults
+  validateReviewResponse
 } from './validators/api';
 
 import {
@@ -133,29 +131,6 @@ class APIClientClass {
       this.logger,
       async ({ id }) => this.getReview(id)
     );
-  }
-
-  /**
-   * Attempt to get the canonical ID of an existing book
-   */
-  async getCanonicalBookID(book: Normalized.Book): Promise<BookID | null> {
-    const response = await this.requestWithCache(
-      ['book-search', book.id],
-      ['Find book', book.title],
-      'search/index.xml',
-      {
-        'search[field]': 'title',
-        q: book.title
-      }
-    );
-
-    const results = validateSearchResults(response);
-
-    const match = ensureArray(results.search.results.work).find(function(work) {
-      return book.author.id === work.best_book.author.id._;
-    });
-
-    return match ? match.best_book.id._ : null;
   }
 
   /**

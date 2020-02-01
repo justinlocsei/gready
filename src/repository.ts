@@ -182,11 +182,12 @@ class RepositoryClass {
     });
 
     const similarBooks = (book.similar_books && book.similar_books.book) || [];
+    const canonicalID = work.best_book_id._;
 
     const normalized: Book = {
       author: authors[0],
       averageRating: totalRatings > 0 ? ratingsSum / totalRatings : undefined,
-      canonicalID: id,
+      canonicalID,
       id: id,
       publisher: book.publisher,
       reviewsID: extractReviewsIDFromWidget(book.reviews_widget) || id,
@@ -197,13 +198,7 @@ class RepositoryClass {
       workID: work.id._
     };
 
-    const canonicalID = await this.apiClient.getCanonicalBookID(normalized);
-
-    if (canonicalID) {
-      normalized.canonicalID = canonicalID;
-    }
-
-    if (!normalized.publisher && canonicalID && id !== canonicalID) {
+    if (!normalized.publisher && id !== canonicalID) {
       const canonicalBook = await this.apiClient.getBook(canonicalID);
       normalized.publisher = canonicalBook.publisher;
     }
