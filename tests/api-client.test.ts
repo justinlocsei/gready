@@ -1,7 +1,11 @@
+import fs from 'fs-extra';
+import path from 'path';
 import { uniq } from 'lodash';
 
+import * as reviews from '../src/reviews';
 import assert from './helpers/assert';
 import { allowNetworkAccess, simulateResponse } from './helpers/requests';
+import { allowOverrides } from './helpers/mocking';
 import { APIClient, createAPIClient } from '../src/api-client';
 import { createBook } from './helpers/factories';
 import { createCache } from '../src/cache';
@@ -11,6 +15,8 @@ import { paths } from '../src/environment';
 import { URLS } from '../src/goodreads';
 
 describe('api-client', function() {
+
+  const { override } = allowOverrides(this);
 
   describe('APIClient', function() {
 
@@ -35,9 +41,50 @@ describe('api-client', function() {
 
     describe('.getBook', function() {
 
+      function getMockedBook(runTest: () => Promise<void>): Promise<void> {
+        return simulateResponse(
+          URLS.apiBase,
+          {
+            body: fs.readFileSync(
+              path.join(paths.testFixturesDir, 'goodreads', 'book.xml'),
+              'utf8'
+            ),
+            headers: {
+              'Content-Type': 'application/xml'
+            },
+            status: 200
+          },
+          runTest
+        );
+      }
+
       it('gets information on a book using its ID', async function() {
         const book = await createClient().getBook('1');
         assert.equal(book.id, '1');
+      });
+
+      it('can parse the structure of a book response', function() {
+        return getMockedBook(async function() {
+          const client = createClient();
+          client.cache.isEnabled = false;
+
+          const book = await client.getBook('1');
+          assert.isDefined(book.id);
+        });
+      });
+
+      it('throttles requests', function() {
+        return getMockedBook(async function() {
+          const client = createClient();
+          client.cache.isEnabled = false;
+
+          const startTime = Date.now();
+
+          await client.getBook('1');
+          await client.getBook('1');
+
+          assert.isAtLeast(Date.now() - startTime, 1000);
+        });
       });
 
     });
@@ -64,6 +111,17 @@ describe('api-client', function() {
 
         assert.deepEqual(oneStar.map(r => r.rating), ['1', '1']);
         assert.deepEqual(fiveStar.map(r => r.rating), ['5', '5']);
+      });
+
+      it('can handle an empty list of reviews', async function() {
+        const client = await createClient();
+        client.cache.isEnabled = false;
+
+        override(reviews, 'findPartialReviewsForBook', function() {
+          return Promise.resolve([]);
+        });
+
+        assert.isEmpty(await client.getBookReviews('1', { limit: 1 }));
       });
 
     });
