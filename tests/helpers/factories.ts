@@ -86,12 +86,13 @@ export function createAPIWork(data: Partial<{
 /**
  * Create a valid book
  */
-export function createBook(data?: Partial<Core.Book>): Core.Book {
+export function createBook(data: Partial<Core.Book> = {}): Core.Book {
+  const id = data.id || string();
+
   return {
     author: { id: string(), name: string() },
     averageRating: 5,
-    canonicalID: string(),
-    id: string(),
+    canonicalID: id,
     publisher: string(),
     reviewsID: string(),
     shelves: [],
@@ -99,7 +100,8 @@ export function createBook(data?: Partial<Core.Book>): Core.Book {
     title: string(),
     totalRatings: 0,
     workID: string(),
-    ...data
+    ...data,
+    id
   };
 }
 
