@@ -26,6 +26,7 @@ describe('config', function() {
 
     it('produces a valid configuration by default', function() {
       assert.deepEqual(buildConfig(), {
+        ignoreAuthors: [],
         ignoreShelves: [],
         mergePublishers: {},
         mergeShelves: {}
@@ -34,6 +35,7 @@ describe('config', function() {
 
     it('merges in user-provided configuration data', function() {
       const config: UserConfiguration = {
+        ignoreAuthors: ['Author'],
         ignoreShelves: ['shelf'],
         mergePublishers: { alfa: ['bravo'] },
         mergeShelves: { charlie: ['delta'] }
@@ -121,6 +123,7 @@ describe('config', function() {
 
     it('can load a config file from a path', async function() {
       const configPath = await createConfig({
+        ignoreAuthors: ['Author'],
         ignoreShelves: ['shelf'],
         mergePublishers: { 'alfa': ['bravo'] },
         mergeShelves: { 'charlie': ['delta'] }
@@ -128,6 +131,7 @@ describe('config', function() {
 
       const config = await loadConfig(configPath);
 
+      assert.deepEqual(config.ignoreAuthors, ['Author']);
       assert.deepEqual(config.ignoreShelves, ['shelf']);
       assert.deepEqual(config.mergePublishers, { 'alfa': ['bravo'] });
       assert.deepEqual(config.mergeShelves, { 'charlie': ['delta'] });
@@ -136,6 +140,7 @@ describe('config', function() {
     it('allows the config file to be missing', async function() {
       const config = await loadConfig('/missing.json', { allowMissing: true });
 
+      assert.deepEqual(config.ignoreAuthors, []);
       assert.deepEqual(config.ignoreShelves, []);
       assert.deepEqual(config.mergePublishers, {});
       assert.deepEqual(config.mergeShelves, {});
@@ -148,6 +153,7 @@ describe('config', function() {
 
       const config = await loadConfig(configPath);
 
+      assert.deepEqual(config.ignoreAuthors, []);
       assert.deepEqual(config.ignoreShelves, ['shelf']);
       assert.deepEqual(config.mergePublishers, {});
       assert.deepEqual(config.mergeShelves, {});
