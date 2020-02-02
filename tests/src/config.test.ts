@@ -12,6 +12,7 @@ import {
   buildConfig,
   getGoodreadsAPIKey,
   getGoodreadsUserID,
+  getRequiredEnvironmentVariables,
   hasGoodreadsAPIKey,
   loadConfig
 } from '../../src/config';
@@ -88,6 +89,20 @@ describe('config', function() {
         OperationalError,
         /Goodreads user ID/
       );
+    });
+
+  });
+
+  describe('getRequiredEnvironmentVariables', function() {
+
+    it('returns a list of variable names', function() {
+      const varNames = getRequiredEnvironmentVariables();
+
+      assert.isNotEmpty(varNames);
+
+      varNames.forEach(function(varName) {
+        assert.match(varName, /^GREADY_/);
+      });
     });
 
   });

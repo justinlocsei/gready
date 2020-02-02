@@ -19,6 +19,13 @@ const ENV_VARS = {
 };
 
 /**
+ * Get the names of all required environment variables
+ */
+export function getRequiredEnvironmentVariables(): string[] {
+  return Object.values(ENV_VARS).sort();
+}
+
+/**
  * Load a configuration
  */
 export async function loadConfig(
