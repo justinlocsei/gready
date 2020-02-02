@@ -6,6 +6,7 @@ import { BookID } from '../../src/types/goodreads';
 import { createBook, createReadBook, createSimilarBook } from '../helpers/factories';
 import { createTestConfig, createTestRepo } from '../helpers';
 import { findRecommendedBooks, PartitionedRecommendation, summarizeRecommendedBooks } from '../../src/search/books';
+import { UserConfiguration } from '../../src/types/config';
 
 describe('search/books', function() {
 
@@ -15,14 +16,15 @@ describe('search/books', function() {
 
     async function getRecommendedBooks({
       books,
+      config,
       coreBookIDs,
       minRating = 1,
       percentile = 0,
       readBooks,
-      shelfPercentile = 0,
       shelves
     }: {
-      books: (Partial<Omit<Book, 'similarBooks'>> & { similarBooks?: string[]; })[];
+      books: Partial<Book>[];
+      config?: UserConfiguration;
       coreBookIDs?: BookID[];
       minRating?: number;
       percentile?: number;
@@ -31,15 +33,7 @@ describe('search/books', function() {
       shelves?: string[];
     }) {
       const repo = createTestRepo();
-
-      const allBooks = books.map(function(book) {
-        return createBook({
-          ...book,
-          similarBooks: (book.similarBooks || []).map(function(id) {
-            return createSimilarBook({ id });
-          })
-        });
-      });
+      const allBooks = books.map(createBook);
 
       override(repo, 'getBook', function(id) {
         const book = allBooks.find(b => b.id === id);
@@ -52,7 +46,7 @@ describe('search/books', function() {
       });
 
       const recs = await findRecommendedBooks({
-        config: createTestConfig({ shelfPercentile }),
+        config: createTestConfig(config),
         coreBookIDs,
         minRating,
         percentile,
@@ -75,15 +69,23 @@ describe('search/books', function() {
         books: [
           {
             id: '1',
-            similarBooks: ['2', '4']
+            similarBooks: [
+              createSimilarBook({ id: '2' }),
+              createSimilarBook({ id: '4' })
+            ]
           },
           {
             id: '3',
-            similarBooks: ['2']
+            similarBooks: [
+              createSimilarBook({ id: '2' })
+            ]
           },
           {
             id: '5',
-            similarBooks: ['2', '4']
+            similarBooks: [
+              createSimilarBook({ id: '2' }),
+              createSimilarBook({ id: '4' })
+            ]
           },
           {
             id: '4'
@@ -110,7 +112,10 @@ describe('search/books', function() {
         books: [
           {
             id: '1',
-            similarBooks: ['2', '3']
+            similarBooks: [
+              createSimilarBook({ id: '2' }),
+              createSimilarBook({ id: '3' })
+            ]
           },
           {
             id: '2'
@@ -135,11 +140,11 @@ describe('search/books', function() {
         books: [
           {
             id: '1',
-            similarBooks: ['2']
+            similarBooks: [createSimilarBook({ id: '2' })]
           },
           {
             id: '3',
-            similarBooks: ['4']
+            similarBooks: [createSimilarBook({ id: '4' })]
           },
           {
             id: '4'
@@ -165,11 +170,16 @@ describe('search/books', function() {
         books: [
           {
             id: '1',
-            similarBooks: ['2']
+            similarBooks: [
+              createSimilarBook({ id: '2' })
+            ]
           },
           {
             id: '3',
-            similarBooks: ['1', '4']
+            similarBooks: [
+              createSimilarBook({ id: '1' }),
+              createSimilarBook({ id: '4' })
+            ]
           },
           {
             id: '4'
@@ -195,11 +205,16 @@ describe('search/books', function() {
         books: [
           {
             id: '1',
-            similarBooks: ['2', '4']
+            similarBooks: [
+              createSimilarBook({ id: '2' }),
+              createSimilarBook({ id: '4' })
+            ]
           },
           {
             id: '3',
-            similarBooks: ['4']
+            similarBooks: [
+              createSimilarBook({ id: '4' })
+            ]
           },
           {
             id: '4'
@@ -229,7 +244,7 @@ describe('search/books', function() {
               { count: 2, name: 'alfa' },
               { count: 1, name: 'bravo' }
             ],
-            similarBooks: ['2']
+            similarBooks: [createSimilarBook({ id: '2' })]
           },
           {
             id: '3',
@@ -237,7 +252,7 @@ describe('search/books', function() {
               { count: 2, name: 'bravo' },
               { count: 1, name: 'alfa' }
             ],
-            similarBooks: ['4']
+            similarBooks: [createSimilarBook({ id: '4' })]
           },
           {
             id: '4'
@@ -246,11 +261,11 @@ describe('search/books', function() {
             id: '2'
           }
         ],
+        config: { shelfPercentile: 100 },
         readBooks: [
           { bookID: '1', rating: 5 },
           { bookID: '3', rating: 5 }
         ],
-        shelfPercentile: 100,
         shelves: ['alfa']
       });
 
