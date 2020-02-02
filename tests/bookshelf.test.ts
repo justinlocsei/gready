@@ -76,8 +76,8 @@ describe('bookshelf', function() {
           }
         ];
 
-        const low = createBookshelf(books, 0);
-        const high = createBookshelf(books, 100);
+        const low = createBookshelf(books, { shelfPercentile: 0 });
+        const high = createBookshelf(books, { shelfPercentile: 100 });
 
         const lowAlfa = low.getBooksInShelves('alfa').map(b => b.title);
         const highAlfa = high.getBooksInShelves('alfa').map(b => b.title);
@@ -161,8 +161,8 @@ describe('bookshelf', function() {
           }
         ];
 
-        const low = createBookshelf(books, 0);
-        const high = createBookshelf(books, 100);
+        const low = createBookshelf(books, { shelfPercentile: 0 });
+        const high = createBookshelf(books, { shelfPercentile: 100 });
 
         assert.deepEqual(low.getAllShelves(), [
           { data: { count: 4, name: 'alfa' }, percentile: 100 },
@@ -200,8 +200,8 @@ describe('bookshelf', function() {
           }
         ];
 
-        const low = createBookshelf(books, 50);
-        const high = createBookshelf(books, 100);
+        const low = createBookshelf(books, { shelfPercentile: 50 });
+        const high = createBookshelf(books, { shelfPercentile: 100 });
 
         assert.deepEqual(low.getShelves(), [
           { data: { count: 4, name: 'alfa' }, percentile: 100 },
@@ -366,8 +366,8 @@ describe('bookshelf', function() {
           }
         ];
 
-        const low = createBookshelf(books, 0);
-        const high = createBookshelf(books, 100);
+        const low = createBookshelf(books, { shelfPercentile: 0 });
+        const high = createBookshelf(books, { shelfPercentile: 100 });
 
         assert.deepEqual(getShelfGroup(low), [
           {
@@ -446,7 +446,7 @@ describe('bookshelf', function() {
             ],
             title: 'Charlie'
           }
-        ], 100);
+        ], { shelfPercentile: 100 });
 
         const restricted = bookshelf.restrictShelves('bravo', 'charlie');
 

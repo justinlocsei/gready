@@ -9,7 +9,7 @@ import { allowOverrides } from './helpers/mocking';
 import { BookID, UserID } from '../src/types/goodreads';
 import { createBook, createReadBook, createUser } from './helpers/factories';
 import { createCLI, CLI } from '../src/cli';
-import { createOutputHandler, createTestLogger, createTestRepo, OutputReader } from './helpers';
+import { createOutputHandler, createTestConfig, createTestLogger, createTestRepo, OutputReader } from './helpers';
 import { Logger } from '../src/logger';
 import { OutputHandler } from '../src/types/system';
 
@@ -31,6 +31,7 @@ describe('cli', function() {
       const [handleOutput, readOutput] = createOutputHandler();
 
       const cli = new CLI({
+        config: createTestConfig(),
         logger: logger || createTestLogger()[0],
         repo: createTestRepo(),
         userID,
@@ -55,12 +56,12 @@ describe('cli', function() {
 
         override(booksSearch, 'findRecommendedBooks', function(options) {
           assert.deepEqual(options, {
+            config: cli.config,
             coreBookIDs: ['2'],
             minRating: 3,
             percentile: 4,
             readBooks,
             repo: cli.repo,
-            shelfPercentile: 5,
             shelves: ['alfa']
           });
 
@@ -76,7 +77,6 @@ describe('cli', function() {
           coreBookIDs: ['2'],
           minRating: 3,
           percentile: 4,
-          shelfPercentile: 5,
           shelves: ['alfa']
         });
 
@@ -94,8 +94,7 @@ describe('cli', function() {
 
         await cli.findBooks({
           minRating: 1,
-          percentile: 0,
-          shelfPercentile: 0
+          percentile: 0
         });
 
         assert.deepEqual(readOutput(), ['summary']);
@@ -142,8 +141,7 @@ describe('cli', function() {
         override(readersSearch, 'summarizeSimilarReaders', listReaderIDs);
 
         await cli.findReaders({
-          maxReviews: 1,
-          shelfPercentile: 0
+          maxReviews: 1
         });
 
         assert.deepEqual(readOutput(), ['', '2', '3']);
@@ -165,8 +163,7 @@ describe('cli', function() {
 
         await cli.findReaders({
           minBooks: 2,
-          maxReviews: 1,
-          shelfPercentile: 0
+          maxReviews: 1
         });
 
         assert.deepEqual(readOutput(), ['', '3']);
@@ -192,8 +189,7 @@ describe('cli', function() {
 
         await cli.findReaders({
           bookIDs: ['2'],
-          maxReviews: 1,
-          shelfPercentile: 0
+          maxReviews: 1
         });
 
         assert.deepEqual(readOutput(), ['', '2']);
@@ -215,8 +211,7 @@ describe('cli', function() {
         await assert.isRejected(
           cli.findReaders({
             bookIDs: ['4'],
-            maxReviews: 1,
-            shelfPercentile: 0
+            maxReviews: 1
           }),
           /No book found with ID: 4/
         );
@@ -232,8 +227,7 @@ describe('cli', function() {
         override(readersSearch, 'summarizeSimilarReaders', () => 'summary');
 
         await cli.findReaders({
-          maxReviews: 1,
-          shelfPercentile: 0
+          maxReviews: 1
         });
 
         assert.deepEqual(readOutput(), ['summary']);
@@ -318,7 +312,7 @@ describe('cli', function() {
           return bookshelf.getBooks().map(b => b.id);
         });
 
-        await cli.summarize({ shelfPercentile: 0 });
+        await cli.summarize();
 
         assert.deepEqual(readOutput(), ['4', '', '5']);
       });
@@ -350,7 +344,6 @@ describe('cli', function() {
 
         await cli.summarize({
           sections: ['publishers'],
-          shelfPercentile: 0,
           shelves: ['alfa']
         });
 
@@ -365,6 +358,7 @@ describe('cli', function() {
 
     it('creates an instance of a CLI', async function() {
       const cli = await createCLI({
+        config: createTestConfig(),
         logger: createTestLogger()[0],
         repo: createTestRepo(),
         userID: '1',

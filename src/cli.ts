@@ -1,4 +1,5 @@
 import { CLIError } from './errors';
+import { Configuration } from './types/config';
 import { createBookshelf } from './bookshelf';
 import { findRecommendedBooks, summarizeRecommendedBooks } from './search/books';
 import { findSimilarReaders, summarizeSimilarReaders } from './search/readers';
@@ -10,6 +11,7 @@ import { SectionID, summarizeBookshelf } from './summary';
 import { UserID } from './types/goodreads';
 
 interface CLIOptions {
+  config: Configuration;
   logger: Logger;
   repo: Repository;
   userID: UserID;
@@ -18,6 +20,7 @@ interface CLIOptions {
 
 export class CLI {
 
+  readonly config: Configuration;
   readonly logger: Logger;
   readonly repo: Repository;
 
@@ -28,11 +31,13 @@ export class CLI {
    * Create a new CLI
    */
   constructor({
+    config,
     logger,
     repo,
     userID,
     writeOutput
   }: CLIOptions) {
+    this.config = config;
     this.logger = logger;
     this.repo = repo;
     this.userID = userID;
@@ -46,24 +51,22 @@ export class CLI {
     coreBookIDs,
     minRating,
     percentile,
-    shelfPercentile,
     shelves
   }: {
     coreBookIDs?: string[];
     minRating: number;
     percentile: number;
-    shelfPercentile: number;
     shelves?: string[];
   }): Promise<void> {
     const readBooks = await this.repo.getReadBooks(this.userID);
 
     const recommended = await findRecommendedBooks({
+      config: this.config,
       coreBookIDs,
       minRating,
       percentile,
       readBooks,
       repo: this.repo,
-      shelfPercentile,
       shelves
     });
 
@@ -80,13 +83,11 @@ export class CLI {
   async findReaders({
     bookIDs,
     maxReviews,
-    minBooks = 0,
-    shelfPercentile
+    minBooks = 0
   }: {
     bookIDs?: string[];
     maxReviews: number;
     minBooks?: number;
-    shelfPercentile: number;
   }): Promise<void> {
     let readBooks = await this.repo.getReadBooks(this.userID);
 
@@ -103,8 +104,8 @@ export class CLI {
     }
 
     const readers = await findSimilarReaders({
+      config: this.config,
       maxReviews,
-      shelfPercentile,
       readBooks,
       repo: this.repo
     });
@@ -141,17 +142,15 @@ export class CLI {
    */
   async summarize({
     sections,
-    shelfPercentile,
     shelves
   }: {
     sections?: SectionID[];
-    shelfPercentile: number;
     shelves?: string[];
-  }): Promise<void> {
+  } = {}): Promise<void> {
     const readBooks = await this.repo.getReadBooks(this.userID);
 
     const books = await this.repo.getLocalBooks(readBooks.map(b => b.bookID));
-    const bookshelf = createBookshelf(books, { shelfPercentile });
+    const bookshelf = createBookshelf(books, this.config);
 
     const summarySections = summarizeBookshelf(
       shelves ? bookshelf.restrictShelves(...shelves) : bookshelf,

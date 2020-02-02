@@ -2,6 +2,7 @@ import { sortBy, uniqBy } from 'lodash';
 
 import { Author, Book, Shelf } from './types/core';
 import { AuthorID } from './types/goodreads';
+import { Configuration } from './types/config';
 import { formalizeAuthorName, partition } from './content';
 import { Partitioned } from './types/util';
 
@@ -30,18 +31,17 @@ type PartitionedShelf = Partitioned<Shelf>;
 class BookshelfClass {
 
   private books: Book[];
+  private config: Configuration;
   private shelfPercentile: number;
 
   /**
    * Create a new bookshelf
    */
-  constructor(books: Book[], {
-    shelfPercentile
-  }: {
-    shelfPercentile: number;
-  }) {
+  constructor(books: Book[], config: Configuration) {
     this.books = books;
-    this.shelfPercentile = shelfPercentile;
+    this.config = config;
+
+    this.shelfPercentile = config.shelfPercentile;
   }
 
   /**
@@ -218,9 +218,10 @@ class BookshelfClass {
    * shelves in a list at or above the current percentile
    */
   restrictShelves(...shelfNames: string[]): Bookshelf {
-    return createBookshelf(this.getBooksInShelves(...shelfNames), {
-      shelfPercentile: this.shelfPercentile
-    });
+    return createBookshelf(
+      this.getBooksInShelves(...shelfNames),
+      this.config
+    );
   }
 
   /**

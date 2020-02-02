@@ -4,7 +4,7 @@ import { allowOverrides } from '../helpers/mocking';
 import { Book, ReadBook, Review } from '../../src/types/core';
 import { BookID } from '../../src/types/goodreads';
 import { createBook, createReadBook, createReview, createUser } from '../helpers/factories';
-import { createTestRepo } from '../helpers';
+import { createTestConfig, createTestRepo } from '../helpers';
 import { findSimilarReaders, summarizeSimilarReaders } from '../../src/search/readers';
 
 describe('search/readers', function() {
@@ -51,10 +51,10 @@ describe('search/readers', function() {
       });
 
       const readers = await findSimilarReaders({
+        config: createTestConfig({ shelfPercentile }),
         maxReviews,
         readBooks: readBooks.map(createReadBook),
-        repo,
-        shelfPercentile
+        repo
       });
 
       return readers.map(function({ books, shelves, user }) {

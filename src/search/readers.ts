@@ -2,6 +2,7 @@ import { sortBy } from 'lodash';
 
 import { Book, ReadBook, Shelf, User } from '../types/core';
 import { BookID, UserID } from '../types/goodreads';
+import { Configuration } from '../types/config';
 import { createBookshelf } from '../bookshelf';
 import { getUserBooksURL } from '../goodreads';
 import { Repository } from '../repository';
@@ -20,15 +21,15 @@ export interface SimilarReader {
  * Find readers who have left similar reviews of books
  */
 export async function findSimilarReaders({
+  config,
   maxReviews,
   readBooks,
-  repo,
-  shelfPercentile
+  repo
 }: {
+  config: Configuration;
   maxReviews: number;
   readBooks: ReadBook[];
   repo: Repository;
-  shelfPercentile: number;
 }): Promise<SimilarReader[]> {
   const booksByID: Record<BookID, Book> = {};
   const usersByID: Record<UserID, User> = {};
@@ -75,7 +76,7 @@ export async function findSimilarReaders({
     ]
   );
 
-  const shelfNames = createBookshelf(Object.values(booksByID), { shelfPercentile })
+  const shelfNames = createBookshelf(Object.values(booksByID), config)
     .getShelves()
     .map(s => s.data.name)
     .sort();
@@ -89,7 +90,7 @@ export async function findSimilarReaders({
       ]
     );
 
-    const userBooks = createBookshelf(books, { shelfPercentile });
+    const userBooks = createBookshelf(books, config);
 
     const shelves = shelfNames.reduce(function(previous: Shelf[], shelfName) {
       const shelved = userBooks.getBooksInShelves(shelfName);

@@ -38,7 +38,7 @@ interface CoreOptions {
   'data-dir': string;
   'log-level': string;
   'log-time': boolean;
-  'shelf-percentile': CLINumber;
+  'shelf-percentile'?: CLINumber;
 }
 
 interface ClearCacheOptions extends CoreOptions {
@@ -119,7 +119,6 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
         type: 'boolean'
       })
       .option('shelf-percentile', {
-        default: 1,
         describe: 'The minimum per-book and global percentile required for a shelf to be shown',
         type: 'number'
       })
@@ -325,6 +324,12 @@ async function startCLI(cliOptions: Required<CLIOptions>): Promise<void> {
     config = await loadConfig(paths.defaultConfig, { allowMissing: true });
   }
 
+  const shelfPercentile = ensureNumericWhenPresent(parsed.options, 'shelf-percentile');
+
+  if (shelfPercentile !== undefined) {
+    config.shelfPercentile = shelfPercentile;
+  }
+
   const logger = createLogger(cliOptions.writeToStderr, {
     logLevel: options['log-level'] as LevelName,
     showTime: options['log-time'],
@@ -353,13 +358,12 @@ async function startCLI(cliOptions: Required<CLIOptions>): Promise<void> {
   });
 
   const cli = await createCLI({
+    config,
     logger,
     repo,
     userID: getGoodreadsUserID(),
     writeOutput: cliOptions.writeToStdout
   });
-
-  const shelfPercentile = ensureNumeric(parsed.options, 'shelf-percentile');
 
   switch (parsed.command) {
     case 'clear-cache':
@@ -374,7 +378,6 @@ async function startCLI(cliOptions: Required<CLIOptions>): Promise<void> {
         coreBookIDs: maybeMap(parsed.options['book-id'], s => s.toString()),
         minRating: ensureNumeric(parsed.options, 'min-rating'),
         percentile: ensureNumeric(parsed.options, 'percentile'),
-        shelfPercentile,
         shelves: maybeMap(parsed.options['shelf'], s => s.toString())
       });
 
@@ -382,8 +385,7 @@ async function startCLI(cliOptions: Required<CLIOptions>): Promise<void> {
       return cli.findReaders({
         bookIDs: maybeMap(parsed.options['book-id'], s => s.toString()),
         maxReviews: ensureNumeric(parsed.options, 'reviews'),
-        minBooks: ensureNumericWhenPresent(parsed.options, 'min-books'),
-        shelfPercentile
+        minBooks: ensureNumericWhenPresent(parsed.options, 'min-books')
       });
 
     case 'show-cache-stats':
@@ -394,7 +396,6 @@ async function startCLI(cliOptions: Required<CLIOptions>): Promise<void> {
     case 'summarize':
       return cli.summarize({
         sections: maybeMap(parsed.options.section, s => s as SectionID),
-        shelfPercentile,
         shelves: maybeMap(parsed.options.shelf, s => s.toString())
       });
 

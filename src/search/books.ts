@@ -2,6 +2,7 @@ import { intersection, sortBy, uniq } from 'lodash';
 
 import { Book, ReadBook } from '../types/core';
 import { BookID } from '../types/goodreads';
+import { Configuration } from '../types/config';
 import { getViewBookURL } from '../goodreads';
 import { partition, underline } from '../content';
 import { Partitioned } from '../types/util';
@@ -19,20 +20,20 @@ interface RecommendedBook {
  * Find recommended books from a set of read books
  */
 export async function findRecommendedBooks({
+  config,
   coreBookIDs,
   minRating,
   percentile,
   readBooks,
   repo,
-  shelfPercentile,
   shelves
 }: {
+  config: Configuration;
   coreBookIDs?: BookID[];
   minRating: number;
   percentile: number;
   readBooks: ReadBook[];
   repo: Repository;
-  shelfPercentile: number;
   shelves?: string[];
 }): Promise<PartitionedRecommendation[]> {
   let bookIDs = readBooks
@@ -54,7 +55,7 @@ export async function findRecommendedBooks({
 
       if (shelves) {
         const shelfNames = partition(book.shelves, s => s.count)
-          .filter(s => s.percentile >= shelfPercentile)
+          .filter(s => s.percentile >= config.shelfPercentile)
           .map(s => s.data.name);
 
         if (!intersection(shelves, shelfNames).length) {

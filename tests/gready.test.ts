@@ -215,6 +215,24 @@ describe('gready', function() {
     plan.verify();
   });
 
+  it('respects a custom shelf percentile', async function() {
+    const plan = expectAssertions(2);
+
+    await testCLI(['test', '--shelf-percentile', '10'], async function(cli) {
+      plan.assert(function() {
+        assert.equal(cli.config.shelfPercentile, 10);
+      });
+    });
+
+    await testCLI(['test', '--shelf-percentile', '20'], async function(cli) {
+      plan.assert(function() {
+        assert.equal(cli.config.shelfPercentile, 20);
+      });
+    });
+
+    plan.verify();
+  });
+
   it('ensures that a shelf percentile is numeric', async function() {
     const withString = await testCLI(['test', '--shelf-percentile', 'ten']);
     const withNumber = await testCLI(['test', '--shelf-percentile', '10']);
@@ -345,32 +363,13 @@ describe('gready', function() {
     it('finds similar readers', async function() {
       const plan = expectAssertions(1);
 
-      await findBooks([], function({ coreBookIDs, minRating, percentile, shelfPercentile, shelves }) {
+      await findBooks([], function({ coreBookIDs, minRating, percentile, shelves }) {
         plan.assert(function() {
-          assert.isAbove(shelfPercentile, 0);
           assert.isAbove(minRating, 0);
           assert.isAbove(percentile, 0);
 
           assert.isUndefined(coreBookIDs);
           assert.isUndefined(shelves);
-        });
-      });
-
-      plan.verify();
-    });
-
-    it('respects a custom shelf percentile', async function() {
-      const plan = expectAssertions(2);
-
-      await findBooks(['--shelf-percentile', '10'], function({ shelfPercentile }) {
-        plan.assert(function() {
-          assert.equal(shelfPercentile, 10);
-        });
-      });
-
-      await findBooks(['--shelf-percentile', '20'], function({ shelfPercentile }) {
-        plan.assert(function() {
-          assert.equal(shelfPercentile, 20);
         });
       });
 
@@ -471,31 +470,12 @@ describe('gready', function() {
     it('finds similar readers', async function() {
       const plan = expectAssertions(1);
 
-      await findReaders([], function({ bookIDs, maxReviews, minBooks, shelfPercentile }) {
+      await findReaders([], function({ bookIDs, maxReviews, minBooks }) {
         plan.assert(function() {
-          assert.isAbove(shelfPercentile, 0);
           assert.isAbove(maxReviews, 0);
 
           assert.isUndefined(bookIDs);
           assert.isUndefined(minBooks);
-        });
-      });
-
-      plan.verify();
-    });
-
-    it('respects a custom shelf percentile', async function() {
-      const plan = expectAssertions(2);
-
-      await findReaders(['--shelf-percentile', '10'], function({ shelfPercentile }) {
-        plan.assert(function() {
-          assert.equal(shelfPercentile, 10);
-        });
-      });
-
-      await findReaders(['--shelf-percentile', '20'], function({ shelfPercentile }) {
-        plan.assert(function() {
-          assert.equal(shelfPercentile, 20);
         });
       });
 
@@ -616,30 +596,12 @@ describe('gready', function() {
     it('summarizes a user’s books', async function() {
       const plan = expectAssertions(1);
 
-      await summarize([], function({ sections, shelfPercentile, shelves }) {
-        plan.assert(function() {
-          assert.isAbove(shelfPercentile, 0);
+      await summarize([], function(options = {}) {
+       const { sections, shelves } = options;
 
+        plan.assert(function() {
           assert.isUndefined(sections);
           assert.isUndefined(shelves);
-        });
-      });
-
-      plan.verify();
-    });
-
-    it('respects a custom shelf percentile', async function() {
-      const plan = expectAssertions(2);
-
-      await summarize(['--shelf-percentile', '10'], function({ shelfPercentile }) {
-        plan.assert(function() {
-          assert.equal(shelfPercentile, 10);
-        });
-      });
-
-      await summarize(['--shelf-percentile', '20'], function({ shelfPercentile }) {
-        plan.assert(function() {
-          assert.equal(shelfPercentile, 20);
         });
       });
 
@@ -649,9 +611,9 @@ describe('gready', function() {
     it('can filter the summary by section', async function() {
       const plan = expectAssertions(1);
 
-      await summarize(['--section', 'publishers', '--section', 'shelves'], function({ sections }) {
+      await summarize(['--section', 'publishers', '--section', 'shelves'], function(options = {}) {
         plan.assert(function() {
-          assert.deepEqual(sections, ['publishers', 'shelves']);
+          assert.deepEqual(options.sections, ['publishers', 'shelves']);
         });
       });
 
@@ -668,9 +630,9 @@ describe('gready', function() {
     it('can filter the summary by shelf', async function() {
       const plan = expectAssertions(1);
 
-      await summarize(['--shelf', 'alfa', '--shelf', 'bravo'], function({ shelves }) {
+      await summarize(['--shelf', 'alfa', '--shelf', 'bravo'], function(options = {}) {
         plan.assert(function() {
-          assert.deepEqual(shelves, ['alfa', 'bravo']);
+          assert.deepEqual(options.shelves, ['alfa', 'bravo']);
         });
       });
 

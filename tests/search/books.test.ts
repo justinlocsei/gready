@@ -4,7 +4,7 @@ import { allowOverrides } from '../helpers/mocking';
 import { Book, ReadBook } from '../../src/types/core';
 import { BookID } from '../../src/types/goodreads';
 import { createBook, createReadBook } from '../helpers/factories';
-import { createTestRepo } from '../helpers';
+import { createTestConfig, createTestRepo } from '../helpers';
 import { findRecommendedBooks, PartitionedRecommendation, summarizeRecommendedBooks } from '../../src/search/books';
 
 describe('search/books', function() {
@@ -44,12 +44,12 @@ describe('search/books', function() {
       });
 
       const recs = await findRecommendedBooks({
+        config: createTestConfig({ shelfPercentile }),
         coreBookIDs,
         minRating,
         percentile,
         readBooks: readBooks.map(createReadBook),
         repo,
-        shelfPercentile,
         shelves
       });
 

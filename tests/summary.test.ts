@@ -25,7 +25,7 @@ describe('summary', function() {
           shelves: [{ count: 1, name: 'shelf-alfa' }],
           title: 'Book Bravo'
         }
-      ], 0);
+      ]);
 
       const summary = summarizeBookshelf(bookshelf);
       const sections = summary.map(s => s.split('\n'));
