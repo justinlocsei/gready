@@ -65,8 +65,11 @@ class RepositoryClass {
       this.logger.info('Load book', `ID=${id}`);
 
       const book = await this.apiClient.getBook(id);
+      const normalized = await this.normalizeAPIBook(book);
 
-      return this.normalizeAPIBook(book);
+      this.logger.info('Process book', normalized.title);
+
+      return normalized;
     }).then(b => this.sanitizeBook(b));
   }
 

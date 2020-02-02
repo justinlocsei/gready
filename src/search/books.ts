@@ -46,7 +46,7 @@ export async function findRecommendedBooks({
   }
 
   let books = await runSequence(
-    ['Find recommended books'],
+    ['Find similar books'],
     uniq(bookIDs).sort(),
     repo.logger,
     id => repo.getBook(id)
