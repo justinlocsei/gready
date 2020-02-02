@@ -19,7 +19,7 @@ export interface Book {
   publisher: string;
   reviewsID: BookID;
   shelves: Shelf[];
-  similarBooks: BookID[];
+  similarBooks: SimilarBook[];
   title: string;
   totalRatings: number;
   workID: WorkID;
@@ -39,6 +39,11 @@ export interface Review {
   rating?: number;
   shelves: string[];
   user: User;
+}
+
+export interface SimilarBook {
+  author: Author;
+  id: BookID;
 }
 
 export interface User {

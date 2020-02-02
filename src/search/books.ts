@@ -57,9 +57,9 @@ export async function findRecommendedBooks({
   }
 
   const countsByID = books.reduce(function(previous: Record<BookID, number>, book) {
-    book.similarBooks.forEach(function(bookID) {
-      previous[bookID] = previous[bookID] || 0;
-      previous[bookID]++;
+    book.similarBooks.forEach(function({ id }) {
+      previous[id] = previous[id] || 0;
+      previous[id]++;
     });
 
     return previous;

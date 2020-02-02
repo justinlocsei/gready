@@ -3,7 +3,7 @@ import assert from '../helpers/assert';
 import { allowOverrides } from '../helpers/mocking';
 import { Book, ReadBook } from '../../src/types/core';
 import { BookID } from '../../src/types/goodreads';
-import { createBook, createReadBook } from '../helpers/factories';
+import { createBook, createReadBook, createSimilarBook } from '../helpers/factories';
 import { createTestConfig, createTestRepo } from '../helpers';
 import { findRecommendedBooks, PartitionedRecommendation, summarizeRecommendedBooks } from '../../src/search/books';
 
@@ -22,7 +22,7 @@ describe('search/books', function() {
       shelfPercentile = 0,
       shelves
     }: {
-      books: Partial<Book>[];
+      books: (Partial<Omit<Book, 'similarBooks'>> & { similarBooks?: string[]; })[];
       coreBookIDs?: BookID[];
       minRating?: number;
       percentile?: number;
@@ -31,7 +31,15 @@ describe('search/books', function() {
       shelves?: string[];
     }) {
       const repo = createTestRepo();
-      const allBooks = books.map(createBook);
+
+      const allBooks = books.map(function(book) {
+        return createBook({
+          ...book,
+          similarBooks: (book.similarBooks || []).map(function(id) {
+            return createSimilarBook({ id });
+          })
+        });
+      });
 
       override(repo, 'getBook', function(id) {
         const book = allBooks.find(b => b.id === id);

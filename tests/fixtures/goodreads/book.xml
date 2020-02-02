@@ -30,9 +30,21 @@
     </popular_shelves>
     <similar_books>
       <book>
+        <authors>
+          <author>
+            <id>1</id>
+            <name>Author</name>
+          </author>
+        </authors>
         <id>38709</id>
       </book>
       <book>
+        <authors>
+          <author>
+            <id>1</id>
+            <name>Author</name>
+          </author>
+        </authors>
         <id>10365</id>
       </book>
     </similar_books>

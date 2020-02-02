@@ -153,24 +153,57 @@ describe('repository', function() {
         ]);
       });
 
-      it('exposes the IDs of a book’s similar books', async function() {
+      it('exposes information on a book’s similar books', async function() {
         const oneBook = await getBook({
           similar_books: {
-            book: { id: '1' }
+            book: {
+              authors: {
+                author: [
+                  { id: '2', name: 'Alfa' },
+                  { id: '3', name: 'Bravo' }
+                ]
+              },
+              id: '1'
+            }
           }
         });
 
         const twoBooks = await getBook({
           similar_books: {
             book: [
-              { id: '1' },
-              { id: '2' }
+              {
+                authors: {
+                  author: { id: '3', name: 'Alfa' }
+                },
+                id: '1'
+              },
+              {
+                authors: {
+                  author: { id: '4', name: 'Bravo' }
+                },
+                id: '2'
+              }
             ]
           }
         });
 
-        assert.deepEqual(oneBook.similarBooks, ['1']);
-        assert.deepEqual(twoBooks.similarBooks, ['1', '2']);
+        assert.deepEqual(oneBook.similarBooks, [
+          {
+            author: { id: '2', name: 'Alfa' },
+            id: '1'
+          }
+        ]);
+
+        assert.deepEqual(twoBooks.similarBooks, [
+          {
+            author: { id: '3', name: 'Alfa' },
+            id: '1'
+          },
+          {
+            author: { id: '4', name: 'Bravo' },
+            id: '2'
+          }
+        ]);
       });
 
       it('exposes rating metrics for the book', async function() {

@@ -86,13 +86,24 @@ export function createAPIWork(data: Partial<{
 }
 
 /**
+ * Create a valid author
+ */
+export function createAuthor(data?: Partial<Core.Author>): Core.Author {
+  return {
+    id: string(),
+    name: string(),
+    ...data
+  };
+}
+
+/**
  * Create a valid book
  */
 export function createBook(data: Partial<Core.Book> = {}): Core.Book {
   const id = data.id || string();
 
   return {
-    author: { id: string(), name: string() },
+    author: createAuthor(data.author),
     averageRating: 5,
     canonicalID: id,
     publisher: string(),
@@ -138,6 +149,17 @@ export function createReview(data?: Partial<Core.Review>): Core.Review {
     rating: 5,
     shelves: [],
     user: createUser(),
+    ...data
+  };
+}
+
+/**
+ * Create a valid similar book
+ */
+export function createSimilarBook(data: Partial<Core.SimilarBook> = {}): Core.SimilarBook {
+  return {
+    author: createAuthor(data.author),
+    id: string(),
     ...data
   };
 }

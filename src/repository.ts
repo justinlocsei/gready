@@ -15,7 +15,8 @@ import {
   Book,
   ReadBook,
   Review,
-  Shelf
+  Shelf,
+  SimilarBook
 } from './types/core';
 
 import {
@@ -161,18 +162,13 @@ class RepositoryClass {
    * Normalize a book returned by the Goodreads API
    */
   private async normalizeAPIBook(book: API.Book): Promise<Book> {
-    const { authors: rawAuthors, id, work } = book;
+    const { authors, id, work } = book;
 
     const title = normalizeString(book.title || work.original_title);
     const ratingsSum = parseInt(work.ratings_sum._, 10);
     const totalRatings = parseInt(work.ratings_count._, 10);
 
-    const authors = ensureArray(rawAuthors.author).map(function(author): Author {
-      return {
-        id: author.id,
-        name: normalizeString(author.name)
-      };
-    });
+    const author = this.extractAuthor(authors);
 
     const shelves = ensureArray(book.popular_shelves.shelf).map(function({ $: shelf }): Shelf {
       return {
@@ -184,15 +180,22 @@ class RepositoryClass {
     const similarBooks = (book.similar_books && book.similar_books.book) || [];
     const canonicalID = work.best_book_id._;
 
+    const similar = ensureArray(similarBooks).map((book): SimilarBook => {
+      return {
+        author: this.extractAuthor(book.authors),
+        id: book.id
+      };
+    });
+
     const normalized: Book = {
-      author: authors[0],
+      author,
       averageRating: totalRatings > 0 ? ratingsSum / totalRatings : undefined,
       canonicalID,
       id: id,
       publisher: book.publisher,
       reviewsID: extractReviewsIDFromWidget(book.reviews_widget) || id,
       shelves,
-      similarBooks: ensureArray(similarBooks).map(b => b.id),
+      similarBooks: similar,
       title,
       totalRatings,
       workID: work.id._
@@ -204,12 +207,26 @@ class RepositoryClass {
     }
 
     if (!normalized.publisher) {
-      normalized.publisher = authors[0].name;
+      normalized.publisher = author.name;
     }
 
     normalized.publisher = normalizeString(normalized.publisher);
 
     return normalized;
+  }
+
+  /**
+   * Extract a primary author from authorship information
+   */
+  private extractAuthor(authorship: API.Authorship): Author {
+    const authors = ensureArray(authorship.author).map(function(author): Author {
+      return {
+        id: author.id,
+        name: normalizeString(author.name)
+      };
+    });
+
+    return authors[0];
   }
 
   /**

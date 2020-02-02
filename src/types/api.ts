@@ -1,12 +1,14 @@
 type OneOrMore<T> = T | T[];
 
+export interface Authorship {
+  author: OneOrMore<{
+    id: string;
+    name: string;
+  }>;
+}
+
 export interface Book {
-  authors: {
-    author: OneOrMore<{
-      id: string;
-      name: string;
-    }>;
-  };
+  authors: Authorship;
   id: string;
   popular_shelves: {
     shelf: OneOrMore<{
@@ -20,6 +22,7 @@ export interface Book {
   reviews_widget: string;
   similar_books?: {
     book: OneOrMore<{
+      authors: Authorship;
       id: string;
     }>;
   };
