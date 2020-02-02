@@ -18,6 +18,7 @@ import { paths, prepareDataDirectory } from './environment';
 import { SectionID, SECTION_IDS } from './summary';
 
 const CACHE_NAMES = ['data', 'response'] as const;
+const DEFAULT_SHELF_PERCENTILE = 75;
 
 interface CLIOptions {
   args: string[];
@@ -154,7 +155,7 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
               type: 'number'
             })
             .option('percentile', {
-              default: 1,
+              default: 75,
               describe: 'The minimum percentile of recommendations to show',
               type: 'number'
             })
@@ -328,6 +329,10 @@ async function startCLI(cliOptions: Required<CLIOptions>): Promise<void> {
 
   if (shelfPercentile !== undefined) {
     config.shelfPercentile = shelfPercentile;
+  }
+
+  if (!config.shelfPercentile) {
+    config.shelfPercentile = DEFAULT_SHELF_PERCENTILE;
   }
 
   const logger = createLogger(cliOptions.writeToStderr, {
