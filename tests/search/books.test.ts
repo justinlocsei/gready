@@ -3,7 +3,7 @@ import assert from '../helpers/assert';
 import { allowOverrides } from '../helpers/mocking';
 import { Book, ReadBook } from '../../src/types/core';
 import { BookID } from '../../src/types/goodreads';
-import { createBook, createReadBook, createSimilarBook } from '../helpers/factories';
+import { createAuthor, createBook, createReadBook, createSimilarBook } from '../helpers/factories';
 import { createTestConfig, createTestRepo } from '../helpers';
 import { findRecommendedBooks, PartitionedRecommendation, summarizeRecommendedBooks } from '../../src/search/books';
 import { UserConfiguration } from '../../src/types/config';
@@ -267,6 +267,48 @@ describe('search/books', function() {
           { bookID: '3', rating: 5 }
         ],
         shelves: ['alfa']
+      });
+
+      assert.deepEqual(books, [
+        { bookID: '2', count: 1, percentile: 100 }
+      ]);
+    });
+
+    it('can restrict recommendations by author', async function() {
+      const books = await getRecommendedBooks({
+        books: [
+          {
+            id: '1',
+            similarBooks: [
+              createSimilarBook({
+                author: createAuthor({ name: 'Alfa' }),
+                id: '2'
+              })
+            ]
+          },
+          {
+            id: '3',
+            similarBooks: [
+              createSimilarBook({
+                author: createAuthor({ name: 'Bravo' }),
+                id: '4'
+              })
+            ]
+          },
+          {
+            id: '4'
+          },
+          {
+            id: '2'
+          }
+        ],
+        config: {
+          ignoreAuthors: ['Bravo']
+        },
+        readBooks: [
+          { bookID: '1', rating: 5 },
+          { bookID: '3', rating: 5 }
+        ]
       });
 
       assert.deepEqual(books, [

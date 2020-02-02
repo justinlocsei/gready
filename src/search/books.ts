@@ -56,10 +56,14 @@ export async function findRecommendedBooks({
     books = createBookshelf(books, config).getBooksInShelves(...shelves);
   }
 
+  const ignoredAuthors = new Set(config.ignoreAuthors);
+
   const countsByID = books.reduce(function(previous: Record<BookID, number>, book) {
-    book.similarBooks.forEach(function({ id }) {
-      previous[id] = previous[id] || 0;
-      previous[id]++;
+    book.similarBooks.forEach(function({ author, id }) {
+      if (!ignoredAuthors.has(author.name)) {
+        previous[id] = previous[id] || 0;
+        previous[id]++;
+      }
     });
 
     return previous;
