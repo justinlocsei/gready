@@ -1,6 +1,6 @@
-import assert from './helpers/assert';
-import { createBookshelf } from './helpers/factories';
-import { SectionID, summarizeBookshelf } from '../src/summary';
+import assert from '../helpers/assert';
+import { createBookshelf } from '../helpers/factories';
+import { SectionID, summarizeBookshelf } from '../../src/summary';
 
 describe('summary', function() {
 

@@ -1,12 +1,12 @@
 import { URL } from 'url';
 
-import assert from './helpers/assert';
+import assert from '../helpers/assert';
 
 import {
   getUserBooksURL,
   getViewBookURL,
   URLS
-} from '../src/goodreads';
+} from '../../src/goodreads';
 
 describe('goodreads', function() {
 

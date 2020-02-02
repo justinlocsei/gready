@@ -1,7 +1,7 @@
-import assert from './helpers/assert';
-import { makeGetRequest } from '../src/network';
-import { NetworkError } from '../src/errors';
-import { allowNetworkAccess, useServer } from './helpers/requests';
+import assert from '../helpers/assert';
+import { makeGetRequest } from '../../src/network';
+import { NetworkError } from '../../src/errors';
+import { allowNetworkAccess, useServer } from '../helpers/requests';
 
 describe('network', function() {
 

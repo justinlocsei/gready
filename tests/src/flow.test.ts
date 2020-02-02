@@ -1,8 +1,8 @@
 import { range } from 'lodash';
 
-import assert from './helpers/assert';
-import { createTestLogger } from './helpers';
-import { runSequence } from '../src/flow';
+import assert from '../helpers/assert';
+import { createTestLogger } from '../helpers';
+import { runSequence } from '../../src/flow';
 
 describe('flow', function() {
 

@@ -2,8 +2,8 @@ import fs from 'fs-extra';
 import path from 'path';
 import tmp from 'tmp';
 
-import assert from './helpers/assert';
-import { allowOverrides } from './helpers/mocking';
+import assert from '../helpers/assert';
+import { allowOverrides } from '../helpers/mocking';
 
 import {
   captureConsoleOutput,
@@ -13,7 +13,7 @@ import {
   getEnvironmentVariable,
   handleMissingFile,
   markProcessAsFailed
-} from '../src/system';
+} from '../../src/system';
 
 describe('system', function() {
 

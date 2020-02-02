@@ -2,11 +2,11 @@ import fs from 'fs-extra';
 import tmp from 'tmp';
 import { promisify } from 'util';
 
-import * as system from '../src/system';
-import assert from './helpers/assert';
-import { allowOverrides } from './helpers/mocking';
-import { OperationalError } from '../src/errors';
-import { UserConfiguration } from '../src/types/config';
+import * as system from '../../src/system';
+import assert from '../helpers/assert';
+import { allowOverrides } from '../helpers/mocking';
+import { OperationalError } from '../../src/errors';
+import { UserConfiguration } from '../../src/types/config';
 
 import {
   buildConfig,
@@ -14,7 +14,7 @@ import {
   getGoodreadsUserID,
   hasGoodreadsAPIKey,
   loadConfig
-} from '../src/config';
+} from '../../src/config';
 
 const tmpFileAsync = promisify(tmp.file);
 

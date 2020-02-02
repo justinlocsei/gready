@@ -1,7 +1,7 @@
-import assert from './helpers/assert';
-import { createOutputHandler, createTestLogger } from './helpers';
-import { freezeTime } from './helpers/mocking';
-import { createLogger, getLevelNames } from '../src/logger';
+import assert from '../helpers/assert';
+import { createOutputHandler, createTestLogger } from '../helpers';
+import { freezeTime } from '../helpers/mocking';
+import { createLogger, getLevelNames } from '../../src/logger';
 
 describe('logger', function() {
 

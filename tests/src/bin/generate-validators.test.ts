@@ -3,12 +3,12 @@ import glob from 'glob';
 import path from 'path';
 import tmp from 'tmp';
 
-import * as system from '../../src/system';
-import assert from '../helpers/assert';
-import { allowOverrides } from '../helpers/mocking';
-import { createOutputHandler } from '../helpers';
-import { paths } from '../../src/environment';
-import { run } from '../../src/bin/generate-validators';
+import * as system from '../../../src/system';
+import assert from '../../helpers/assert';
+import { allowOverrides } from '../../helpers/mocking';
+import { createOutputHandler } from '../../helpers';
+import { paths } from '../../../src/environment';
+import { run } from '../../../src/bin/generate-validators';
 
 describe('bin/generate-validators', function() {
 

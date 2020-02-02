@@ -1,10 +1,10 @@
-import assert from './helpers/assert';
+import assert from '../helpers/assert';
 
 import {
   ensureArray,
   isNumeric,
   maybeMap
-} from '../src/util';
+} from '../../src/util';
 
 describe('util', function() {
 

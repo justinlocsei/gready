@@ -1,7 +1,7 @@
 import tmp from 'tmp';
 
-import assert from './helpers/assert';
-import { Cache, CacheOptions, createCache, ENCODINGS } from '../src/cache';
+import assert from '../helpers/assert';
+import { Cache, CacheOptions, createCache, ENCODINGS } from '../../src/cache';
 
 describe('cache', function() {
 

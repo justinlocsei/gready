@@ -1,8 +1,8 @@
-import * as gready from '../../src/gready';
-import * as system from '../../src/system';
-import assert from '../helpers/assert';
-import { allowOverrides } from '../helpers/mocking';
-import { run } from '../../src/bin/gready';
+import * as gready from '../../../src/gready';
+import * as system from '../../../src/system';
+import assert from '../../helpers/assert';
+import { allowOverrides } from '../../helpers/mocking';
+import { run } from '../../../src/bin/gready';
 
 describe('bin/gready', function() {
 

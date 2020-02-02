@@ -1,11 +1,11 @@
-import assert from './helpers/assert';
+import assert from '../helpers/assert';
 
 import {
   formalizeAuthorName,
   normalizeString,
   partition,
   underline
-} from '../src/content';
+} from '../../src/content';
 
 describe('content', function() {
 

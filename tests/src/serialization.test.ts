@@ -1,5 +1,5 @@
-import assert from './helpers/assert';
-import { formatJSON } from '../src/serialization';
+import assert from '../helpers/assert';
+import { formatJSON } from '../../src/serialization';
 
 describe('serialization', function() {
 

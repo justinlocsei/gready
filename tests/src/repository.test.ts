@@ -1,14 +1,14 @@
 import { isEqual } from 'lodash';
 
-import * as API from '../src/types/api';
-import * as Core from '../src/types/core';
-import * as F from './helpers/factories';
-import * as reviews from '../src/reviews';
-import assert from './helpers/assert';
-import { allowOverrides } from './helpers/mocking';
-import { BookID } from '../src/types/goodreads';
-import { createTestCache, createTestRepo } from './helpers';
-import { UserConfiguration } from '../src/types/config';
+import * as API from '../../src/types/api';
+import * as Core from '../../src/types/core';
+import * as F from '../helpers/factories';
+import * as reviews from '../../src/reviews';
+import assert from '../helpers/assert';
+import { allowOverrides } from '../helpers/mocking';
+import { BookID } from '../../src/types/goodreads';
+import { createTestCache, createTestRepo } from '../helpers';
+import { UserConfiguration } from '../../src/types/config';
 
 describe('repository', function() {
 

@@ -2,10 +2,10 @@ import path from 'path';
 import tmp from 'tmp';
 import { mkdirSync, pathExistsSync } from 'fs-extra';
 
-import assert from './helpers/assert';
-import { createOutputHandler } from './helpers';
-import { OperationalError } from '../src/errors';
-import { removePaths, runAsScript } from '../src/scripts';
+import assert from '../helpers/assert';
+import { createOutputHandler } from '../helpers';
+import { OperationalError } from '../../src/errors';
+import { removePaths, runAsScript } from '../../src/scripts';
 
 describe('scripts', function() {
 

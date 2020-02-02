@@ -2,16 +2,16 @@ import fs from 'fs-extra';
 import path from 'path';
 import { uniq } from 'lodash';
 
-import * as reviews from '../src/reviews';
-import assert from './helpers/assert';
-import { allowNetworkAccess, simulateResponse } from './helpers/requests';
-import { allowOverrides } from './helpers/mocking';
-import { APIClient, createAPIClient } from '../src/api-client';
-import { createCache } from '../src/cache';
-import { createTestLogger, shouldBypassFixtures } from './helpers';
-import { getGoodreadsAPIKey, hasGoodreadsAPIKey } from '../src/config';
-import { paths } from '../src/environment';
-import { URLS } from '../src/goodreads';
+import * as reviews from '../../src/reviews';
+import assert from '../helpers/assert';
+import { allowNetworkAccess, simulateResponse } from '../helpers/requests';
+import { allowOverrides } from '../helpers/mocking';
+import { APIClient, createAPIClient } from '../../src/api-client';
+import { createCache } from '../../src/cache';
+import { createTestLogger, shouldBypassFixtures } from '../helpers';
+import { getGoodreadsAPIKey, hasGoodreadsAPIKey } from '../../src/config';
+import { paths } from '../../src/environment';
+import { URLS } from '../../src/goodreads';
 
 describe('api-client', function() {
 

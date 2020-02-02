@@ -1,10 +1,10 @@
 import path from 'path';
 
-import * as scripts from '../../src/scripts';
-import assert from '../helpers/assert';
-import { allowOverrides } from '../helpers/mocking';
-import { paths } from '../../src/environment';
-import { run } from '../../src/bin/clear-test-fixtures';
+import * as scripts from '../../../src/scripts';
+import assert from '../../helpers/assert';
+import { allowOverrides } from '../../helpers/mocking';
+import { paths } from '../../../src/environment';
+import { run } from '../../../src/bin/clear-test-fixtures';
 
 describe('bin/clear-test-fixtures', function() {
 

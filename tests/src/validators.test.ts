@@ -1,9 +1,9 @@
 import fs from 'fs-extra';
 import path from 'path';
 
-import assert from './helpers/assert';
-import { generateValidator } from '../src/validators';
-import { paths } from '../src/environment';
+import assert from '../helpers/assert';
+import { generateValidator } from '../../src/validators';
+import { paths } from '../../src/environment';
 
 describe('validators', function() {
 

@@ -1,11 +1,11 @@
-import * as goodreads from '../../src/goodreads';
-import assert from '../helpers/assert';
-import { allowOverrides } from '../helpers/mocking';
-import { Book, ReadBook, Review } from '../../src/types/core';
-import { BookID } from '../../src/types/goodreads';
-import { createBook, createReadBook, createReview, createUser } from '../helpers/factories';
-import { createTestConfig, createTestRepo } from '../helpers';
-import { findSimilarReaders, summarizeSimilarReaders } from '../../src/search/readers';
+import * as goodreads from '../../../src/goodreads';
+import assert from '../../helpers/assert';
+import { allowOverrides } from '../../helpers/mocking';
+import { Book, ReadBook, Review } from '../../../src/types/core';
+import { BookID } from '../../../src/types/goodreads';
+import { createBook, createReadBook, createReview, createUser } from '../../helpers/factories';
+import { createTestConfig, createTestRepo } from '../../helpers';
+import { findSimilarReaders, summarizeSimilarReaders } from '../../../src/search/readers';
 
 describe('search/readers', function() {
 

@@ -1,11 +1,11 @@
 import fs from 'fs-extra';
 import path from 'path';
 
-import * as scripts from '../../src/scripts';
-import assert from '../helpers/assert';
-import { allowOverrides } from '../helpers/mocking';
-import { paths } from '../../src/environment';
-import { run } from '../../src/bin/clear-build';
+import * as scripts from '../../../src/scripts';
+import assert from '../../helpers/assert';
+import { allowOverrides } from '../../helpers/mocking';
+import { paths } from '../../../src/environment';
+import { run } from '../../../src/bin/clear-build';
 
 describe('bin/clear-build', function() {
 

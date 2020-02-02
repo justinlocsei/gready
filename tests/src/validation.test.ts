@@ -1,5 +1,5 @@
-import assert from './helpers/assert';
-import { validate } from '../src/validation';
+import assert from '../helpers/assert';
+import { validate } from '../../src/validation';
 
 describe('validation', function() {
 

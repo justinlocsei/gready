@@ -1,10 +1,10 @@
 import fs from 'fs-extra';
 import path from 'path';
 
-import assert from './helpers/assert';
-import { allowNetworkAccess, useNetworkFixture } from './helpers/requests';
-import { extractReviewsIDFromWidget, findPartialReviewsForBook } from '../src/reviews';
-import { paths } from '../src/environment';
+import assert from '../helpers/assert';
+import { allowNetworkAccess, useNetworkFixture } from '../helpers/requests';
+import { extractReviewsIDFromWidget, findPartialReviewsForBook } from '../../src/reviews';
+import { paths } from '../../src/environment';
 
 describe('reviews', function() {
 

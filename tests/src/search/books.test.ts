@@ -1,12 +1,12 @@
-import * as goodreads from '../../src/goodreads';
-import assert from '../helpers/assert';
-import { allowOverrides } from '../helpers/mocking';
-import { Book, ReadBook } from '../../src/types/core';
-import { BookID } from '../../src/types/goodreads';
-import { createAuthor, createBook, createReadBook, createSimilarBook } from '../helpers/factories';
-import { createTestConfig, createTestRepo } from '../helpers';
-import { findRecommendedBooks, PartitionedRecommendation, summarizeRecommendedBooks } from '../../src/search/books';
-import { UserConfiguration } from '../../src/types/config';
+import * as goodreads from '../../../src/goodreads';
+import assert from '../../helpers/assert';
+import { allowOverrides } from '../../helpers/mocking';
+import { Book, ReadBook } from '../../../src/types/core';
+import { BookID } from '../../../src/types/goodreads';
+import { createAuthor, createBook, createReadBook, createSimilarBook } from '../../helpers/factories';
+import { createTestConfig, createTestRepo } from '../../helpers';
+import { findRecommendedBooks, PartitionedRecommendation, summarizeRecommendedBooks } from '../../../src/search/books';
+import { UserConfiguration } from '../../../src/types/config';
 
 describe('search/books', function() {
 

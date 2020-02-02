@@ -2,14 +2,14 @@ import fs from 'fs-extra';
 import path from 'path';
 import tmp from 'tmp';
 
-import assert from './helpers/assert';
+import assert from '../helpers/assert';
 
 import {
   extractArgs,
   paths,
   prepareDataDirectory,
   resolveRequire
-} from '../src/environment';
+} from '../../src/environment';
 
 describe('environment', function() {
 
