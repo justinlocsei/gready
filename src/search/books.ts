@@ -1,8 +1,9 @@
-import { intersection, sortBy, uniq } from 'lodash';
+import { sortBy, uniq } from 'lodash';
 
 import { Book, ReadBook } from '../types/core';
 import { BookID } from '../types/goodreads';
 import { Configuration } from '../types/config';
+import { createBookshelf } from '../bookshelf';
 import { getViewBookURL } from '../goodreads';
 import { partition, underline } from '../content';
 import { Partitioned } from '../types/util';
@@ -44,31 +45,25 @@ export async function findRecommendedBooks({
     bookIDs = bookIDs.filter(id => coreBookIDs.includes(id));
   }
 
-  const countsByID: Record<BookID, number> = {};
-
-  await runSequence(
+  let books = await runSequence(
     ['Find recommended books'],
     uniq(bookIDs).sort(),
     repo.logger,
-    async function(bookID) {
-      const book = await repo.getBook(bookID);
-
-      if (shelves) {
-        const shelfNames = partition(book.shelves, s => s.count)
-          .filter(s => s.percentile >= config.shelfPercentile)
-          .map(s => s.data.name);
-
-        if (!intersection(shelves, shelfNames).length) {
-          return;
-        }
-      }
-
-      book.similarBooks.forEach(function(bookID) {
-        countsByID[bookID] = countsByID[bookID] || 0;
-        countsByID[bookID]++;
-      });
-    }
+    id => repo.getBook(id)
   );
+
+  if (shelves) {
+    books = createBookshelf(books, config).getBooksInShelves(...shelves);
+  }
+
+  const countsByID = books.reduce(function(previous: Record<BookID, number>, book) {
+    book.similarBooks.forEach(function(bookID) {
+      previous[bookID] = previous[bookID] || 0;
+      previous[bookID]++;
+    });
+
+    return previous;
+  }, {});
 
   const readIDs = new Set(readBooks.map(r => r.bookID));
 
