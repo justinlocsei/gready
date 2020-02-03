@@ -7,8 +7,8 @@ import assert from '../helpers/assert';
 import { allowNetworkAccess, simulateResponse } from '../helpers/requests';
 import { allowOverrides } from '../helpers/mocking';
 import { APIClient, createAPIClient } from '../../src/api-client';
+import { canAttemptNetworkAccess, createTestLogger, shouldBypassFixtures } from '../helpers';
 import { createCache } from '../../src/cache';
-import { createTestLogger, shouldBypassFixtures } from '../helpers';
 import { getGoodreadsAPIKey, hasGoodreadsAPIKey } from '../../src/config';
 import { paths } from '../../src/environment';
 import { URLS } from '../../src/goodreads';
@@ -32,7 +32,7 @@ describe('api-client', function() {
       });
 
       return createAPIClient({
-        apiKey: getGoodreadsAPIKey(),
+        apiKey: canAttemptNetworkAccess() ? getGoodreadsAPIKey() : 'key',
         cache,
         logger: createTestLogger()[0]
       });
