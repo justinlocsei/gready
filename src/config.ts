@@ -8,8 +8,8 @@ import { validateUserConfiguration } from './validators/config';
 const DEFAULT_CONFIG: Configuration = {
   ignoreAuthors: [],
   ignoreShelves: [],
-  mergePublishers: {},
-  mergeShelves: {},
+  publisherAliases: {},
+  shelfAliases: {},
   shelfPercentile: 0
 };
 

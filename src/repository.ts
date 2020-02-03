@@ -237,7 +237,7 @@ class RepositoryClass {
    */
   private sanitizeBook(book: Book): Book {
     const { publisher, shelves } = book;
-    const { ignoreShelves, mergePublishers, mergeShelves } = this.config;
+    const { ignoreShelves, publisherAliases, shelfAliases } = this.config;
 
     const excludeShelves = new Set([
       SHELVES.currentlyReading,
@@ -246,11 +246,11 @@ class RepositoryClass {
     ]);
 
     const userShelves = shelves.filter(s => !excludeShelves.has(s.name));
-    const mergedShelves = this.mergeShelves(userShelves, mergeShelves);
+    const mergedShelves = this.shelfAliases(userShelves, shelfAliases);
 
     return {
       ...book,
-      publisher: this.mergePublishers(publisher, mergePublishers),
+      publisher: this.publisherAliases(publisher, publisherAliases),
       shelves: sortBy(mergedShelves, [s => s.count * -1, s => s.name])
     };
   }
@@ -258,7 +258,7 @@ class RepositoryClass {
   /**
    * Merge publishers specified in a lookup
    */
-  private mergePublishers(publisher: string, merge: Record<string, string[]>): string {
+  private publisherAliases(publisher: string, merge: Record<string, string[]>): string {
     const group = Object.keys(merge).find(function(name) {
       return merge[name].includes(publisher);
     });
@@ -269,7 +269,7 @@ class RepositoryClass {
   /**
    * Merge shelves specified in a lookup
    */
-  private mergeShelves(shelves: Shelf[], merge: Record<string, string[]>): Shelf[] {
+  private shelfAliases(shelves: Shelf[], merge: Record<string, string[]>): Shelf[] {
     const merged = Object.keys(merge).reduce(function(previous: Shelf[], group) {
       const members = shelves.filter(function(shelf) {
         return shelf.name === group || merge[group].includes(shelf.name);

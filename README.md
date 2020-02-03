@@ -65,7 +65,7 @@ The recommendations made by Gready can be controlled via a JSON configuration fi
   // The publishers associated with your read books can be shown using the
   // `gready summarize` command, which will also use these publisher aliases
   // to consolidate the list of books by publisher.
-  "mergePublishers": {
+  "publisherAliases": {
     "Publisher": [
       "Imprint One",
       "Imprint Two"
@@ -77,7 +77,7 @@ The recommendations made by Gready can be controlled via a JSON configuration fi
   // These aliases are used to ensure that only the top-level shelves are shown
   // in any Gready output, which can make searching for recommendations in a
   // particular genre easier.
-  "mergeShelves": {
+  "shelfAliases": {
     "science-fiction": [
       "sci-fi",
       "scifi"
@@ -88,7 +88,7 @@ The recommendations made by Gready can be controlled via a JSON configuration fi
   //
   // This is used both on a per-book level to determine which shelves are
   // associated with a book and at a higher level to control which shelves get
-  // displayed in the summary.  When combined with the `mergeShelves` option,
+  // displayed in the summary.  When combined with the `shelfAliases` option,
   // this can be used to treat shelves as an approximation of genres.
   "shelfPercentile": 90
 }

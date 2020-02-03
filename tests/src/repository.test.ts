@@ -352,7 +352,7 @@ describe('repository', function() {
           },
           {},
           {
-            mergeShelves: {
+            shelfAliases: {
               alfa: ['bravo', 'charlie'],
               echo: ['foxtrot']
             }
@@ -367,7 +367,7 @@ describe('repository', function() {
 
       it('merges publishers specified in the configuration', async function() {
         const config: UserConfiguration = {
-          mergePublishers: {
+          publisherAliases: {
             alfa: ['bravo']
           }
         };
@@ -430,8 +430,8 @@ describe('repository', function() {
 
         const withConfig = await getLocalBooks([book], [book.id], {
           ignoreShelves: ['charlie'],
-          mergePublishers: { Alfa: ['Bravo'] },
-          mergeShelves: { alfa: ['bravo'] }
+          publisherAliases: { Alfa: ['Bravo'] },
+          shelfAliases: { alfa: ['bravo'] }
         });
 
         assert.equal(noConfig.length, 1);

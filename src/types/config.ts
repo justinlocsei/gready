@@ -1,8 +1,8 @@
 export interface Configuration {
   ignoreAuthors: string[];
   ignoreShelves: string[];
-  mergePublishers: { [group: string]: string[]; };
-  mergeShelves: { [group: string]: string[]; };
+  publisherAliases: { [group: string]: string[]; };
+  shelfAliases: { [group: string]: string[]; };
   shelfPercentile: number;
 }
 

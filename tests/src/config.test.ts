@@ -29,8 +29,8 @@ describe('config', function() {
       assert.deepEqual(buildConfig(), {
         ignoreAuthors: [],
         ignoreShelves: [],
-        mergePublishers: {},
-        mergeShelves: {},
+        publisherAliases: {},
+        shelfAliases: {},
         shelfPercentile: 0
       });
     });
@@ -39,8 +39,8 @@ describe('config', function() {
       const config: UserConfiguration = {
         ignoreAuthors: ['Author'],
         ignoreShelves: ['shelf'],
-        mergePublishers: { alfa: ['bravo'] },
-        mergeShelves: { charlie: ['delta'] },
+        publisherAliases: { alfa: ['bravo'] },
+        shelfAliases: { charlie: ['delta'] },
         shelfPercentile: 1
       };
 
@@ -142,8 +142,8 @@ describe('config', function() {
       const configPath = await createConfig({
         ignoreAuthors: ['Author'],
         ignoreShelves: ['shelf'],
-        mergePublishers: { 'alfa': ['bravo'] },
-        mergeShelves: { 'charlie': ['delta'] },
+        publisherAliases: { 'alfa': ['bravo'] },
+        shelfAliases: { 'charlie': ['delta'] },
         shelfPercentile: 1
       });
 
@@ -151,8 +151,8 @@ describe('config', function() {
 
       assert.deepEqual(config.ignoreAuthors, ['Author']);
       assert.deepEqual(config.ignoreShelves, ['shelf']);
-      assert.deepEqual(config.mergePublishers, { 'alfa': ['bravo'] });
-      assert.deepEqual(config.mergeShelves, { 'charlie': ['delta'] });
+      assert.deepEqual(config.publisherAliases, { 'alfa': ['bravo'] });
+      assert.deepEqual(config.shelfAliases, { 'charlie': ['delta'] });
       assert.equal(config.shelfPercentile, 1);
     });
 
@@ -161,8 +161,8 @@ describe('config', function() {
 
       assert.deepEqual(config.ignoreAuthors, []);
       assert.deepEqual(config.ignoreShelves, []);
-      assert.deepEqual(config.mergePublishers, {});
-      assert.deepEqual(config.mergeShelves, {});
+      assert.deepEqual(config.publisherAliases, {});
+      assert.deepEqual(config.shelfAliases, {});
       assert.equal(config.shelfPercentile, 0);
     });
 
@@ -175,8 +175,8 @@ describe('config', function() {
 
       assert.deepEqual(config.ignoreAuthors, []);
       assert.deepEqual(config.ignoreShelves, ['shelf']);
-      assert.deepEqual(config.mergePublishers, {});
-      assert.deepEqual(config.mergeShelves, {});
+      assert.deepEqual(config.publisherAliases, {});
+      assert.deepEqual(config.shelfAliases, {});
       assert.equal(config.shelfPercentile, 0);
     });
 
