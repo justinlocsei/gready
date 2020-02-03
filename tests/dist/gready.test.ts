@@ -4,7 +4,7 @@ import { omit } from 'lodash';
 import { spawnSync } from 'child_process';
 
 import assert from '../helpers/assert';
-import { getRequiredEnvironmentVariables } from '../../src/config';
+import { getRequiredEnvironmentVariableNames } from '../../src/config';
 import { paths } from '../../src/environment';
 
 describe('gready', function() {
@@ -31,7 +31,7 @@ describe('gready', function() {
       {
         encoding: 'utf-8',
         env: {
-          ...omit(process.env, getRequiredEnvironmentVariables()),
+          ...omit(process.env, getRequiredEnvironmentVariableNames()),
           ...env
         }
       }

@@ -21,7 +21,7 @@ const ENV_VARS = {
 /**
  * Get the names of all required environment variables
  */
-export function getRequiredEnvironmentVariables(): string[] {
+export function getRequiredEnvironmentVariableNames(): string[] {
   return Object.values(ENV_VARS).sort();
 }
 

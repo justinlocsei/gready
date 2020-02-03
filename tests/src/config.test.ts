@@ -12,7 +12,7 @@ import {
   buildConfig,
   getGoodreadsAPIKey,
   getGoodreadsUserID,
-  getRequiredEnvironmentVariables,
+  getRequiredEnvironmentVariableNames,
   hasGoodreadsAPIKey,
   loadConfig
 } from '../../src/config';
@@ -93,10 +93,10 @@ describe('config', function() {
 
   });
 
-  describe('getRequiredEnvironmentVariables', function() {
+  describe('getRequiredEnvironmentVariableNames', function() {
 
     it('returns a list of variable names', function() {
-      const varNames = getRequiredEnvironmentVariables();
+      const varNames = getRequiredEnvironmentVariableNames();
 
       assert.isNotEmpty(varNames);
 
