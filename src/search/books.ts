@@ -23,6 +23,7 @@ interface RecommendedBook {
 export async function findRecommendedBooks({
   config,
   coreBookIDs,
+  limit,
   minRating,
   percentile,
   readBooks,
@@ -31,6 +32,7 @@ export async function findRecommendedBooks({
 }: {
   config: Configuration;
   coreBookIDs?: BookID[];
+  limit?: number;
   minRating: number;
   percentile: number;
   readBooks: ReadBook[];
@@ -82,8 +84,17 @@ export async function findRecommendedBooks({
     .filter(r => !readIDs.has(r.bookID));
 
   const ranked = partition(recommendations, r => r.recommendations);
-  const queries = ranked.filter(r => r.percentile >= percentile);
-  const queryIDs = queries.map(r => r.data.bookID);
+
+  const queries = sortBy(ranked.filter(r => r.percentile >= percentile), [
+    r => r.percentile * -1,
+    r => r.data.bookID
+  ]);
+
+  let queryIDs = uniq(queries.map(r => r.data.bookID));
+
+  if (limit !== undefined) {
+    queryIDs = queryIDs.slice(0, limit);
+  }
 
   const percentiles = ranked.reduce(function(previous: Record<BookID, number>, { data: book, percentile }) {
     previous[book.bookID] = percentile;
@@ -92,7 +103,7 @@ export async function findRecommendedBooks({
 
   const recommendedBooks = await runSequence(
     ['Expand recommendations'],
-    uniq(queryIDs).sort(),
+    queryIDs,
     repo.logger,
     async function(bookID): Promise<RecommendedBook> {
       const book = await repo.getBook(bookID);

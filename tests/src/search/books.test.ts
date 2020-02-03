@@ -18,6 +18,7 @@ describe('search/books', function() {
       books,
       config,
       coreBookIDs,
+      limit,
       minRating = 1,
       percentile = 0,
       readBooks,
@@ -26,6 +27,7 @@ describe('search/books', function() {
       books: Partial<Book>[];
       config?: UserConfiguration;
       coreBookIDs?: BookID[];
+      limit?: number;
       minRating?: number;
       percentile?: number;
       readBooks: Partial<ReadBook>[];
@@ -48,6 +50,7 @@ describe('search/books', function() {
       const recs = await findRecommendedBooks({
         config: createTestConfig(config),
         coreBookIDs,
+        limit,
         minRating,
         percentile,
         readBooks: readBooks.map(createReadBook),
@@ -104,6 +107,41 @@ describe('search/books', function() {
       assert.deepEqual(books, [
         { bookID: '2', count: 3, percentile: 100 },
         { bookID: '4', count: 2, percentile: 50 }
+      ]);
+    });
+
+    it('can set a limit on the number of recommended books', async function() {
+      const books = await getRecommendedBooks({
+        books: [
+          {
+            id: '1',
+            similarBooks: [
+              createSimilarBook({ id: '2' }),
+              createSimilarBook({ id: '4' })
+            ]
+          },
+          {
+            id: '3',
+            similarBooks: [
+              createSimilarBook({ id: '2' })
+            ]
+          },
+          {
+            id: '4'
+          },
+          {
+            id: '2'
+          }
+        ],
+        limit: 1,
+        readBooks: [
+          { bookID: '1', rating: 5 },
+          { bookID: '3', rating: 4 }
+        ]
+      });
+
+      assert.deepEqual(books, [
+        { bookID: '2', count: 2, percentile: 100 }
       ]);
     });
 
