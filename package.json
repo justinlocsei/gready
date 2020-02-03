@@ -77,5 +77,8 @@
     "ts-node": "^8.6.2",
     "typescript": "^3.7.5",
     "typescript-json-schema": "^0.42.0"
+  },
+  "engines": {
+    "node": ">= 10"
   }
 }
