@@ -14,7 +14,8 @@
     "prepublishOnly": "npm run build",
     "test": "mocha -r ts-node/register --file ./tests/helpers/mocha.ts './tests/src/**/*.test.ts'",
     "test:clear-fixtures": "ts-node ./src/bin/clear-test-fixtures.ts",
-    "test:coverage": "nyc npm run test"
+    "test:coverage": "nyc npm run test",
+    "test:enforce-coverage": "nyc --check-coverage npm run test"
   },
   "repository": {
     "type": "git",
