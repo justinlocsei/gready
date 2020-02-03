@@ -1,6 +1,6 @@
 {
   "name": "gready",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "A recommendation engine built on the Goodreads API",
   "scripts": {
     "build": "npm run build:clear && npm run generate-validators && npm run compile",
