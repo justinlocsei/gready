@@ -138,10 +138,14 @@ class APIClientClass {
    */
   async getReadBooks(
     userID: UserID,
-    options: { pageSize?: number; } = {}
+    options: {
+      limit?: number;
+      pageSize?: number;
+    } = {}
   ): Promise<ReadBook[]> {
     const readBooks: ReadBook[] = [];
     const pageSize = options.pageSize || 25;
+    const { limit } = options;
 
     const check = await this.fetchReadBooksPage(
       ['Check read books', `UserID=${userID}`],
@@ -161,16 +165,20 @@ class APIClientClass {
       return readBooks;
     }
 
+    const targetBooks = limit !== undefined
+      ? Math.min(limit, totalBooks)
+      : totalBooks;
+
     await runSequence(
       ['Fetch read books', `UserID=${userID}`],
-      range(1, Math.ceil(totalBooks / pageSize) + 1),
+      range(1, Math.ceil(targetBooks / pageSize) + 1),
       this.logger,
       async (page) => {
         const { reviews } = await this.fetchReadBooksPage(
           [
             'Fetch read-books page',
             `From=${(page - 1) * pageSize + 1}`,
-            `To=${Math.min(totalBooks, page * pageSize)}`
+            `To=${Math.min(targetBooks, page * pageSize)}`
           ],
           userID,
           pageSize,
@@ -183,7 +191,7 @@ class APIClientClass {
       }
     );
 
-    return readBooks;
+    return limit !== undefined ? readBooks.slice(0, limit) : readBooks;
   }
 
   /**

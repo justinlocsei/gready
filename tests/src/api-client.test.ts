@@ -137,11 +137,19 @@ describe('api-client', function() {
       });
 
       it('supports a custom page size', async function() {
-        const withoutLimit = await createClient().getReadBooks('4');
-        assert.isAbove(withoutLimit.length, 2);
+        const withoutSize = await createClient().getReadBooks('4');
+        assert.isAbove(withoutSize.length, 2);
 
-        const withLimit = await createClient().getReadBooks('4', { pageSize: 2 });
-        assert.deepEqual(withoutLimit, withLimit);
+        const withSize = await createClient().getReadBooks('4', { pageSize: 2 });
+        assert.deepEqual(withoutSize, withSize);
+      });
+
+      it('supports a limit on the number of returned books', async function() {
+        const withoutLimit = await createClient().getReadBooks('4');
+        assert.isAbove(withoutLimit.length, 1);
+
+        const withLimit = await createClient().getReadBooks('4', { limit: 1 });
+        assert.equal(withLimit.length, 1);
       });
 
       it('handles an empty list of read books', async function() {
