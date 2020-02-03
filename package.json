@@ -26,6 +26,9 @@
     "url": "https://github.com/justinlocsei/gready/issues"
   },
   "homepage": "https://github.com/justinlocsei/gready#readme",
+  "files": [
+    "dist"
+  ],
   "bin": {
     "gready": "dist/bin/gready.js"
   },
