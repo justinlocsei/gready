@@ -587,6 +587,28 @@ describe('repository', function() {
         );
       });
 
+      it('can limit the number of books returned', async function() {
+        const limits: (number | undefined)[] = [];
+        const repo = createTestRepo();
+
+        override(repo.apiClient, 'getReadBooks', function(userID, options = {}) {
+          assert.equal(userID, '1');
+          limits.push(options.limit);
+
+          return Promise.resolve([]);
+        });
+
+        await repo.getReadBooks('1');
+        await repo.getReadBooks('1', { recent: 1 });
+        await repo.getReadBooks('1', { recent: 2 });
+
+        assert.deepEqual(limits, [
+          undefined,
+          1,
+          2
+        ]);
+      });
+
     });
 
     describe('.getSimilarReviews', function() {

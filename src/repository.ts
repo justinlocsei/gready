@@ -92,11 +92,17 @@ class RepositoryClass {
   /**
    * Get all books read by a user, with the most recently read books first
    */
-  getReadBooks(userID: UserID): Promise<ReadBook[]> {
+  getReadBooks(userID: UserID, {
+    recent
+  }: {
+    recent?: number;
+  } = {}): Promise<ReadBook[]> {
     return this.cache.fetch(['read-books', userID], async () => {
       this.logger.info('Load read books', `UserID=${userID}`);
 
-      const books = await this.apiClient.getReadBooks(userID);
+      const books = await this.apiClient.getReadBooks(userID, {
+        limit: recent
+      });
 
       return sortBy(
         books.map(b => this.normalizeAPIReadBook(b)),
