@@ -67,12 +67,14 @@ describe('logger', function() {
         color.debug('alfa');
         plain.debug('alfa');
 
+        assert.isTrue(color.useColor);
+        assert.isFalse(plain.useColor);
+
         const [colorText] = await readColorLogs();
         const [plainText] = await readPlainLogs();
 
         assert.equal(plainText, '[DEBUG] alfa');
-        assert.notEqual(colorText, '[DEBUG] alfa');
-        assert.match(colorText, /\[DEBUG\] alfa/);
+        assert.include(colorText, '[DEBUG] alfa');
       });
 
     });
@@ -220,10 +222,8 @@ describe('logger', function() {
         const [colorText] = await readColorLog();
         const [plainText] = await readPlainLog();
 
-        assert.notEqual(plainText, colorText);
-        assert.match(plainText, /^\s+0ms \[INFO\] alfa/);
-        assert.match(colorText, /0ms/);
-        assert.match(colorText, /\[INFO\] alfa/);
+        assert.include(colorText, '0ms');
+        assert.include(plainText, '0ms');
       });
 
     });
