@@ -12,6 +12,13 @@ import { OutputHandler } from '../../src/types/system';
 export type OutputReader = () => string[];
 
 /**
+ * Whether tests can attempt network access
+ */
+export function canAttemptNetworkAccess(): boolean {
+  return canUpdateFixtures() || shouldBypassFixtures();
+}
+
+/**
  * Whether test fixtures can be updated
  */
 export function canUpdateFixtures(): boolean {
