@@ -1,11 +1,13 @@
 {
   "extends": [
     "plugin:@typescript-eslint/eslint-recommended",
-    "plugin:@typescript-eslint/recommended"
+    "plugin:@typescript-eslint/recommended",
+    "plugin:mocha/recommended"
   ],
   "parser": "@typescript-eslint/parser",
   "plugins": [
-    "@typescript-eslint"
+    "@typescript-eslint",
+    "mocha"
   ],
   "rules": {
     "comma-dangle": ["error", "never"],
@@ -14,6 +16,10 @@
     "object-curly-spacing": ["error", "always"],
     "quotes": ["error", "single"],
     "semi": ["error", "always"],
+    "mocha/no-exclusive-tests": ["error"],
+    "mocha/no-hooks-for-single-case": "off",
+    "mocha/no-setup-in-describe": "off",
+    "mocha/no-top-level-hooks": "off",
     "@typescript-eslint/camelcase": ["error", {"properties": "never"}],
     "@typescript-eslint/explicit-function-return-type": "off",
     "@typescript-eslint/explicit-member-accessibility": "off",
