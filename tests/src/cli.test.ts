@@ -15,16 +15,18 @@ import { OutputHandler } from '../../src/types/system';
 
 describe('cli', function() {
 
-  const { override } = allowOverrides(this);
+  const { expectAssertions, override } = allowOverrides(this);
 
   describe('CLI', function() {
 
     function createTestCLI({
       logger,
+      recentBooks,
       userID = '1',
       writeOutput
     }: {
       logger?: Logger;
+      recentBooks?: number;
       userID?: UserID;
       writeOutput?: OutputHandler;
     } = {}): [CLI, OutputReader] {
@@ -33,12 +35,41 @@ describe('cli', function() {
       const cli = new CLI({
         config: createTestConfig(),
         logger: logger || createTestLogger()[0],
+        recentBooks,
         repo: createTestRepo(),
         userID,
         writeOutput: handleOutput
       });
 
       return [cli, readOutput];
+    }
+
+    async function checkRecentBooks(runTest: (cli: CLI) => Promise<void>) {
+      const plan = expectAssertions(2);
+
+      const [low] = createTestCLI({ recentBooks: 1 });
+      const [high] = createTestCLI({ recentBooks: 10 });
+
+      override(low.repo, 'getReadBooks', function(_, options = {}) {
+        plan.assert(function() {
+          assert.equal(options.recent, 1);
+        });
+
+        return Promise.resolve([]);
+      });
+
+      override(high.repo, 'getReadBooks', function(_, options = {}) {
+        plan.assert(function() {
+          assert.equal(options.recent, 10);
+        });
+
+        return Promise.resolve([]);
+      });
+
+      await runTest(low);
+      await runTest(high);
+
+      plan.verify();
     }
 
     describe('.findBooks', function() {
@@ -58,6 +89,7 @@ describe('cli', function() {
           assert.deepEqual(options, {
             config: cli.config,
             coreBookIDs: ['2'],
+            limit: 5,
             minRating: 3,
             percentile: 4,
             readBooks,
@@ -75,6 +107,7 @@ describe('cli', function() {
 
         await cli.findBooks({
           coreBookIDs: ['2'],
+          limit: 5,
           minRating: 3,
           percentile: 4,
           shelves: ['alfa']
@@ -98,6 +131,15 @@ describe('cli', function() {
         });
 
         assert.deepEqual(readOutput(), ['summary']);
+      });
+
+      it('can limit the number of books used to generate recommendations', async function() {
+        override(booksSearch, 'findRecommendedBooks', () => Promise.resolve([]));
+        override(booksSearch, 'summarizeRecommendedBooks', () => '');
+
+        await checkRecentBooks(async function(cli) {
+          await cli.findBooks({ minRating: 1, percentile: 0 });
+        });
       });
 
     });
@@ -233,6 +275,15 @@ describe('cli', function() {
         assert.deepEqual(readOutput(), ['summary']);
       });
 
+      it('can limit the number of books used for finding readers', async function() {
+        override(readersSearch, 'findSimilarReaders', () => Promise.resolve([]));
+        override(readersSearch, 'summarizeSimilarReaders', () => 'summary');
+
+        await checkRecentBooks(async function(cli) {
+          await cli.findReaders({ maxReviews: 1 });
+        });
+      });
+
     });
 
     describe('.syncBooks', function() {
@@ -261,26 +312,10 @@ describe('cli', function() {
         assert.deepEqual(ids, ['2', '3']);
       });
 
-      it('can limit the number of books fetched', async function() {
-        const [cli] = createTestCLI();
-
-        const ids: BookID[] = [];
-
-        override(cli.repo, 'getReadBooks', function(id) {
-          return Promise.resolve([
-            createReadBook({ bookID: '2' }),
-            createReadBook({ bookID: '3' })
-          ]);
+      it('can limit the number of synced books', async function() {
+        await checkRecentBooks(async function(cli) {
+          await cli.syncBooks();
         });
-
-        override(cli.repo, 'getBook', function(id) {
-          ids.push(id);
-          return Promise.resolve(createBook());
-        });
-
-        await cli.syncBooks(1);
-
-        assert.deepEqual(ids, ['2']);
       });
 
     });
@@ -350,6 +385,14 @@ describe('cli', function() {
         assert.deepEqual(readOutput(), ['alfa', '', 'publishers']);
       });
 
+    });
+
+    it('can limit the number of summarized books', async function() {
+      override(summary, 'summarizeBookshelf', () => []);
+
+      await checkRecentBooks(async function(cli) {
+        await cli.summarize();
+      });
     });
 
   });

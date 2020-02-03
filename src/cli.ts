@@ -5,6 +5,7 @@ import { findRecommendedBooks, summarizeRecommendedBooks } from './search/books'
 import { findSimilarReaders, summarizeSimilarReaders } from './search/readers';
 import { Logger } from './logger';
 import { OutputHandler } from './types/system';
+import { ReadBook } from './types/core';
 import { Repository } from './repository';
 import { runSequence } from './flow';
 import { SectionID, summarizeBookshelf } from './summary';
@@ -13,6 +14,7 @@ import { UserID } from './types/goodreads';
 interface CLIOptions {
   config: Configuration;
   logger: Logger;
+  recentBooks?: number;
   repo: Repository;
   userID: UserID;
   writeOutput: OutputHandler;
@@ -24,6 +26,7 @@ export class CLI {
   readonly logger: Logger;
   readonly repo: Repository;
 
+  private recentBooks?: number;
   private userID: UserID;
   private writeOutput: OutputHandler;
 
@@ -33,12 +36,14 @@ export class CLI {
   constructor({
     config,
     logger,
+    recentBooks,
     repo,
     userID,
     writeOutput
   }: CLIOptions) {
     this.config = config;
     this.logger = logger;
+    this.recentBooks = recentBooks;
     this.repo = repo;
     this.userID = userID;
     this.writeOutput = writeOutput;
@@ -49,20 +54,23 @@ export class CLI {
    */
   async findBooks({
     coreBookIDs,
+    limit,
     minRating,
     percentile,
     shelves
   }: {
     coreBookIDs?: string[];
+    limit?: number;
     minRating: number;
     percentile: number;
     shelves?: string[];
   }): Promise<void> {
-    const readBooks = await this.repo.getReadBooks(this.userID);
+    const readBooks = await this.getReadBooks();
 
     const recommended = await findRecommendedBooks({
       config: this.config,
       coreBookIDs,
+      limit,
       minRating,
       percentile,
       readBooks,
@@ -89,7 +97,7 @@ export class CLI {
     maxReviews: number;
     minBooks?: number;
   }): Promise<void> {
-    let readBooks = await this.repo.getReadBooks(this.userID);
+    let readBooks = await this.getReadBooks();
 
     if (bookIDs && bookIDs.length) {
       readBooks = bookIDs.map(function(bookID) {
@@ -122,16 +130,10 @@ export class CLI {
   /**
    * Sync data on read books from Goodreads
    */
-  async syncBooks(recent?: number): Promise<void> {
-    let readBooks = await this.repo.getReadBooks(this.userID);
-
-    if (recent !== undefined) {
-      readBooks = readBooks.slice(0, recent);
-    }
-
+  async syncBooks(): Promise<void> {
     await runSequence(
       ['Sync books'],
-      readBooks,
+      await this.getReadBooks(),
       this.logger,
       readBook => this.repo.getBook(readBook.bookID)
     );
@@ -147,7 +149,7 @@ export class CLI {
     sections?: SectionID[];
     shelves?: string[];
   } = {}): Promise<void> {
-    const readBooks = await this.repo.getReadBooks(this.userID);
+    const readBooks = await this.getReadBooks();
 
     const books = await this.repo.getLocalBooks(readBooks.map(b => b.bookID));
     const bookshelf = createBookshelf(books, this.config);
@@ -158,6 +160,15 @@ export class CLI {
     );
 
     this.writeOutput(summarySections.join('\n\n'));
+  }
+
+  /**
+   * Get the current user's read books
+   */
+  private getReadBooks(): Promise<ReadBook[]> {
+    return this.repo.getReadBooks(this.userID, {
+      recent: this.recentBooks
+    });
   }
 
 }
