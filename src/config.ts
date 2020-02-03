@@ -18,6 +18,26 @@ const ENV_VARS = {
   goodreadsUserID: 'GREADY_GOODREADS_USER_ID'
 };
 
+type EnvironmentConfig = Record<string, string>;
+
+/**
+ * Produce a mapping of required environment-variable names to values
+ */
+export function getRequiredEnvironmentVariables(): EnvironmentConfig {
+  return getRequiredEnvironmentVariableNames().reduce(function(previous: EnvironmentConfig, varName) {
+    previous[varName] = getEnvironmentVariable(varName) || '';
+
+    return previous;
+  }, {});
+}
+
+/**
+ * Whether all required environment variables have a value
+ */
+export function hasRequiredEnvironmentVariables(): boolean {
+  return Object.values(getRequiredEnvironmentVariables()).every(Boolean);
+}
+
 /**
  * Get the names of all required environment variables
  */

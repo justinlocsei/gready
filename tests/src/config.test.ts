@@ -13,7 +13,9 @@ import {
   getGoodreadsAPIKey,
   getGoodreadsUserID,
   getRequiredEnvironmentVariableNames,
+  getRequiredEnvironmentVariables,
   hasGoodreadsAPIKey,
+  hasRequiredEnvironmentVariables,
   loadConfig
 } from '../../src/config';
 
@@ -107,6 +109,20 @@ describe('config', function() {
 
   });
 
+  describe('getRequiredEnvironmentVariables', function() {
+
+    it('returns a mapping of required variable names to values', function() {
+      override(system, 'getEnvironmentVariable', v => v);
+
+      const varNames = getRequiredEnvironmentVariableNames();
+      const env = getRequiredEnvironmentVariables();
+
+      assert.deepEqual(Object.keys(env), varNames);
+      assert.deepEqual(Object.values(env), varNames);
+    });
+
+  });
+
   describe('hasGoodreadsAPIKey', function() {
 
     it('returns true when the environment variable is set', function() {
@@ -121,6 +137,25 @@ describe('config', function() {
       override(system, 'getEnvironmentVariable', v => undefined);
 
       assert.isFalse(hasGoodreadsAPIKey());
+    });
+
+  });
+
+  describe('hasRequiredEnvironmentVariables', function() {
+
+    it('returns true when the all variables have a value', function() {
+      override(system, 'getEnvironmentVariable', v => v);
+      assert.isTrue(hasRequiredEnvironmentVariables());
+    });
+
+    it('returns false when one or more required variables lack a value', function() {
+      const [varName] = getRequiredEnvironmentVariableNames();
+
+      override(system, 'getEnvironmentVariable', v => v === varName ? v : undefined);
+      assert.isFalse(hasRequiredEnvironmentVariables());
+
+      override(system, 'getEnvironmentVariable', v => '');
+      assert.isFalse(hasRequiredEnvironmentVariables());
     });
 
   });
