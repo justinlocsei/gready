@@ -5,7 +5,7 @@ import path from 'path';
 import { captureConsoleOutput } from './system';
 import { formatJSON } from './serialization';
 import { OperationalError } from './errors';
-import { paths, resolveRequire } from './environment';
+import { paths } from './environment';
 
 interface ValidatorFile {
   content: string;
@@ -108,4 +108,24 @@ function generateValidatorCode(
   });
 
   return lines.join('\n');
+}
+
+/**
+ * Determine the path to require a source file from a directory
+ */
+function resolveRequire(
+  rootDir: string,
+  filePath: string,
+  extension?: string
+): string {
+  const relative = path
+    .relative(rootDir, filePath)
+    .split(path.win32.sep)
+    .join(path.posix.sep);
+
+  const requirePath = relative.match(/^\w/) ? `./${relative}` : relative;
+
+  return extension
+    ? requirePath.replace(new RegExp(`${extension}$`), '')
+    : requirePath;
 }

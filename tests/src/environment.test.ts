@@ -7,8 +7,7 @@ import assert from '../helpers/assert';
 import {
   extractArgs,
   paths,
-  prepareDataDirectory,
-  resolveRequire
+  prepareDataDirectory
 } from '../../src/environment';
 
 describe('environment', function() {
@@ -73,31 +72,6 @@ describe('environment', function() {
       const second = await prepareDataDirectory(dirPath);
 
       assert.deepEqual(first, second);
-    });
-
-  });
-
-  describe('resolveRequire', function() {
-
-    it('resolves paths below the root', function() {
-      assert.equal(
-        resolveRequire('/root', '/root/file.ts'),
-        './file.ts'
-      );
-    });
-
-    it('resolves paths above the root', function() {
-      assert.equal(
-        resolveRequire('/root/dir', '/root/file.ts'),
-        '../file.ts'
-      );
-    });
-
-    it('can remove the extension', function() {
-      assert.equal(
-        resolveRequire('/root', '/root/file.ts', '.ts'),
-        './file'
-      );
     });
 
   });
