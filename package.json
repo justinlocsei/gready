@@ -5,7 +5,8 @@
   "scripts": {
     "build": "npm run build:clear && npm run generate-validators && npm run compile",
     "build:clear": "ts-node ./src/bin/clear-build.ts",
-    "build:verify": "mocha -r ts-node/register './tests/dist/**/*.test.ts'",
+    "build:verify": "mocha -r ts-node/register ./tests/dist/gready.test.ts",
+    "build:verify-api": "mocha -r ts-node/register ./tests/dist/goodreads.test.ts",
     "compile": "tsc --project tsconfig.build.json --outDir ./dist/",
     "generate-validators": "ts-node ./src/bin/generate-validators.ts",
     "lint": "npm run lint:code && npm run lint:types",
