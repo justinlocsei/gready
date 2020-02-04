@@ -12,12 +12,10 @@ npm install -g gready
 
 Gready uses the Goodreads API to get information on your reading history, and requires [a valid API key](https://www.goodreads.com/api/keys) and user ID.  To determine your user ID, visit the “My Books” page on Goodreads and take the number to the right of the final slash in the URL.
 
-Once you know your user ID and have a valid API key, you can define them as environment variables using the following shell commands:
+Once you’ve obtained these values, you can expose them to Gready by setting the following environment variables:
 
-```sh
-export GREADY_GOODREADS_API_KEY="<your Goodreads API key>"
-export GREADY_GOODREADS_USER_ID="<your Goodreads user ID>"
-```
+* `GREADY_GOODREADS_API_KEY`: Your Goodreads API key
+* `GREADY_GOODREADS_USER_ID`: Your Goodreads user ID
 
 With Gready installed and the required environment variables set, you can run the following commands to see Gready's recommendations based on your Goodreads reading history:
 
