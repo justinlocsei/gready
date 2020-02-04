@@ -7,8 +7,8 @@ import { paths } from '../../src/environment';
 
 describe('validators', function() {
 
-  this.slow(4000);
-  this.timeout(5000);
+  this.slow(9000);
+  this.timeout(10000);
 
   describe('generateValidator', function() {
 
