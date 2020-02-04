@@ -1,5 +1,5 @@
 import path from 'path';
-import tmp from 'tmp'
+import tmp from 'tmp';
 import { omit } from 'lodash';
 import { spawnSync } from 'child_process';
 

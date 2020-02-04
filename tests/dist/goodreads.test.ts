@@ -1,5 +1,5 @@
 import path from 'path';
-import tmp from 'tmp'
+import tmp from 'tmp';
 import { spawnSync } from 'child_process';
 
 import assert from '../helpers/assert';
