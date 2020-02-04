@@ -20,7 +20,7 @@ describe('bin/clear-build', function() {
     const plan = expectAssertions(1);
 
     override(scripts, 'removePaths', async function(title, removePaths) {
-      plan.assert(function() {
+      plan.checkpoint(function() {
         assert.isNotEmpty(removePaths);
 
         removePaths.forEach(function(removePath) {

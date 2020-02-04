@@ -14,7 +14,7 @@ describe('bin/gready', function() {
     override(system, 'getArgs', () => ['alfa', 'bravo']);
 
     override(gready, 'runCLI', async function({ args }) {
-      plan.assert(function() {
+      plan.checkpoint(function() {
         assert.deepEqual(args, ['alfa', 'bravo']);
       });
 

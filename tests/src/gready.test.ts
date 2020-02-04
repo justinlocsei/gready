@@ -95,13 +95,13 @@ describe('gready', function() {
     const plan = expectAssertions(2);
 
     await testCLI(['test'], async function(cli) {
-      plan.assert(function() {
+      plan.checkpoint(function() {
         assert.equal(cli.logger.level, 'info');
       });
     });
 
     await testCLI(['test', '--log-level', 'debug'], async function(cli) {
-      plan.assert(function() {
+      plan.checkpoint(function() {
         assert.equal(cli.logger.level, 'debug');
       });
     });
@@ -123,13 +123,13 @@ describe('gready', function() {
     const plan = expectAssertions(2);
 
     await testCLI(['test', '--color'], async function(cli) {
-      plan.assert(function() {
+      plan.checkpoint(function() {
         assert.isTrue(cli.logger.useColor);
       });
     });
 
     await testCLI(['test', '--no-color'], async function(cli) {
-      plan.assert(function() {
+      plan.checkpoint(function() {
         assert.isFalse(cli.logger.useColor);
       });
     });
@@ -141,13 +141,13 @@ describe('gready', function() {
     const plan = expectAssertions(2);
 
     await testCLI(['test', '--log-time'], async function(cli) {
-      plan.assert(function() {
+      plan.checkpoint(function() {
         assert.isTrue(cli.logger.showTime);
       });
     });
 
     await testCLI(['test', '--no-log-time'], async function(cli) {
-      plan.assert(function() {
+      plan.checkpoint(function() {
         assert.isFalse(cli.logger.showTime);
       });
     });
@@ -183,13 +183,13 @@ describe('gready', function() {
     const plan = expectAssertions(2);
 
     await testCLI(['test', '--cache-data'], async function(cli) {
-      plan.assert(function() {
+      plan.checkpoint(function() {
         assert.isTrue(cli.repo.cache.isEnabled);
       });
     });
 
     await testCLI(['test', '--no-cache-data'], async function(cli) {
-      plan.assert(function() {
+      plan.checkpoint(function() {
         assert.isFalse(cli.repo.cache.isEnabled);
       });
     });
@@ -201,13 +201,13 @@ describe('gready', function() {
     const plan = expectAssertions(2);
 
     await testCLI(['test', '--cache-responses'], async function(cli) {
-      plan.assert(function() {
+      plan.checkpoint(function() {
         assert.isTrue(cli.repo.apiClient.cache.isEnabled);
       });
     });
 
     await testCLI(['test', '--no-cache-responses'], async function(cli) {
-      plan.assert(function() {
+      plan.checkpoint(function() {
         assert.isFalse(cli.repo.apiClient.cache.isEnabled);
       });
     });
@@ -219,13 +219,13 @@ describe('gready', function() {
     const plan = expectAssertions(2);
 
     await testCLI(['test', '--shelf-percentile', '10'], async function(cli) {
-      plan.assert(function() {
+      plan.checkpoint(function() {
         assert.equal(cli.config.shelfPercentile, 10);
       });
     });
 
     await testCLI(['test', '--shelf-percentile', '20'], async function(cli) {
-      plan.assert(function() {
+      plan.checkpoint(function() {
         assert.equal(cli.config.shelfPercentile, 20);
       });
     });
@@ -248,13 +248,13 @@ describe('gready', function() {
     const plan = expectAssertions(2);
 
     await testCLI(['test', '--recent-books', '10'], async function(cli) {
-      plan.assert(function() {
+      plan.checkpoint(function() {
         assert.equal(cli.recentBooks, 10);
       });
     });
 
     await testCLI(['test', '--recent-books', '20'], async function(cli) {
-      plan.assert(function() {
+      plan.checkpoint(function() {
         assert.equal(cli.recentBooks, 20);
       });
     });
@@ -304,12 +304,12 @@ describe('gready', function() {
 
       await clearCache([], {
         onClearDataCache: function(namespaces) {
-          plan.assert(function() {
+          plan.checkpoint(function() {
             assert.isUndefined(namespaces);
           });
         },
         onClearResponseCache: function(namespaces) {
-          plan.assert(function() {
+          plan.checkpoint(function() {
             assert.isUndefined(namespaces);
           });
         }
@@ -323,12 +323,12 @@ describe('gready', function() {
 
       await clearCache(['--cache', 'data'], {
         onClearDataCache: function(namespaces) {
-          plan.assert(function() {
+          plan.checkpoint(function() {
             assert.isUndefined(namespaces);
           });
         },
         onClearResponseCache: function(namespaces) {
-          plan.assert(function() {
+          plan.checkpoint(function() {
             assert.fail('the response cache was incorrectly cleared');
           });
         }
@@ -350,12 +350,12 @@ describe('gready', function() {
           'bravo'
         ], {
           onClearDataCache: function(namespaces) {
-            plan.assert(function() {
+            plan.checkpoint(function() {
               assert.deepEqual(namespaces, ['alfa', 'bravo']);
             });
           },
           onClearResponseCache: function(namespaces) {
-            plan.assert(function() {
+            plan.checkpoint(function() {
               assert.fail('the response cache was incorrectly cleared');
             });
           }
@@ -393,7 +393,7 @@ describe('gready', function() {
       const plan = expectAssertions(1);
 
       await findBooks([], function({ coreBookIDs, minRating, percentile, shelves }) {
-        plan.assert(function() {
+        plan.checkpoint(function() {
           assert.isAbove(minRating, 0);
           assert.isAbove(percentile, 0);
 
@@ -409,13 +409,13 @@ describe('gready', function() {
       const plan = expectAssertions(2);
 
       await findBooks(['--min-rating', '2'], function({ minRating }) {
-        plan.assert(function() {
+        plan.checkpoint(function() {
           assert.equal(minRating, 2);
         });
       });
 
       await findBooks(['--min-rating', '3'], function({ minRating }) {
-        plan.assert(function() {
+        plan.checkpoint(function() {
           assert.equal(minRating, 3);
         });
       });
@@ -427,13 +427,13 @@ describe('gready', function() {
       const plan = expectAssertions(2);
 
       await findBooks(['--percentile', '10'], function({ percentile }) {
-        plan.assert(function() {
+        plan.checkpoint(function() {
           assert.equal(percentile, 10);
         });
       });
 
       await findBooks(['--percentile', '20'], function({ percentile }) {
-        plan.assert(function() {
+        plan.checkpoint(function() {
           assert.equal(percentile, 20);
         });
       });
@@ -445,7 +445,7 @@ describe('gready', function() {
       const plan = expectAssertions(1);
 
       await findBooks(['--book-id', '1', '--book-id', '2'], function({ coreBookIDs }) {
-        plan.assert(function() {
+        plan.checkpoint(function() {
           assert.deepEqual(coreBookIDs, ['1', '2']);
         });
       });
@@ -457,7 +457,7 @@ describe('gready', function() {
       const plan = expectAssertions(1);
 
       await findBooks(['--shelf', 'alfa', '--shelf', 'bravo'], function({ shelves }) {
-        plan.assert(function() {
+        plan.checkpoint(function() {
           assert.deepEqual(shelves, ['alfa', 'bravo']);
         });
       });
@@ -500,7 +500,7 @@ describe('gready', function() {
       const plan = expectAssertions(1);
 
       await findReaders([], function({ bookIDs, maxReviews, minBooks }) {
-        plan.assert(function() {
+        plan.checkpoint(function() {
           assert.isAbove(maxReviews, 0);
 
           assert.isUndefined(bookIDs);
@@ -515,13 +515,13 @@ describe('gready', function() {
       const plan = expectAssertions(2);
 
       await findReaders(['--reviews', '2'], function({ maxReviews }) {
-        plan.assert(function() {
+        plan.checkpoint(function() {
           assert.equal(maxReviews, 2);
         });
       });
 
       await findReaders(['--reviews', '3'], function({ maxReviews }) {
-        plan.assert(function() {
+        plan.checkpoint(function() {
           assert.equal(maxReviews, 3);
         });
       });
@@ -533,13 +533,13 @@ describe('gready', function() {
       const plan = expectAssertions(2);
 
       await findReaders(['--min-books', '2'], function({ minBooks }) {
-        plan.assert(function() {
+        plan.checkpoint(function() {
           assert.equal(minBooks, 2);
         });
       });
 
       await findReaders(['--min-books', '3'], function({ minBooks }) {
-        plan.assert(function() {
+        plan.checkpoint(function() {
           assert.equal(minBooks, 3);
         });
       });
@@ -551,7 +551,7 @@ describe('gready', function() {
       const plan = expectAssertions(1);
 
       await findReaders(['--book-id', '1', '--book-id', '2'], function({ bookIDs }) {
-        plan.assert(function() {
+        plan.checkpoint(function() {
           assert.deepEqual(bookIDs, ['1', '2']);
         });
       });
@@ -628,7 +628,7 @@ describe('gready', function() {
       await summarize([], function(options = {}) {
        const { sections, shelves } = options;
 
-        plan.assert(function() {
+        plan.checkpoint(function() {
           assert.isUndefined(sections);
           assert.isUndefined(shelves);
         });
@@ -641,7 +641,7 @@ describe('gready', function() {
       const plan = expectAssertions(1);
 
       await summarize(['--section', 'publishers', '--section', 'shelves'], function(options = {}) {
-        plan.assert(function() {
+        plan.checkpoint(function() {
           assert.deepEqual(options.sections, ['publishers', 'shelves']);
         });
       });
@@ -660,7 +660,7 @@ describe('gready', function() {
       const plan = expectAssertions(1);
 
       await summarize(['--shelf', 'alfa', '--shelf', 'bravo'], function(options = {}) {
-        plan.assert(function() {
+        plan.checkpoint(function() {
           assert.deepEqual(options.shelves, ['alfa', 'bravo']);
         });
       });
@@ -689,9 +689,7 @@ describe('gready', function() {
       const plan = expectAssertions(1);
 
       await syncBooks([], function() {
-        plan.assert(function() {
-          plan.checkpoint();
-        });
+        plan.checkpoint();
       });
 
       plan.verify();

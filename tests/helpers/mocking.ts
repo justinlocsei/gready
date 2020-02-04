@@ -21,23 +21,18 @@ export function allowOverrides(suite: Mocha.Suite) {
   });
 
   function expectAssertions(count: number) {
-    const assertions: (undefined | (() => void))[] = [];
+    let assertions = 0;
 
     return {
-      assert: function(assertion: () => void) {
-        assertions.push(assertion);
-      },
-      checkpoint: function() {
-        assertions.push(undefined);
+      checkpoint: function(runAction?: () => void) {
+        if (runAction) {
+          runAction();
+        }
+
+        assertions++;
       },
       verify: function() {
-        assert.equal(assertions.length, count, 'The expected number of assertions was not made');
-
-        assertions.forEach(function(assertion) {
-          if (assertion) {
-            assertion();
-          }
-        });
+        assert.equal(assertions, count, 'The expected number of assertions was not made');
       }
     };
   }

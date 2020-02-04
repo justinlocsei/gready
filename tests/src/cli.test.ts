@@ -51,7 +51,7 @@ describe('cli', function() {
       const [high] = createTestCLI({ recentBooks: 10 });
 
       override(low.repo, 'getReadBooks', function(_, options = {}) {
-        plan.assert(function() {
+        plan.checkpoint(function() {
           assert.equal(options.recent, 1);
         });
 
@@ -59,7 +59,7 @@ describe('cli', function() {
       });
 
       override(high.repo, 'getReadBooks', function(_, options = {}) {
-        plan.assert(function() {
+        plan.checkpoint(function() {
           assert.equal(options.recent, 10);
         });
 
