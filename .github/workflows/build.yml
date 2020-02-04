@@ -4,7 +4,7 @@ on:
   - push
 
 jobs:
-  build:
+  verify:
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -32,3 +32,24 @@ jobs:
 
       - name: Verify the build
         run: npm run build:verify
+
+  verify-api:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Install Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+
+      - name: Build the app
+        run: |
+          npm install
+          npm run build
+
+      - name: Verify Goodreads API integration
+        run: npm run build:verify-api
+        env:
+          GREADY_GOODREADS_API_KEY: ${{ secrets.GREADY_GOODREADS_API_KEY }}

@@ -1,12 +1,11 @@
-name: Tests
+name: Test
 
 on:
   - push
 
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v1
 
@@ -15,10 +14,31 @@ jobs:
         with:
           node-version: 12
 
-      - name: Build the app
+      - name: Install the app
         run: |
           npm install
-          npm run build
+          npm run test:prepare
+
+      - name: Lint code
+        run: npm run lint:code
+
+      - name: Lint types
+        run: npm run lint:types
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Install Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+
+      - name: Install the app
+        run: |
+          npm install
+          npm run test:prepare
 
       - name: Run tests
         run: npm run test:enforce-coverage
