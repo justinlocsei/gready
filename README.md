@@ -1,6 +1,6 @@
 # Gready
 
-Gready is a CLI tool that uses your Goodreads reading history to recommend books and find Goodreads users with similar interests.
+Gready is a command-line tool that uses your Goodreads reading history to recommend books and find Goodreads users with similar interests.
 
 ## Usage
 
