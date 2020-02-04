@@ -17,7 +17,7 @@ Once you’ve obtained these values, you can expose them to Gready by setting th
 * `GREADY_GOODREADS_API_KEY`: Your Goodreads API key
 * `GREADY_GOODREADS_USER_ID`: Your Goodreads user ID
 
-With Gready installed and the required environment variables set, you can run the following commands to see Gready's recommendations based on your Goodreads reading history:
+With Gready installed and the required environment variables set, you can run the following commands to see Gready’s recommendations based on your Goodreads reading history:
 
 ```sh
 # Create a local copy of your Goodreads reading history
