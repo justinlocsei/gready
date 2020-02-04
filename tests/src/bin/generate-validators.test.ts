@@ -15,7 +15,7 @@ describe('bin/generate-validators', function() {
   this.slow(9000);
   this.timeout(10000);
 
-  const { override } = allowOverrides(this);
+  const override = allowOverrides(this);
 
   let backupDir: string | undefined;
 

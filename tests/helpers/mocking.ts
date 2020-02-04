@@ -1,8 +1,6 @@
 import sinon from 'sinon';
 import { isFunction } from 'lodash';
 
-import assert from './assert';
-
 /**
  * Expose functions for overriding behavior in tests
  */
@@ -20,24 +18,7 @@ export function allowOverrides(suite: Mocha.Suite) {
     }
   });
 
-  function expectAssertions(count: number) {
-    let assertions = 0;
-
-    return {
-      checkpoint: function(runAction?: () => void) {
-        if (runAction) {
-          runAction();
-        }
-
-        assertions++;
-      },
-      verify: function() {
-        assert.equal(assertions, count, 'The expected number of assertions was not made');
-      }
-    };
-  }
-
-  function override<T extends object, K extends keyof T>(
+  return function<T extends object, K extends keyof T>(
     object: T,
     property: K,
     impl: T[K] extends (...args: infer U) => infer V ? (...args: U) => V : T[K]
@@ -68,11 +49,6 @@ export function allowOverrides(suite: Mocha.Suite) {
     }
 
     objStubs.set(property, replacement);
-  }
-
-  return {
-    expectAssertions,
-    override
   };
 }
 

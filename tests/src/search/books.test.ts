@@ -10,7 +10,7 @@ import { UserConfiguration } from '../../../src/types/config';
 
 describe('search/books', function() {
 
-  const { override } = allowOverrides(this);
+  const override = allowOverrides(this);
 
   describe('findRecommendedBooks', function() {
 

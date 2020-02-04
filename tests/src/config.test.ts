@@ -21,7 +21,7 @@ const tmpFileAsync = promisify(tmp.file);
 
 describe('config', function() {
 
-  const { override } = allowOverrides(this);
+  const override = allowOverrides(this);
 
   describe('buildConfig', function() {
 

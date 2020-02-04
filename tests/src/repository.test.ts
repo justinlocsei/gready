@@ -12,7 +12,7 @@ import { UserConfiguration } from '../../src/types/config';
 
 describe('repository', function() {
 
-  const { override } = allowOverrides(this);
+  const override = allowOverrides(this);
 
   describe('Repository', function() {
 

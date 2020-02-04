@@ -15,7 +15,7 @@ import { URLS } from '../../src/goodreads';
 
 describe('api-client', function() {
 
-  const { override } = allowOverrides(this);
+  const override = allowOverrides(this);
 
   describe('APIClient', function() {
 

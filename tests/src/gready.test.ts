@@ -3,14 +3,14 @@ import tmp from 'tmp';
 import * as config from '../../src/config';
 import * as libCLI from '../../src/cli';
 import * as system from '../../src/system';
-import assert from '../helpers/assert';
+import assert, { expectAssertions } from '../helpers/assert';
 import { allowOverrides } from '../helpers/mocking';
 import { createOutputHandler, createTestConfig } from '../helpers';
 import { runCLI } from '../../src/gready';
 
 describe('gready', function() {
 
-  const { expectAssertions, override } = allowOverrides(this);
+  const override = allowOverrides(this);
 
   async function testCLI(
     args?: string[],

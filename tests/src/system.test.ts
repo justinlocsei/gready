@@ -17,7 +17,7 @@ import {
 
 describe('system', function() {
 
-  const { override } = allowOverrides(this);
+  const override = allowOverrides(this);
 
   describe('captureConsoleOutput', function() {
 

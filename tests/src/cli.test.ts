@@ -4,7 +4,7 @@ import * as booksSearch from '../../src/search/books';
 import * as Core from '../../src/types/core';
 import * as readersSearch from '../../src/search/readers';
 import * as summary from '../../src/summary';
-import assert from '../helpers/assert';
+import assert, { expectAssertions } from '../helpers/assert';
 import { allowOverrides } from '../helpers/mocking';
 import { BookID, UserID } from '../../src/types/goodreads';
 import { createBook, createReadBook, createUser } from '../helpers/factories';
@@ -15,7 +15,7 @@ import { OutputHandler } from '../../src/types/system';
 
 describe('cli', function() {
 
-  const { expectAssertions, override } = allowOverrides(this);
+  const override = allowOverrides(this);
 
   describe('CLI', function() {
 

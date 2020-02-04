@@ -9,7 +9,7 @@ import { findSimilarReaders, summarizeSimilarReaders } from '../../../src/search
 
 describe('search/readers', function() {
 
-  const { override } = allowOverrides(this);
+  const override = allowOverrides(this);
 
   describe('findSimilarReaders', function() {
 

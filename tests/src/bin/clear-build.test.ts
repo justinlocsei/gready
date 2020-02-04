@@ -2,14 +2,14 @@ import fs from 'fs-extra';
 import path from 'path';
 
 import * as scripts from '../../../src/scripts';
-import assert from '../../helpers/assert';
+import assert, { expectAssertions } from '../../helpers/assert';
 import { allowOverrides } from '../../helpers/mocking';
 import { paths } from '../../../src/environment';
 import { run } from '../../../src/bin/clear-build';
 
 describe('bin/clear-build', function() {
 
-  const { expectAssertions, override } = allowOverrides(this);
+  const override = allowOverrides(this);
 
   it('clears transient build paths', async function() {
     const ignoredPaths = fs.readFileSync(paths.gitignore, 'utf8')
