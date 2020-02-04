@@ -1,7 +1,7 @@
 {
   "name": "gready",
   "version": "0.1.0",
-  "description": "A recommendation engine built on the Goodreads API",
+  "description": "A CLI tool that uses your Goodreads reading history to recommend books and find Goodreads users with similar interests",
   "scripts": {
     "build": "npm run build:clear && npm run generate-validators && npm run compile",
     "build:clear": "ts-node ./src/bin/clear-build.ts",

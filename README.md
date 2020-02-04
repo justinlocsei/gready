@@ -1,6 +1,6 @@
 # Gready
 
-Gready is a CLI tool that makes recommendations based on your Goodreads reviews.
+Gready is a CLI tool that uses your Goodreads reading history to recommend books and find Goodreads users with similar interests.
 
 ## Usage
 
@@ -29,7 +29,7 @@ gready summarize
 # Generate a list of book recommendations
 gready find-books
 
-# Generate a list of Goodreads users with similar tastes
+# Generate a list of Goodreads users with similar interests
 gready find-readers
 ```
 
@@ -139,7 +139,7 @@ gready find-books --limit=5
 ### find-readers
 
 ```sh
-# Generate a list of Goodreads users with similar tastes
+# Generate a list of Goodreads users with similar interests
 gready find-readers
 
 # Only show users who have given at least three books the same rating as you
