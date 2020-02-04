@@ -127,6 +127,9 @@ gready find-books --percentile=90
 
 # Only generate recommendations for fantasy books
 gready find-books --shelf=fantasy
+
+# Only show the top five recommendations
+gready find-books --limit=5
 ```
 
 ### find-readers
@@ -159,7 +162,7 @@ gready show-cache-stats
 gready sync-books
 
 # Only sync data for your five most recently read books
-gready sync-books --recent=5
+gready sync-books --recent-books=5
 ```
 
 ### summarize
