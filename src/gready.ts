@@ -39,6 +39,7 @@ interface CoreOptions {
   'data-dir': string;
   'log-level': string;
   'log-time': boolean;
+  'recent-books'?: CLINumber;
   'shelf-percentile'?: CLINumber;
 }
 
@@ -49,6 +50,7 @@ interface ClearCacheOptions extends CoreOptions {
 
 interface FindBooksOptions extends CoreOptions {
   'book-id'?: CLIArray;
+  limit?: CLINumber;
   'min-rating': CLINumber;
   percentile: CLINumber;
   'shelf'?: CLIArray;
@@ -65,18 +67,21 @@ interface SummarizeOptions extends CoreOptions {
   shelf?: CLIArray;
 }
 
-interface SyncBooksOptions extends CoreOptions {
-  recent?: CLINumber;
-}
-
 type CommandOptions =
   | { command: 'clear-cache'; options: ClearCacheOptions; }
   | { command: 'find-books'; options: FindBooksOptions; }
   | { command: 'find-readers'; options: FindReadersOptions; }
   | { command: 'show-cache-stats'; options: CoreOptions; }
   | { command: 'summarize'; options: SummarizeOptions; }
-  | { command: 'sync-books'; options: SyncBooksOptions; }
+  | { command: 'sync-books'; options: CoreOptions; }
   | { command: 'test'; options: CoreOptions; }
+
+/**
+ * A function used for a command that lacks extra options
+ */
+function useCoreOptions(options: yargs.Argv<CoreOptions>): yargs.Argv<CoreOptions> {
+  return options;
+}
 
 /**
  * Parse command-line arguments
@@ -84,59 +89,66 @@ type CommandOptions =
 function parseCLIArgs(args: string[]): Promise<CommandOptions> {
   return new Promise(function(resolve, reject) {
     yargs
-     .option('cache-data', {
-        default: true,
-        describe: 'Cache normalized data',
-        type: 'boolean'
-      })
-      .option('cache-responses', {
-        default: true,
-        describe: 'Cache responses to Goodreads API requests',
-        type: 'boolean'
-      })
-      .option('color', {
-        default: true,
-        describe: 'Use colored output',
-        type: 'boolean'
-      })
-      .option('config', {
-        describe: 'A path to a JSON configuration file',
-        type: 'string'
-      })
-      .option('data-dir', {
-        default: path.join(os.homedir(), '.gready'),
-        describe: 'The directory in which to store all files created by gready',
-        type: 'string'
-      })
-      .option('log-level', {
-        choices: getLevelNames(),
-        default: DEFAULT_LEVEL,
-        describe: 'The log level to use',
-        type: 'string'
-      })
-      .option('log-time', {
-        default: false,
-        describe: 'Show the elapsed time between log entries',
-        type: 'boolean'
-      })
-      .option('shelf-percentile', {
-        describe: 'The minimum per-book and global percentile required for a shelf to be shown',
-        type: 'number'
+      .options({
+        'cache-data': {
+          default: true,
+          describe: 'Cache normalized data',
+          type: 'boolean'
+        },
+        'cache-responses': {
+          default: true,
+          describe: 'Cache responses to Goodreads API requests',
+          type: 'boolean'
+        },
+        'color': {
+          default: true,
+          describe: 'Use colored output',
+          type: 'boolean'
+        },
+        'config': {
+          describe: 'A path to a JSON configuration file',
+          type: 'string'
+        },
+        'data-dir': {
+          default: path.join(os.homedir(), '.gready'),
+          describe: 'The directory in which to store all files created by gready',
+          type: 'string'
+        },
+        'log-level': {
+          choices: getLevelNames(),
+          default: DEFAULT_LEVEL,
+          describe: 'The log level to use',
+          type: 'string'
+        },
+        'log-time': {
+          default: false,
+          describe: 'Show the elapsed time between log entries',
+          type: 'boolean'
+        },
+        'recent-books': {
+          describe: 'The number of recent books for which to fetch data',
+          type: 'number'
+        },
+        'shelf-percentile': {
+          describe: 'The minimum per-book and global percentile required for a shelf to be shown',
+          type: 'number'
+        }
       })
       .command(
         'clear-cache',
         'Clear the cache',
         function(opts) {
-          return opts
-            .option('cache', {
+          return opts.options({
+            'cache': {
               choices: CACHE_NAMES,
               describe: 'A specific cache to clear',
               type: 'string'
-            })
-            .option('namespace', {
+            },
+            'namespace': {
               describe: 'A specific namespace to clear',
               type: 'array'
-            });
+            }
+          });
         },
         options => resolve({ command: 'clear-cache', options })
       )
@@ -144,25 +156,30 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
         'find-books',
         'Find recommended books',
         function(opts) {
-          return opts
-            .option('book-id', {
+          return opts.options({
+            'book-id': {
               describe: 'The ID of a book that must be related to the recommended books',
               type: 'array'
-            })
-            .option('min-rating', {
+            },
+            'limit': {
+              describe: 'The maximum number of books to show',
+              type: 'number'
+            },
+            'min-rating': {
               default: 3,
               describe: 'The minimum rating a read book must have in order to generate recommendations',
               type: 'number'
-            })
-            .option('percentile', {
+            },
+            'percentile': {
               default: 75,
               describe: 'The minimum percentile of recommendations to show',
               type: 'number'
-            })
-            .option('shelf', {
+            },
+            'shelf': {
               describe: 'A shelf in which a book must appear in order to be used as a source of recommendations',
               type: 'array'
-            });
+            }
+          });
         },
         options => resolve({ command: 'find-books', options })
       )
@@ -170,62 +187,58 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
         'find-readers',
         'Find readers with similar tastes',
         function(opts) {
-          return opts
-            .option('book-id', {
+          return opts.options({
+            'book-id': {
               describe: 'The ID of a book that readers must have rated',
               type: 'array'
-            })
-            .option('min-books', {
+            },
+            'min-books': {
               describe: 'The minimum number of shared books required to show a reader',
               type: 'number'
-            })
-            .option('reviews', {
+            },
+            'reviews': {
               default: 10,
               describe: 'The maximum number of reviews per book to query',
               type: 'number'
-            });
+            }
+          });
         },
         options => resolve({ command: 'find-readers', options })
       )
       .command(
         'sync-books',
         'Populate a local cache of data about your read books using the Goodreads API',
-        function(opts) {
-          return opts
-            .option('recent', {
-              describe: 'The number of recently read books for which to fetch data',
-              type: 'number'
-            });
-        },
+        useCoreOptions,
         options => resolve({ command: 'sync-books', options })
       )
       .command(
         'show-cache-stats',
         'Show information on the available caches',
-        opts => opts,
+        useCoreOptions,
         options => resolve({ command: 'show-cache-stats', options })
       )
       .command(
         'summarize',
         'Summarize your read books that are available in the local cache',
         function(opts) {
-          return opts
-            .option('section', {
+          return opts.options({
+            'section': {
               choices: SECTION_IDS,
               describe: 'A specific section to show',
               type: 'array'
-            })
-            .option('shelf', {
+            },
+            'shelf': {
               describe: 'A shelf that must be associated with any summarized book',
               type: 'array'
-            });
+            }
+          });
         },
         options => resolve({ command: 'summarize', options })
       )
       .command(
         'test',
         'Test that gready can run',
-        opts => opts,
+        useCoreOptions,
         options => resolve({ command: 'test', options })
       )
       .demandCommand(1, 'You must specify a subcommand')
@@ -362,9 +375,14 @@ async function startCLI(cliOptions: Required<CLIOptions>): Promise<void> {
     logger
   });
 
+  const recentBooks = 'recent-books' in parsed.options
+    ? ensureNumericWhenPresent(parsed.options, 'recent-books')
+    : undefined;
+
   const cli = await createCLI({
     config,
     logger,
+    recentBooks,
     repo,
     userID: getGoodreadsUserID(),
     writeOutput: cliOptions.writeToStdout
@@ -381,6 +399,7 @@ async function startCLI(cliOptions: Required<CLIOptions>): Promise<void> {
     case 'find-books':
       return cli.findBooks({
         coreBookIDs: maybeMap(parsed.options['book-id'], s => s.toString()),
+        limit: ensureNumericWhenPresent(parsed.options, 'limit'),
         minRating: ensureNumeric(parsed.options, 'min-rating'),
         percentile: ensureNumeric(parsed.options, 'percentile'),
         shelves: maybeMap(parsed.options['shelf'], s => s.toString())
@@ -405,7 +424,7 @@ async function startCLI(cliOptions: Required<CLIOptions>): Promise<void> {
       });
 
     case 'sync-books':
-      return cli.syncBooks(ensureNumericWhenPresent(parsed.options, 'recent'));
+      return cli.syncBooks();
 
     case 'test':
       return;

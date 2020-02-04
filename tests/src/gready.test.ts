@@ -244,6 +244,35 @@ describe('gready', function() {
     assert.match(withString.stderr, /--shelf-percentile option must be a number/);
   });
 
+  it('respects a number of recent books', async function() {
+    const plan = expectAssertions(2);
+
+    await testCLI(['test', '--recent-books', '10'], async function(cli) {
+      plan.assert(function() {
+        assert.equal(cli.recentBooks, 10);
+      });
+    });
+
+    await testCLI(['test', '--recent-books', '20'], async function(cli) {
+      plan.assert(function() {
+        assert.equal(cli.recentBooks, 20);
+      });
+    });
+
+    plan.verify();
+  });
+
+  it('ensures that the number of recent books is numeric', async function() {
+    const withString = await testCLI(['test', '--recent-books', 'ten']);
+    const withNumber = await testCLI(['test', '--recent-books', '10']);
+
+    assert.isFalse(withString.succeeded);
+    assert.isTrue(withNumber.succeeded);
+
+    assert.isEmpty(withNumber.stderr);
+    assert.match(withString.stderr, /--recent-books option must be a number/);
+  });
+
   describe('clear-cache', function() {
 
     type FakeClearCache = (ns: string[] | undefined) => void;
@@ -645,12 +674,12 @@ describe('gready', function() {
 
     function syncBooks(
       args: string[],
-      checkArgs?: (recent?: number) => void
+      checkArgs?: () => void
     ) {
       return testCLI(['sync-books', ...args], async function(cli) {
-        override(cli, 'syncBooks', async function(recent) {
+        override(cli, 'syncBooks', async function() {
           if (checkArgs) {
-            checkArgs(recent);
+            checkArgs();
           }
         });
       });
@@ -659,38 +688,13 @@ describe('gready', function() {
     it('syncs a user’s books', async function() {
       const plan = expectAssertions(1);
 
-      await syncBooks([], function(recent) {
+      await syncBooks([], function() {
         plan.assert(function() {
-          assert.isUndefined(recent);
+          plan.checkpoint();
         });
       });
 
       plan.verify();
-    });
-
-    it('respects the recent number of books', async function() {
-      const plan = expectAssertions(2);
-
-      await syncBooks(['--recent', '2'], function(recent) {
-        plan.assert(function() {
-          assert.equal(recent, 2);
-        });
-      });
-
-      await syncBooks(['--recent', '3'], function(recent) {
-        plan.assert(function() {
-          assert.equal(recent, 3);
-        });
-      });
-
-      plan.verify();
-    });
-
-    it('ensures that the number of recent books is numeric', async function() {
-      const { stderr, succeeded } = await syncBooks(['--recent', 'two']);
-
-      assert.isFalse(succeeded);
-      assert.match(stderr, /--recent option must be a number/);
     });
 
   });
