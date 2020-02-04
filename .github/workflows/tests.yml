@@ -1,0 +1,27 @@
+name: Tests
+
+on:
+  - push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Install Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+
+      - name: Build the app
+        run: |
+          npm install
+          npm run build
+
+      - name: Run tests
+        run: npm run test
+
+      - name: Check test coverage
+        run: npm run test:enforce-coverage

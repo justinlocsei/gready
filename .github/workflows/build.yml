@@ -1,0 +1,34 @@
+name: Build
+
+on:
+  - push
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+          - windows-latest
+        node-version:
+          - 10
+          - 12
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Install Node ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Build the app
+        run: |
+          npm install
+          npm run build
+
+      - name: Verify the build
+        run: npm run build:verify
