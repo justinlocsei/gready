@@ -10,7 +10,7 @@
     "compile": "tsc --project tsconfig.build.json --outDir ./dist/",
     "generate-validators": "ts-node ./src/bin/generate-validators.ts",
     "lint": "npm run lint:code && npm run lint:types",
-    "lint:code": "eslint ./bin/* ./src/ ./tests/ --ext .ts; true",
+    "lint:code": "eslint './bin/*' ./src/ ./tests/ --ext .ts; true",
     "lint:types": "tsc --noEmit; true",
     "prepublishOnly": "npm run build",
     "test": "mocha -r ts-node/register --file ./tests/helpers/mocha.ts './tests/src/**/*.test.ts'",
