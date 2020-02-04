@@ -166,6 +166,14 @@ describe('config', function() {
       assert.equal(config.shelfPercentile, 0);
     });
 
+    it('can load a possibly missing config file', async function() {
+      const configPath = await createConfig({ ignoreAuthors: ['Author'] });
+      const config = await loadConfig(configPath, { allowMissing: true });
+
+      assert.deepEqual(config.ignoreAuthors, ['Author']);
+      assert.deepEqual(config.ignoreShelves, []);
+    });
+
     it('supports partial configs', async function() {
       const configPath = await createConfig({
         ignoreShelves: ['shelf']
