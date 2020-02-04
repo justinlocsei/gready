@@ -21,7 +21,4 @@ jobs:
           npm run build
 
       - name: Run tests
-        run: npm run test
-
-      - name: Check test coverage
         run: npm run test:enforce-coverage
