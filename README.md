@@ -33,6 +33,12 @@ gready find-books
 gready find-readers
 ```
 
+Each of the above commands writes Markdown to `stdout`, allowing you to pipe any command’s output to a file that you can open in a Markdown viewer.  For example, to create a file containing the summary of your reading history, you could run the following command:
+
+```sh
+gready summarize > summary.md
+```
+
 ### Configuration
 
 The recommendations made by Gready can be controlled via a JSON configuration file that allows you to filter and customize book data.  Gready looks for a configuration file at `~/.greadyrc` by default, but you can specify a different path by passing the `--config=<path-to-file>` option to any Gready command.  An example configuration file with explanatory comments is shown below:
