@@ -21,7 +21,8 @@ describe('environment', function() {
         [['/bin/node', 'file.ts', 'alfa'], ['alfa']],
         [['/bin/node', 'file.ts', 'alfa', 'bravo'], ['alfa', 'bravo']],
         [['/usr/bin/node', 'file.ts', 'alfa'], ['alfa']],
-        [['/bin/node', 'file.ts', 'node'], ['node']]
+        [['/bin/node', 'file.ts', 'node'], ['node']],
+        [['c:\\bin\\node.exe', 'file.ts', 'alfa'], ['alfa']]
       ];
 
       cases.forEach(function([input, expected]) {

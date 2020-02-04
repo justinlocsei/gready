@@ -13,10 +13,16 @@ interface DataDirectoryStructure {
  * Extract command-line arguments from a list
  */
 export function extractArgs(args: string[]): string[] {
-  const binPosition = args.findIndex(a => a.match(/[\\\/]node$/));
-  const argsStart = binPosition >= 0 ? binPosition + 2 : 0;
+  const binPosition = args.findIndex(function(arg) {
+    const basenames = [
+      path.posix.basename(arg),
+      path.win32.basename(arg)
+    ];
 
-  return args.slice(argsStart);
+    return basenames.some(n => n.match(/^node(\.exe)?$/));
+  });
+
+  return args.slice(binPosition >= 0 ? binPosition + 2 : 0);
 }
 
 /**
