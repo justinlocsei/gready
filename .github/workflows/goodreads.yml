@@ -20,5 +20,7 @@ jobs:
           npm install
           npm run build
 
-      - name: Verify the API interactions in the build
+      - name: Verify Goodreads API interactions in the build
         run: npm run build:verify-api
+        env:
+          GREADY_GOODREADS_API_KEY: ${{ secrets.GREADY_GOODREADS_API_KEY }}
