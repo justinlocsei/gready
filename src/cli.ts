@@ -24,9 +24,9 @@ export class CLI {
 
   readonly config: Configuration;
   readonly logger: Logger;
+  readonly recentBooks?: number;
   readonly repo: Repository;
 
-  private recentBooks?: number;
   private userID: UserID;
   private writeOutput: OutputHandler;
 
