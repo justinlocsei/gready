@@ -149,6 +149,7 @@ export function createReview(data?: Partial<Core.Review>): Core.Review {
     rating: 5,
     shelves: [],
     user: createUser(),
+    workID: string(),
     ...data
   };
 }
@@ -160,6 +161,7 @@ export function createSimilarBook(data: Partial<Core.SimilarBook> = {}): Core.Si
   return {
     author: createAuthor(data.author),
     id: string(),
+    workID: string(),
     ...data
   };
 }

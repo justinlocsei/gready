@@ -147,7 +147,8 @@ class RepositoryClass {
       id: readBook.id,
       posted: new Date(readBook.read_at || readBook.date_added).getTime(),
       rating: readBook.rating ? parseInt(readBook.rating, 10) : undefined,
-      shelves
+      shelves,
+      workID: readBook.book.work.id
     };
   }
 
@@ -192,7 +193,8 @@ class RepositoryClass {
     const similar = ensureArray(similarBooks).map((book): SimilarBook => {
       return {
         author: this.extractAuthor(book.authors),
-        id: book.id
+        id: book.id,
+        workID: book.work.id
       };
     });
 

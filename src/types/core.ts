@@ -39,11 +39,13 @@ export interface Review {
   rating?: number;
   shelves: string[];
   user: User;
+  workID: WorkID;
 }
 
 export interface SimilarBook {
   author: Author;
   id: BookID;
+  workID: WorkID;
 }
 
 export interface User {

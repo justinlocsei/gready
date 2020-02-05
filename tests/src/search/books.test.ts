@@ -151,8 +151,8 @@ describe('search/books', function() {
           {
             id: '1',
             similarBooks: [
-              createSimilarBook({ id: '2' }),
-              createSimilarBook({ id: '3' })
+              createSimilarBook({ id: '2', workID: '4' }),
+              createSimilarBook({ id: '3', workID: '5' })
             ]
           },
           {
@@ -163,8 +163,8 @@ describe('search/books', function() {
           }
         ],
         readBooks: [
-          { bookID: '1', rating: 5 },
-          { bookID: '3', rating: 4 }
+          { bookID: '1', rating: 5, workID: '6' },
+          { bookID: '3', rating: 4, workID: '5' }
         ]
       });
 

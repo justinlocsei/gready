@@ -163,7 +163,10 @@ describe('repository', function() {
                   { id: '3', name: 'Bravo' }
                 ]
               },
-              id: '1'
+              id: '1',
+              work: {
+                id: '4'
+              }
             }
           }
         });
@@ -175,13 +178,19 @@ describe('repository', function() {
                 authors: {
                   author: { id: '3', name: 'Alfa' }
                 },
-                id: '1'
+                id: '1',
+                work: {
+                  id: '5'
+                }
               },
               {
                 authors: {
                   author: { id: '4', name: 'Bravo' }
                 },
-                id: '2'
+                id: '2',
+                work: {
+                  id: '6'
+                }
               }
             ]
           }
@@ -190,18 +199,21 @@ describe('repository', function() {
         assert.deepEqual(oneBook.similarBooks, [
           {
             author: { id: '2', name: 'Alfa' },
-            id: '1'
+            id: '1',
+            workID: '4'
           }
         ]);
 
         assert.deepEqual(twoBooks.similarBooks, [
           {
             author: { id: '3', name: 'Alfa' },
-            id: '1'
+            id: '1',
+            workID: '5'
           },
           {
             author: { id: '4', name: 'Bravo' },
-            id: '2'
+            id: '2',
+            workID: '6'
           }
         ]);
       });

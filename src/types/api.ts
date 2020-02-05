@@ -24,6 +24,9 @@ export interface Book {
     book: OneOrMore<{
       authors: Authorship;
       id: string;
+      work: {
+        id: string;
+      };
     }>;
   };
   title: string;
