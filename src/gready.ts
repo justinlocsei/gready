@@ -197,7 +197,7 @@ function parseCLIArgs(args: string[]): Promise<CommandOptions> {
               type: 'number'
             },
             'reviews': {
-              default: 10,
+              default: 5,
               describe: 'The maximum number of reviews per book to query',
               type: 'number'
             }
