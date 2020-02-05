@@ -10,15 +10,15 @@
     <title>Title</title>
     <publisher>Publisher</publisher>
     <work>
-      <id type="integer">1</id>
-      <best_book_id type="integer">1</best_book_id>
+      <id type="integer">2</id>
+      <best_book_id type="integer">3</best_book_id>
       <ratings_sum type="integer">5</ratings_sum>
       <ratings_count type="integer">1</ratings_count>
       <original_title>Original Title</original_title>
     </work>
     <authors>
       <author>
-        <id>1</id>
+        <id>4</id>
         <name>Author</name>
       </author>
     </authors>
@@ -32,20 +32,26 @@
       <book>
         <authors>
           <author>
-            <id>1</id>
+            <id>5</id>
             <name>Author</name>
           </author>
         </authors>
-        <id>38709</id>
+        <id>6</id>
+        <work>
+          <id>7</id>
+        </work>
       </book>
       <book>
         <authors>
           <author>
-            <id>1</id>
+            <id>8</id>
             <name>Author</name>
           </author>
         </authors>
-        <id>10365</id>
+        <id>9</id>
+        <work>
+          <id>10</id>
+        </work>
       </book>
     </similar_books>
   </book>
