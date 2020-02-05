@@ -39,6 +39,16 @@ Each of the above commands writes Markdown to `stdout`, allowing you to pipe any
 gready summarize > summary.md
 ```
 
+Gready can display both global and per-command options by using the following commands:
+
+```sh
+# Show global options and available commands
+gready --help
+
+# Show command-specific options
+gready <command-name> --help
+```
+
 ### Configuration
 
 The recommendations made by Gready can be controlled via a JSON configuration file that allows you to filter and customize book data.  Gready looks for a configuration file at `~/.greadyrc` by default, but you can specify a different path by passing the `--config=<path-to-file>` option to any Gready command.  An example configuration file with explanatory comments is shown below:
@@ -46,7 +56,7 @@ The recommendations made by Gready can be controlled via a JSON configuration fi
 ```javascript
 {
   // A list of the full names of authors whose works should not appear in the
-  // list of books recommended by `gready find-books`
+  // list of books produced by `gready find-books`
   "ignoreAuthors": [
     "First Last",
     "First Middle Last"
@@ -58,7 +68,7 @@ The recommendations made by Gready can be controlled via a JSON configuration fi
   // used shelves like “library” or “owned” whose presence can make more
   // specific shelves defining the genre of a book appear in a much lower
   // percentile.  To view all shelves associated with the books that you’ve
-  // read, use the `gready summarize` command.
+  // read, use `gready summarize --section=shelves --shelf-percentile=1`.
   "ignoreShelves": [
     "audio",
     "series"
@@ -106,6 +116,8 @@ The `gready` executable requires a command that defines its mode of operation.  
 
 ### clear-cache
 
+This command clears any cached API responses or data generated as a result of analyzing your reading history.
+
 ```sh
 # Clear all cached data
 gready clear-cache
@@ -119,17 +131,19 @@ gready clear-cache --cache=data --namespace=books
 
 ### find-books
 
+This command takes the similar books provided by Goodreads for each book in your reading history and organizes them into percentiles based upon how many times a book is listed as similar to one that you have read.
+
 ```sh
 # Generate a list of recommended books
 gready find-books
 
-# Only generate recommendations based on books to which you’ve given at least four stars
+# Only generate recommendations based on books to which you’ve given at least a four-star rating
 gready find-books --min-rating=4
 
-# Only show books in the 90th percentile, as determined by the number of recommendations
+# Only show books in the 90th percentile, as determined by the number of times they’re suggested as a similar book
 gready find-books --percentile=90
 
-# Only generate recommendations for fantasy books
+# Only generate recommendations based on the fantasy books that you’ve read
 gready find-books --shelf=fantasy
 
 # Only show the top five recommendations
@@ -137,6 +151,8 @@ gready find-books --limit=5
 ```
 
 ### find-readers
+
+This command combines the most popular Goodreads reviews of each book in your reading history left by a reader who used the same star rating as you and organizes them into percentiles based on how many times a reviewer with a shared rating appeared.
 
 ```sh
 # Generate a list of Goodreads users with similar interests
@@ -148,28 +164,22 @@ gready find-readers --min-books=3
 # Find users based on the twenty most popular reviews of each book
 gready find-readers --reviews=20
 
-# Only show users who have given the same rating to a specific book as you have
+# Only show users who have given the same rating as you to a specific book
 gready find-readers --book-id=<book-id>
 ```
 
 ### show-cache-stats
+
+This command displays information on the entries in the cache.  It can be used to show the available namespaces for each cache, which you can pass to `gready clear-cache` to clear a subset of cached data.
 
 ```sh
 # Print a summary of cached API responses and data
 gready show-cache-stats
 ```
 
-### sync-books
-
-```sh
-# Create a local copy of your reading history
-gready sync-books
-
-# Only sync data for your five most recently read books
-gready sync-books --recent-books=5
-```
-
 ### summarize
+
+This command shows a summary of your locally available reading history as pulled down by `sync-books`.  As with the other Gready commands, this summary is formatted using Markdown, so you can pipe it to a file for a better viewing experience.
 
 ```sh
 # Print a summary of the books that you’ve read
@@ -180,4 +190,16 @@ gready summarize --section=books-by-publisher --section=publishers
 
 # Only include fiction books in the summary
 gready summarize --shelf=fiction
+```
+
+### sync-books
+
+This command creates a local record of your Goodreads reading history.  This data is also fetched when running the `find-books` and `find-readers` commands, making `sync-books` a convenience command to prime the cache for the find commands.  However, the `summarize` command will only summarize the local copy of your reading history.
+
+```sh
+# Create a local copy of your reading history
+gready sync-books
+
+# Only sync data for your five most recently read books
+gready sync-books --recent-books=5
 ```
