@@ -10,7 +10,7 @@ describe('logger', function() {
     it('exposes the level names', function() {
       assert.deepEqual(
         getLevelNames(),
-        ['debug', 'info', 'none']
+        ['debug', 'info', 'none', 'warn']
       );
     });
 
@@ -244,6 +244,59 @@ describe('logger', function() {
           '[INFO]   bravo',
           '[INFO]  charlie'
         ]);
+      });
+
+    });
+
+    describe('.warn', function() {
+
+      it('logs a warning', async function() {
+        const [logger, readLog] = createTestLogger({ logLevel: 'warn' });
+
+        logger.warn('alfa');
+        logger.warn('bravo', 'charlie');
+
+        const messages = await readLog();
+
+        assert.deepEqual(messages, [
+          '[WARN] alfa',
+          '[WARN] bravo | charlie'
+        ]);
+      });
+
+      it('hides debug messages', async function() {
+        const [logger, readLog] = createTestLogger({ logLevel: 'warn' });
+
+        logger.debug('alfa');
+        logger.warn('bravo');
+
+        assert.deepEqual(await readLog(), [
+          '[WARN] bravo'
+        ]);
+      });
+
+      it('is ignored when the logger is disabled', async function() {
+        const [logger, readLog] = createTestLogger({ logLevel: 'none' });
+
+        logger.warn('alfa');
+        assert.deepEqual(await readLog(), []);
+      });
+
+      it('can produce colorized output', async function() {
+        const [color, readColorLogs] = createTestLogger({ logLevel: 'warn', useColor: true });
+        const [plain, readPlainLogs] = createTestLogger({ logLevel: 'warn', useColor: false });
+
+        color.warn('alfa');
+        plain.warn('alfa');
+
+        assert.isTrue(color.useColor);
+        assert.isFalse(plain.useColor);
+
+        const [colorText] = await readColorLogs();
+        const [plainText] = await readPlainLogs();
+
+        assert.equal(plainText, '[WARN] alfa');
+        assert.include(colorText, '[WARN] alfa');
       });
 
     });

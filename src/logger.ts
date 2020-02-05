@@ -5,8 +5,9 @@ import { OutputHandler } from './types/system';
 
 const LEVELS = [
   { rank: 0, name: 'none' },
-  { rank: 1, name: 'info' },
-  { rank: 2, name: 'debug' }
+  { rank: 1, name: 'warn' },
+  { rank: 2, name: 'info' },
+  { rank: 3, name: 'debug' }
 ] as const;
 
 const LEVEL_NAMES = LEVELS.map(l => l.name);
@@ -88,6 +89,13 @@ class LoggerClass {
    */
   outdent(spaces: number) {
     this.indentation -= spaces;
+  }
+
+  /**
+   * Log a warning
+   */
+  warn(...message: string[]) {
+    this.logMessage('warn', message, 'yellow');
   }
 
   /**
