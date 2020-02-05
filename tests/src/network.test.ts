@@ -1,7 +1,7 @@
 import assert from '../helpers/assert';
-import { makeGetRequest } from '../../src/network';
-import { NetworkError } from '../../src/errors';
 import { allowNetworkAccess, useServer } from '../helpers/requests';
+import { handleRequestErrors, makeGetRequest } from '../../src/network';
+import { NetworkError } from '../../src/errors';
 
 describe('network', function() {
 
@@ -9,6 +9,56 @@ describe('network', function() {
     always: true,
     timeout: 1000,
     useFixtures: false
+  });
+
+  describe('handleRequestErrors', function() {
+
+    it('returns the result of a successful request', function() {
+      return useServer(
+        200,
+        {},
+        () => 'Alfa',
+        async function(url) {
+          const result = await handleRequestErrors(
+            () => makeGetRequest(url),
+            () => Promise.resolve('Bravo')
+          );
+
+          assert.equal(result, 'Alfa');
+        });
+    });
+
+    it('returns the fallback branch when a network error occurs', function() {
+      return useServer(
+        500,
+        {},
+        () => 'Alfa',
+        async function(url) {
+          const result = await handleRequestErrors(
+            () => makeGetRequest(url),
+            () => Promise.resolve('Bravo')
+          );
+
+          assert.equal(result, 'Bravo');
+        });
+    });
+
+    it('throws an error when the request function throws a non-network error', function() {
+      return useServer(
+        200,
+        {},
+        () => 'Alfa',
+        async function(url) {
+          await assert.isRejected(
+            handleRequestErrors(
+              () => { throw new Error('Alfa'); },
+              () => Promise.resolve('Bravo')
+            ),
+            'Alfa'
+          );
+        });
+    });
+
   });
 
   describe('makeGetRequest', function() {
