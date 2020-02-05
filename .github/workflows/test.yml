@@ -16,7 +16,7 @@ jobs:
 
       - name: Install the app
         run: |
-          npm install
+          npm ci
           npm run test:prepare
 
       - name: Lint code
@@ -37,7 +37,7 @@ jobs:
 
       - name: Install the app
         run: |
-          npm install
+          npm ci
           npm run test:prepare
 
       - name: Run tests

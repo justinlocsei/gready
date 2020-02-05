@@ -27,7 +27,7 @@ jobs:
 
       - name: Build the app
         run: |
-          npm install
+          npm ci
           npm run build
 
       - name: Verify the build
@@ -46,7 +46,7 @@ jobs:
 
       - name: Build the app
         run: |
-          npm install
+          npm ci
           npm run build
 
       - name: Verify Goodreads API integration
