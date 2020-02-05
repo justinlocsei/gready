@@ -6,7 +6,7 @@ import { BookID, ReviewID } from './types/goodreads';
 import { makeGetRequest } from './network';
 import { URLS } from './goodreads';
 
-interface PartialReview {
+export interface PartialReview {
   id: ReviewID;
   rating: number;
 }
