@@ -29,8 +29,8 @@ gready summarize
 # Generate a list of book recommendations
 gready find-books
 
-# Generate a list of Goodreads users with similar interests
-gready find-readers
+# Generate a list of Goodreads users with similar interests based on your ten most recently read books
+gready find-readers --recent-books=10
 ```
 
 Each of the above commands writes Markdown to `stdout`, allowing you to pipe any command’s output to a file that you can open in a Markdown viewer.  For example, to create a file containing the summary of your reading history, you could run the following command:
@@ -152,11 +152,16 @@ gready find-books --limit=5
 
 ### find-readers
 
-This command combines the most popular Goodreads reviews of each book in your reading history left by a reader who used the same star rating as you and organizes them into percentiles based on how many times a reviewer with a shared rating appeared.
+This command takes the most popular Goodreads reviews of each book in your reading history left by a reader who used the same star rating as you and organizes them into percentiles based on how many times a reviewer with a shared rating appeared.
+
+By default, this will look for readers with similar interests across all your books with a rating, which involves fetching a set of reviews for each rated book.  Due to the throttled, sequential approach to making these requests that is required to respect [the terms of service for the Goodreads API](https://www.goodreads.com/api/terms), this search for readers takes between 5–10 seconds per book in your reading history.  In order to generate faster recommendations at the cost of quality, you can restrict the number of recent books used to search for readers via the `--recent-books` option.
 
 ```sh
 # Generate a list of Goodreads users with similar interests
 gready find-readers
+
+# Generate a list of Goodreads users with similar interests based on your five most recently read books
+gready find-readers --recent-books=5
 
 # Only show users who have given at least three books the same rating as you
 gready find-readers --min-books=3
