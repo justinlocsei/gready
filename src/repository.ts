@@ -97,7 +97,7 @@ class RepositoryClass {
   }: {
     recent?: number;
   } = {}): Promise<ReadBook[]> {
-    return this.cache.fetch(['read-books', userID], async () => {
+    return this.cache.fetch(['read-books', userID, recent === undefined ? 'all' : recent], async () => {
       this.logger.info('Load read books', `UserID=${userID}`);
 
       const books = await this.apiClient.getReadBooks(userID, {
