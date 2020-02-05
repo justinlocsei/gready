@@ -5,8 +5,8 @@ import { range } from 'lodash';
 import { Cache, KeyPath } from './cache';
 import { ensureArray } from './util';
 import { findPartialReviewsForBook } from './reviews';
+import { handleRequestErrors, makeGetRequest } from './network';
 import { Logger } from './logger';
-import { makeGetRequest } from './network';
 import { NetworkError, OperationalError } from './errors';
 import { runSequence } from './flow';
 import { URLS } from './goodreads';
@@ -117,7 +117,7 @@ class APIClientClass {
       `Limit=${limit}`
     ];
 
-    const reviews = await this.cache.fetch(
+    const partialReviews = await this.cache.fetch(
       ['review-meta', bookID, rating || 'all', limit],
       () => {
         this.logger.debug('Fetch review metadata', ...message);
@@ -125,12 +125,21 @@ class APIClientClass {
       }
     );
 
-    return runSequence(
+    const reviews: Review[] = [];
+
+    await runSequence(
       ['Load reviews', ...message],
-      reviews,
+      partialReviews,
       this.logger,
-      async ({ id }) => this.getReview(id)
+      ({ id }) => {
+        return handleRequestErrors(
+          async () => reviews.push(await this.getReview(id)),
+          async error => this.logger.warn(`Skipping review ${id} due to network error: ${error.statusCode}`)
+        );
+      }
     );
+
+    return reviews;
   }
 
   /**

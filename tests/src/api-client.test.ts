@@ -2,6 +2,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import { uniq } from 'lodash';
 
+import * as network from '../../src/network';
 import * as reviews from '../../src/reviews';
 import assert from '../helpers/assert';
 import { allowNetworkAccess, simulateResponse } from '../helpers/requests';
@@ -10,6 +11,7 @@ import { APIClient, createAPIClient } from '../../src/api-client';
 import { canAttemptNetworkAccess, createTestLogger, shouldBypassFixtures } from '../helpers';
 import { createCache } from '../../src/cache';
 import { getGoodreadsAPIKey, hasGoodreadsAPIKey } from '../../src/config';
+import { NetworkError } from '../../src/errors';
 import { paths } from '../../src/environment';
 import { URLS } from '../../src/goodreads';
 
@@ -121,6 +123,24 @@ describe('api-client', function() {
         });
 
         assert.isEmpty(await client.getBookReviews('1', { limit: 1 }));
+      });
+
+      it('skips reviews that caused a network error', async function() {
+        override(network, 'makeGetRequest', function() {
+          throw new NetworkError('Failed', 500);
+        });
+
+        const client = await createClient();
+        client.cache.isEnabled = false;
+
+        override(reviews, 'findPartialReviewsForBook', function(): Promise<reviews.PartialReview[]> {
+          return Promise.resolve([
+            { id: '2', rating: 5 },
+            { id: '3', rating: 4 }
+          ]);
+        });
+
+        assert.isEmpty(await client.getBookReviews('1', { limit: 2 }));
       });
 
     });
