@@ -144,6 +144,25 @@ describe('search/readers', function() {
       ]);
     });
 
+    it('de-dupes books by work ID', async function() {
+      const readers = await getSimilarReaders({
+        books: [
+          { id: '1', workID: '5' },
+          { id: '2', workID: '5' }
+        ],
+        readBooks: [
+          { bookID: '1', rating: 5, workID: '5' },
+          { bookID: '2', rating: 4, workID: '5' }
+        ],
+        reviews: {
+          '1': [{ user: createUser({ id: '3' }) }],
+          '2': [{ user: createUser({ id: '4' }) }]
+        }
+      });
+
+      assert.equal(readers.length, 1);
+    });
+
     it('exposes metrics on a user’s shelves', async function() {
       const userThree = createUser({ id: '3' });
       const userFour = createUser({ id: '4' });

@@ -46,9 +46,12 @@ export async function findSimilarReaders({
     }
   );
 
+  const bookshelf = createBookshelf(Object.values(booksByID), config);
+  const validBookIDs = new Set(bookshelf.getBooks().map(b => b.id));
+
   await runSequence(
     ['Find similar readers'],
-    ratedBooks,
+    ratedBooks.filter(r => validBookIDs.has(r.bookID)),
     repo.logger,
     async function(readBook) {
       const similar = await repo.getSimilarReviews(
@@ -76,7 +79,7 @@ export async function findSimilarReaders({
     ]
   );
 
-  const shelfNames = createBookshelf(Object.values(booksByID), config)
+  const shelfNames = bookshelf
     .getShelves()
     .map(s => s.data.name)
     .sort();
