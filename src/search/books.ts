@@ -59,10 +59,11 @@ export async function findRecommendedBooks({
   }
 
   const ignoredAuthors = new Set(config.ignoreAuthors);
+  const readIDs = new Set(readBooks.map(r => r.workID));
 
   const countsByID = books.reduce(function(previous: Record<BookID, number>, book) {
-    book.similarBooks.forEach(function({ author, id }) {
-      if (!ignoredAuthors.has(author.name)) {
+    book.similarBooks.forEach(function({ author, id, workID }) {
+      if (!ignoredAuthors.has(author.name) && !readIDs.has(workID)) {
         previous[id] = previous[id] || 0;
         previous[id]++;
       }
@@ -71,17 +72,12 @@ export async function findRecommendedBooks({
     return previous;
   }, {});
 
-  const readIDs = new Set(readBooks.map(r => r.bookID));
-
-  const recommendations = Object
-    .keys(countsByID)
-    .map(function(id) {
-      return {
-        bookID: id,
-        recommendations: countsByID[id]
-      };
-    })
-    .filter(r => !readIDs.has(r.bookID));
+  const recommendations = Object.keys(countsByID).map(function(id) {
+    return {
+      bookID: id,
+      recommendations: countsByID[id]
+    };
+  });
 
   const ranked = partition(recommendations, r => r.recommendations);
 
